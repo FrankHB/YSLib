@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2020 FrankHB.
+	© 2011-2016, 2018-2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1075
+\version r1097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2020-07-24 11:27 +0800
+	2023-02-20 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_UI_Menu_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_ListControl
+#include YFM_YSLib_UI_ListControl // for value_map, observer_ptr, value_set,
+//	ystdex::get_less;
 #include YFM_YSLib_UI_YUIContainer // for UI::ZOrder;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
@@ -60,18 +61,18 @@ class YF_API Menu : public TextList
 
 public:
 	//! \brief 子菜单映射表类型。
-	using SubMap = map<IndexType, observer_ptr<Menu>>;
+	using SubMap = value_map<IndexType, observer_ptr<Menu>>;
 	//! \brief 子菜单映射表项目类型。
 	using ValueType = SubMap::value_type;
 
 protected:
 	//! \since build 672
-	//@{
+	//!@{
 	//! \brief 宿主指针。
 	observer_ptr<MenuHost> pHost{};
 	//! \brief 父菜单指针。
 	observer_ptr<Menu> pParent{};
-	//@}
+	//!@}
 	//! \brief 子菜单映射表：存储非空子菜单指针。
 	SubMap mSubMenus{};
 	//! \brief 未启用菜单项。
@@ -112,18 +113,19 @@ public:
 
 	/*!
 	\brief 判断菜单项是否有效。
-	\pre 断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\pre 断言：<tt>IsInInterval(idx, GetList().size())</tt> 。
 	\post <tt>vDisabled.size() == GetList().size()</tt> 。
 	*/
 	bool
 	IsItemEnabled(ListType::size_type) const;
 
 	//! \since build 672
-	DefGetter(const ynothrow, observer_ptr<Menu>, ParentPtr, pParent)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, observer_ptr<Menu>, ParentPtr, pParent)
 
 	/*!
 	\brief 设置 idx 指定的菜单项的可用性。
-	\pre 断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\pre 断言：<tt>IsInInterval(idx, GetList().size())</tt> 。
 	\post <tt>vDisabled.size() == GetList().size()</tt> ；
 		IsItemEnabled(idx) 。
 	*/
@@ -199,17 +201,17 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable
 {
 private:
-	//! \since build 830
-	set<lref<Menu>, ystdex::get_less<>> menus{};
+	//! \since build 968
+	value_set<lref<Menu>, ystdex::get_less<>> menus{};
 
 public:
 	/*!
 	\brief 根菜单关联映射。
-	\since build 830
+	\since build 968
 
 	指定向指定部件转移焦点时不进行隐藏的菜单的映射。
 	*/
-	map<lref<IWidget>, observer_ptr<Menu>, ystdex::get_less<>> Roots{};
+	value_map<lref<IWidget>, observer_ptr<Menu>, ystdex::get_less<>> Roots{};
 
 	//! \since build 574
 	DefDeCtor(MenuHost)
@@ -267,8 +269,8 @@ public:
 
 private:
 	/*!
-	\brief 显示指定菜单 mnu 。
-	\pre 断言： Contains(mnu) 。
+	\brief 隐藏参数指定的菜单。
+	\pre 断言：\c Contains(mnu) 。
 	\since build 574
 	*/
 	void
@@ -290,18 +292,18 @@ public:
 
 private:
 	/*!
-	\brief 隐藏指定菜单 mnu。
-	\pre 断言： Contains(mnu) 。
+	\brief 隐藏参数指定的菜单。
+	\pre 断言：\c Contains(mnu) 。
 	*/
 	void
 	HideRaw(Menu& mnu);
 
 public:
 	/*!
-	\brief 隐藏从 mnu 起向上层遍历菜单树的过程中不相关的菜单。
-	\note 相关菜单指 mnu 的父菜单中的 mnuParent 及其直接或间接父菜单。
-	\note 若 <tt>!Contains(mnuParent)</tt>
-		或 mnuParent 不是 mnu 的直接或间接父菜单，则隐藏所有菜单。
+	\brief 隐藏从第一参数起向上层遍历菜单树的过程中不相关的菜单。
+	\note 相关菜单指第一参数指定的菜单的父菜单中的第二参数及其直接或间接父菜单。
+	\note 若 \c !Contains(mnuParent)
+		或 \c mnuParent 不是 \c mnu 的直接或间接父菜单，则隐藏所有菜单。
 	*/
 	void
 	HideUnrelated(Menu& mnu, Menu& mnuParent);

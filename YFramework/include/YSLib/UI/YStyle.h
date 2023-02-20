@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2018-2020 FrankHB.
+	© 2010-2015, 2018-2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r867
+\version r945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2020-05-12 17:46 +0800
+	2023-02-19 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_UI_ystyle_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YComponent // for function;
+#include YFM_YSLib_UI_YComponent // for function, linked_map,
+//	ordered_linked_map;
 #include YFM_YSLib_Service_YDraw
 #include <ystdex/rational.hpp>
 #include <typeindex> // for mandated header;
@@ -42,7 +43,7 @@ namespace Drawing
 {
 
 //! \pre 间接断言：图形上下文接口有效。
-//@{
+//!@{
 /*!
 \brief 绘制部件边框用空心标准矩形。
 \note 右下角顶点坐标
@@ -67,7 +68,7 @@ RectDrawArrow(const PaintContext&, SDst, Rotation = RDeg0,
 \pre 断言：指向值有效。
 \since build 522
 */
-//@{
+//!@{
 /*!
 \brief 在指定上下文的矩形中描画底边和坐标轴共线的等腰直角三角形箭头轮廓。
 \note 位置指定顶点；大小以高度量； RDeg0 指向右侧。
@@ -113,7 +114,7 @@ DrawArrow(const Graphics&, const Rect&, const Rect&, SDst = 4, Rotation = RDeg0,
 YF_API void
 DrawCornerArrow(const Graphics&, const Rect&, const Point&, SDst = 4,
 	Rotation = RDeg0, Color = ColorSpace::Black, bool = {});
-//@}
+//!@}
 
 /*!
 \brief 在指定图形接口上下文中使用指定颜色描画交叉直线段（“×”）。
@@ -130,7 +131,7 @@ DrawCross(const Graphics&, const Rect&, const Rect&, Color);
 \note 若指定的矩形不满足长和宽都大于 8 则忽略。
 \since build 480
 */
-//@{
+//!@{
 //! \note 使用指定颜色以及底色。
 YF_API void
 DrawTick(const Graphics&, const Rect&, const Rect&, Color, Color);
@@ -138,14 +139,14 @@ DrawTick(const Graphics&, const Rect&, const Rect&, Color, Color);
 inline PDefH(void, DrawTick, const Graphics& g, const Rect& bounds,
 	const Rect& r, Color c)
 	ImplExpr(DrawTick(g, bounds, r, c, c))
-//@}
-//@}
+//!@}
+//!@}
 
 
 //平台无关色彩系统类型和转换。
 
 //! \since build 464
-//@{
+//!@{
 //! \brief 按指定分量取灰度色。
 yconstfn PDefH(Color, MakeGray, MonoType g)
 	ImplRet(Color(g, g, g))
@@ -153,7 +154,7 @@ yconstfn PDefH(Color, MakeGray, MonoType g)
 //! \brief 按指定颜色或分量选取彩色或灰度色。
 yconstfn PDefH(Color, MakeGrayOrColor, Color c, MonoType g, bool colored)
 	ImplRet(colored ? c : Color(g, g, g))
-//@}
+//!@}
 
 
 /*!
@@ -168,7 +169,7 @@ using Hue = ystdex::fixed_point<std::uint16_t, 9>;
 \since build 561
 \warning 非虚析构。
 */
-//@{
+//!@{
 /*!
 \brief 色调和饱和度对。
 \note 色调取值范围 [0, 360) ，饱和度取值范围 [0, 1] 。
@@ -184,11 +185,11 @@ public:
 		: HS(Hue(h), s)
 	{}
 
-	DefGetter(const ynothrow, Hue, H, first)
-	DefGetter(const ynothrow, float, S, second)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Hue, H, first)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, float, S, second)
 
-	DefGetter(ynothrow, Hue&, HRef, first)
-	DefGetter(ynothrow, float&, SRef, second)
+	YB_ATTR_nodiscard DefGetter(ynothrow, Hue&, HRef, first)
+	YB_ATTR_nodiscard DefGetter(ynothrow, float&, SRef, second)
 
 	/*!
 	\brief 色调偏移。
@@ -223,7 +224,7 @@ public:
 
 	/*!
 	\brief 转换为 RGB 颜色。
-	\pre 断言： <tt>std::isfinite(GetS())</tt> 。
+	\pre 断言：\c std::isfinite(GetS()) 。
 	\note 结果的 Alpha 使用默认初始化值。
 	*/
 	YB_ATTR_nodiscard YB_PURE explicit
@@ -233,8 +234,8 @@ public:
 	using HS::GetHRef;
 	using HS::GetS;
 	using HS::GetSRef;
-	DefGetter(const ynothrow, float, L, lightness)
-	DefGetter(ynothrow, float&, LRef, lightness)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, float, L, lightness)
+	YB_ATTR_nodiscard DefGetter(ynothrow, float&, LRef, lightness)
 
 	/*!
 	\brief 色调偏移。
@@ -279,8 +280,8 @@ public:
 	using HS::GetHRef;
 	using HS::GetS;
 	using HS::GetSRef;
-	DefGetter(const ynothrow, float, V, value)
-	DefGetter(ynothrow, float&, VRef, value)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, float, V, value)
+	YB_ATTR_nodiscard DefGetter(ynothrow, float&, VRef, value)
 
 	/*!
 	\brief 色调偏移。
@@ -305,25 +306,43 @@ namespace Styles
 */
 enum Area
 {
-	//背景和填充区域。
-	Null = 0, //!< 空（屏幕背景）。
-	Desktop = 1, //!< 桌面背景。
-	Window = 2, //!< 窗口背景。
-	Panel = 3, //!< 面板背景。
-	Track = 4, //!< 滚动条背景。
-	Workspace = 5, //!< 应用程序工作区背景。
-	Shadow = 6, //!< 阴影背景。
-	DockShadow = 7, //!< 容器阴影背景。
-	Light = 8, //!< 明亮背景。
-	Frame = 9, //!< 框架背景。
-	Highlight = 10, //!< 高亮背景。
-	BorderFill = 11, //!< 边框填充。
-	ActiveBorder = 12, //!< 活动边框背景。
-	InactiveBorder = 13, //!< 不活动边框背景。
-	ActiveTitle = 14, //!< 活动标题背景。
-	InactiveTitle = 15, //!< 不活动标题背景。
-
-	//前景和文本。
+	// \note 背景和填充区域。
+	//!@{
+	//! \brief 空（屏幕背景）。
+	Null = 0,
+	//! \brief 桌面背景。
+	Desktop = 1,
+	//! \brief 窗口背景。
+	Window = 2,
+	//! \brief 面板背景。
+	Panel = 3,
+	//! \brief 滚动条背景。
+	Track = 4,
+	//! \brief 应用程序工作区背景。
+	Workspace = 5,
+	//! \brief 阴影背景。
+	Shadow = 6,
+	//! \brief 容器阴影背景。
+	DockShadow = 7,
+	//! \brief 明亮背景。
+	Light = 8,
+	//! \brief 框架背景。
+	Frame = 9,
+	//! \brief 高亮背景。
+	Highlight = 10,
+	//! \brief 边框填充。
+	BorderFill = 11,
+	//! \brief 活动边框背景。
+	ActiveBorder = 12,
+	//! \brief 不活动边框背景。
+	InactiveBorder = 13,
+	//! \brief 活动标题背景。
+	ActiveTitle = 14,
+	//! \brief 不活动标题背景。
+	InactiveTitle = 15,
+	//!@}
+	// \note 前景和文本。
+	//!@{
 	HighlightText = 16,
 	WindowText = 17,
 	PanelText = 18,
@@ -331,7 +350,7 @@ enum Area
 	TitleText = 20,
 	InactiveTitleText = 21,
 	HotTracking = 22,
-
+	//!@}
 	EndArea = 24
 };
 
@@ -361,8 +380,9 @@ public:
 	PDefHOp(Drawing::Color&, [], size_t s) ynothrowv
 		ImplRet(colors[s])
 
-	DefGetter(const ynothrow, const ColorListType&, List, colors)
-	DefGetter(ynothrow, ColorListType&, List, colors)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const ColorListType&, List, colors)
+	YB_ATTR_nodiscard DefGetter(ynothrow, ColorListType&, List, colors)
 	/*!
 	\brief 取指定下标的颜色对。
 	*/
@@ -372,7 +392,7 @@ public:
 
 
 //! \since build 468
-//@{
+//!@{
 //! \brief 标识样式渲染项的类型。
 using StyleItem = size_t;
 
@@ -383,7 +403,7 @@ using Key = pair<std::type_index, StyleItem>;
 using Handler = function<void(PaintEventArgs&&)>;
 
 //! \brief 样式处理器表。
-using HandlerTable = unordered_map<Key, Handler, ystdex::combined_hash<Key>>;
+using HandlerTable = linked_map<Key, Handler, ystdex::combined_hash<Key>>;
 
 //! \brief 视觉样式。
 using VisualStyle = pair<string, HandlerTable>;
@@ -396,7 +416,7 @@ using VisualStyle = pair<string, HandlerTable>;
 	使用 ADL get\<0U> 和 get\<1U> 实现访问其中的成员。
 \since build 469
 */
-//@{
+//!@{
 template<typename _tIn>
 void
 AddHandlers(HandlerTable& table, std::type_index idx, _tIn first, _tIn last)
@@ -425,7 +445,7 @@ AddHandlers(HandlerTable& table,
 	Styles::AddHandlers(table, typeid(_type), il);
 }
 //! \note 使用 ADL begin 和 end 指定范围迭代器。
-//@{
+//!@{
 template<typename _tRange>
 inline void
 AddHandlers(HandlerTable& table, std::type_index idx, _tRange&& c)
@@ -439,8 +459,8 @@ AddHandlers(HandlerTable& table, _tRange&& c)
 {
 	Styles::AddHandlers(table, typeid(_type), yforward(c));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -466,9 +486,10 @@ public:
 	DefDeCopyAssignment(Painter)
 	DefDeMoveAssignment(Painter)
 
-	DefGetter(const ynothrow, StyleItem, Item, key.second)
-	DefGetter(const ynothrow, const Key&, Key, key)
-	DefGetter(const ynothrow, std::type_index, TypeIndex, key.first)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, StyleItem, Item, key.second)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const Key&, Key, key)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, std::type_index, TypeIndex, key.first)
 
 	void
 	operator()(PaintEventArgs&&) const;
@@ -479,10 +500,11 @@ public:
 \brief 样式映射。
 \warning 非虚析构。
 */
-class YF_API StyleMap : private noncopyable, private map<string, HandlerTable>
+class YF_API StyleMap : private noncopyable,
+	private ordered_linked_map<string, HandlerTable>
 {
 public:
-	using MapType = YSLib::map<string, HandlerTable>;
+	using MapType = ordered_linked_map<string, HandlerTable>;
 	using MapType::const_iterator;
 	using MapType::iterator;
 
@@ -499,7 +521,8 @@ public:
 	{}
 
 	//! \since build 469
-	DefGetter(const ynothrow, const_iterator, Current, current)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const_iterator, Current, current)
 
 	template<typename... _tParams>
 	void
@@ -550,7 +573,7 @@ public:
 */
 YB_ATTR_nodiscard YB_PURE YF_API HandlerTable&
 FetchDefault();
-//@}
+//!@}
 
 } // namespace Styles;
 

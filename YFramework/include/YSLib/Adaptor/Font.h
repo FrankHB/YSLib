@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2021 FrankHB.
+	© 2009-2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3544
+\version r3720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2021-12-29 01:21 +0800
+	2023-02-20 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,20 @@
 #define YSL_INC_Adaptor_Font_h_ 1
 
 #include "../Core/YModules.h"
-#include YFM_YSLib_Core_YFunc
+#include YFM_YSLib_Core_YFunc // for linked_map, ystdex::is_fast_hash,
+//	ystdex::false_, list, value_map, default_allocator, byte;
 #include YFM_YSLib_Core_YObject
 #include <string>
 #include YFM_YSLib_Core_YException // for LoggedEvent;
 #include YFM_YSLib_Adaptor_YTextBase
 #include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
-#include <ystdex/cache.hpp>
+#include <ystdex/cache.hpp> // for ystdex::recent_used_list,
+//	ystdex::used_list_cache;
 //#include <ft2build.h>
 //#include FT_FREETYPE_H
 
 //! \since build 612
-//@{
+//!@{
 struct FT_SizeRec_;
 using FT_Size = ::FT_SizeRec_*;
 using FT_SizeRec = ::FT_SizeRec_;
@@ -52,7 +54,7 @@ struct FT_LibraryRec_;
 using FT_Library = ::FT_LibraryRec_*;
 struct FT_Size_Metrics_;
 using FT_Size_Metrics = FT_Size_Metrics_;
-//@}
+//!@}
 
 namespace YSLib
 {
@@ -94,11 +96,16 @@ using StyleName = string;
 */
 enum class FontStyle : std::uint8_t
 {
-	Regular = 0, //!< 常规字体。
-	Bold = 1, //!< 粗体。
-	Italic = 2, //!< 斜体。
-	Underline = 4, //!< 下划线。
-	Strikeout = 8 //!< 删除线。
+	//! \brief 常规字体。
+	Regular = 0,
+	//! \brief 粗体。
+	Bold = 1,
+	//! \brief 斜体。
+	Italic = 2,
+	//! \brief 下划线。
+	Underline = 4,
+	//! \brief 删除线。
+	Strikeout = 8
 };
 
 /*!
@@ -147,7 +154,7 @@ public:
 	*/
 	~FontException() override;
 
-	DefGetter(const ynothrow, FontError, ErrorCode, err)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, FontError, ErrorCode, err)
 };
 
 
@@ -166,6 +173,10 @@ public:
 	NativeFontSize(NativeFontSize&&) ynothrow;
 	//! \since build 461
 	~NativeFontSize();
+
+	//! \since build 968
+	PDefHOp(NativeFontSize&, =, NativeFontSize&& ns) ynothrow
+		ImplRet(std::swap(size, ns.size), *this)
 
 	YB_ATTR_nodiscard YB_PURE ::FT_SizeRec&
 	GetSizeRec() const;
@@ -188,7 +199,7 @@ class YF_API FontFamily final : private noncopyable
 {
 public:
 	//! \brief 字型组索引类型。
-	using FaceMap = map<const StyleName, lref<Typeface>>;
+	using FaceMap = linked_map<StyleName, lref<Typeface>>;
 
 private:
 	FamilyName family_name;
@@ -217,9 +228,10 @@ public:
 	bool
 	operator-=(Typeface&) ynothrow;
 
-	DefGetter(const ynothrow, const FamilyName&, FamilyName, family_name)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const FamilyName&, FamilyName, family_name)
 	//! \since build 671
-	//@{
+	//!@{
 	/*!
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
@@ -229,7 +241,7 @@ public:
 	//! \brief 取指定样式名称的字型指针。
 	YB_ATTR_nodiscard YB_PURE observer_ptr<Typeface>
 	GetTypefacePtr(const StyleName&) const;
-	//@}
+	//!@}
 	//! \since build 419
 	YB_ATTR_nodiscard YB_PURE Typeface&
 	GetTypefaceRef(FontStyle) const;
@@ -238,6 +250,63 @@ public:
 	GetTypefaceRef(const StyleName&) const;
 };
 
+
+// XXX: To allow specialization, these types are in the namespace scope.
+/*!
+\since build 968
+\warning 非虚析构。
+*/
+//!@{
+struct yimpl(BitmapKey)
+{
+	//! \since build 562
+	unsigned Flags;
+	//! \since build 562
+	unsigned GlyphIndex;
+	FontSize Size;
+	//! \since build 421
+	FontStyle Style;
+
+	//! \since build 673
+	friend PDefHOp(bool, ==, const BitmapKey& x, const BitmapKey& y)
+		ynothrow
+		ImplRet(x.Flags == y.Flags && x.GlyphIndex == y.GlyphIndex
+			&& x.Size == y.Size && x.Style == y.Style)
+};
+
+
+//! \ingroup hashers
+struct yimpl(BitmapKeyHash)
+{
+	YB_ATTR_nodiscard YB_PURE PDefHOp(size_t, (), const BitmapKey& k)
+		const ynothrow
+		ImplRet(ystdex::hash_combine_seq(size_t(k.Style), k.Size,
+			k.GlyphIndex, k.Flags))
+};
+//!@}
+
+} // namespace Drawing;
+
+} // namespace YSLib;
+
+namespace ystdex
+{
+
+/*!
+\relates YSLib::Drawing::BitmapKeyHash
+\since build 968
+*/
+template<>
+struct is_fast_hash<YSLib::Drawing::BitmapKeyHash> : false_
+{};
+
+} // namespace ystdex;
+
+namespace YSLib
+{
+
+namespace Drawing
+{
 
 /*!
 \brief 字型。
@@ -252,31 +321,7 @@ class YF_API Typeface final : private noncopyable, private nonmovable
 
 private:
 	//! \since build 419
-	//@{
-	struct BitmapKey
-	{
-		//! \since build 562
-		unsigned Flags;
-		//! \since build 562
-		unsigned GlyphIndex;
-		FontSize Size;
-		//! \since build 421
-		FontStyle Style;
-
-		//! \since build 673
-		friend PDefHOp(bool, ==, const BitmapKey& x, const BitmapKey& y)
-			ynothrow
-			ImplRet(x.Flags == y.Flags && x.GlyphIndex == y.GlyphIndex
-				&& x.Size == y.Size && x.Style == y.Style)
-	};
-
-	struct BitmapKeyHash
-	{
-		PDefHOp(size_t, (), const BitmapKey& key) const ynothrow
-			ImplRet(ystdex::hash_combine_seq(size_t(key.Style), key.Size,
-				key.GlyphIndex, key.Flags))
-	};
-
+	//!@{
 	class SmallBitmapData
 	{
 		friend class CharBitmap;
@@ -286,7 +331,7 @@ private:
 		\sa ::FTC_SBitRec_
 		\since build 612
 		*/
-		//@{
+		//!@{
 		//! \since build 849
 		std::uint8_t width = 255, height = 0;
 		signed char left = 0, top = 0;
@@ -296,7 +341,7 @@ private:
 		signed char xadvance = 0, yadvance = 0;
 		//! \since build 849
 		std::uint8_t* buffer = {};
-		//@}
+		//!@}
 
 	public:
 		//! \since build 421
@@ -304,7 +349,24 @@ private:
 		SmallBitmapData(SmallBitmapData&&) ynothrow;
 		~SmallBitmapData();
 	};
-	//@}
+	//!@}
+
+	/*!
+	\ingroup traits
+	\since build 968
+	*/
+	struct UsedListCacheTraits
+	{
+		using used_list_type
+			= ystdex::recent_used_list<BitmapKey, SmallBitmapData,
+			list<std::pair<const BitmapKey, SmallBitmapData>>>;
+		using map_type = linked_map<BitmapKey, SmallBitmapData, BitmapKeyHash,
+			std::equal_to<BitmapKey>, typename used_list_type::allocator_type>;
+		using used_cache_type = linked_map<BitmapKey, typename used_list_type
+			::iterator, BitmapKeyHash, typename map_type::key_equal,
+			ystdex::rebind_alloc_t<typename used_list_type::allocator_type,
+			std::pair<const BitmapKey, typename used_list_type::iterator>>>;
+	};
 
 	//! \since build 562
 	long face_index;
@@ -313,39 +375,42 @@ private:
 	StyleName style_name;
 	//! \since build 554
 	pair<lref<FontFamily>, lref<::FT_FaceRec_>> ref;
-	//! \since build 521
-	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash>
-		bitmap_cache;
-	//! \since build 641
-	mutable unordered_map<char32_t, unsigned> glyph_index_cache;
-	//! \since build 420
-	mutable unordered_map<FontSize, NativeFontSize> size_cache;
+	//! \since build 968
+	//!@{
+	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash,
+		UsedListCacheTraits> bitmap_cache;
+	mutable value_map<char32_t, unsigned> glyph_index_cache;
+	mutable value_map<FontSize, NativeFontSize> size_cache;
+	//!@}
 
 public:
 	/*!
 	\brief 使用字体缓存引用在指定字体文件路径读取指定索引的字型并构造对象。
-	\post 断言： \c cmap_index 在 face 接受的范围内。
+	\throw LoggedEvent ：读取的索引不在字型接受的范围内。
 	*/
 	Typeface(FontCache&, const FontPath&, std::uint32_t = 0);
 	//! since build 461
 	~Typeface();
 
-	DefGetterMem(const ynothrow, FamilyName, FamilyName, GetFontFamily())
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, FamilyName, FamilyName, GetFontFamily())
 	/*!
 	\brief 取字型家族。
 	\since build 278
 	*/
-	DefGetter(const ynothrow, const FontFamily&, FontFamily, ref.first)
-	DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const FontFamily&, FontFamily, ref.first)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
 	/*!
 	\brief 取字符映射索引号。
 	\since build 562
 	*/
-	DefGetter(const ynothrow, int, CMapIndex, cmap_index)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, int, CMapIndex, cmap_index)
 
 private:
 	//! \since build 419
-	//@{
+	//!@{
 	SmallBitmapData&
 	LookupBitmap(const BitmapKey&) const;
 
@@ -363,7 +428,7 @@ public:
 
 	PDefH(void, ClearGlyphIndexCache, )
 		ImplExpr(glyph_index_cache.clear())
-	//@}
+	//!@}
 
 	//! since build 420
 	PDefH(void, ClearSizeCache, )
@@ -421,7 +486,7 @@ private:
 
 public:
 	//! \since build 612
-	//@{
+	//!@{
 	//! \brief 构造：空位图。
 	DefDeCtor(CharBitmap)
 	//! \brief 构造：使用本机类型对象。
@@ -429,32 +494,36 @@ public:
 	CharBitmap(NativeType b)
 		: bitmap(b)
 	{}
-	//@}
+	//!@}
 
-	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
+	YB_ATTR_nodiscard yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
 	/*!
 	\pre 间接断言：位图本机类型对象非空。
 	\since build 612
 	*/
-	//@{
-	yconstfn DefGetter(const ynothrowv, BufferType, Buffer,
+	//!@{
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, BufferType, Buffer,
 		Deref(bitmap).buffer)
-	yconstfn DefGetter(const ynothrowv, FormatType, Format,
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, FormatType, Format,
 		FormatType(Deref(bitmap).format))
-	yconstfn DefGetter(const ynothrowv, ScaleType, GrayLevel,
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, ScaleType, GrayLevel,
 		Deref(bitmap).max_grays)
-	yconstfn DefGetter(const ynothrowv, ScaleType, Height, Deref(bitmap).height)
-	yconstfn DefGetter(const ynothrowv, SignedScaleType, Left,
+	YB_ATTR_nodiscard yconstfn
+		DefGetter(const ynothrowv, ScaleType, Height, Deref(bitmap).height)
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, SignedScaleType, Left,
 		Deref(bitmap).left)
-	yconstfn DefGetter(const ynothrowv, PitchType, Pitch, Deref(bitmap).pitch)
-	yconstfn DefGetter(const ynothrowv, SignedScaleType, Top, Deref(bitmap).top)
-	yconstfn DefGetter(const ynothrowv, ScaleType, Width, Deref(bitmap).width)
-	yconstfn DefGetter(const ynothrowv, SignedScaleType, XAdvance,
-		Deref(bitmap).xadvance)
-	yconstfn DefGetter(const ynothrowv, SignedScaleType, YAdvance,
-		Deref(bitmap).yadvance)
-	//@}
+	YB_ATTR_nodiscard yconstfn
+		DefGetter(const ynothrowv, PitchType, Pitch, Deref(bitmap).pitch)
+	YB_ATTR_nodiscard yconstfn
+		DefGetter(const ynothrowv, SignedScaleType, Top, Deref(bitmap).top)
+	YB_ATTR_nodiscard yconstfn
+		DefGetter(const ynothrowv, ScaleType, Width, Deref(bitmap).width)
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, SignedScaleType,
+		XAdvance, Deref(bitmap).xadvance)
+	YB_ATTR_nodiscard yconstfn DefGetter(const ynothrowv, SignedScaleType,
+		YAdvance, Deref(bitmap).yadvance)
+	//!@}
 };
 
 
@@ -478,12 +547,12 @@ public:
 	\invariant 被映射的值非空。
 	\since build 661
 	*/
-	using FaceMap = map<FontPath, unique_ptr<Typeface>>;
+	using FaceMap = linked_map<FontPath, unique_ptr<Typeface>>;
 	/*!
 	\brief 字型家族组索引类型。
 	\invariant 被映射的值非空。
 	*/
-	using FamilyMap = unordered_map<FamilyName, unique_ptr<FontFamily>>;
+	using FamilyMap = linked_map<FamilyName, unique_ptr<FontFamily>>;
 
 	/*!
 	\brief 字形缓冲区大小。
@@ -513,11 +582,12 @@ protected:
 public:
 	/*!
 	\brief 构造：分配指定大小的字形缓存空间。
-	\note 当前暂时忽略参数。
-	\since build 316
+	\note 当前暂时忽略第一参数。
+	\since build 968
 	*/
 	explicit
-	FontCache(size_t = DefaultGlyphCacheSize);
+	FontCache(size_t = DefaultGlyphCacheSize,
+		default_allocator<yimpl(byte)> = {});
 	/*!
 	\brief 析构：释放空间。
 	\since build 461
@@ -529,11 +599,12 @@ public:
 	\brief 取字型映射。
 	\since build 661
 	*/
-	DefGetter(const ynothrow, const FaceMap&, Faces, mFaces)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const FaceMap&, Faces, mFaces)
 	//! \brief 取字型家族组索引。
-	DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies)
 	//! \since build 671
-	//@{
+	//!@{
 	//! \brief 取指定名称的字型家族指针。
 	YB_ATTR_nodiscard YB_PURE observer_ptr<const FontFamily>
 	GetFontFamilyPtr(const FamilyName&) const;
@@ -546,7 +617,7 @@ public:
 	//! \brief 取指定名称的字型指针。
 	YB_ATTR_nodiscard YB_PURE observer_ptr<const Typeface>
 	GetTypefacePtr(const FamilyName&, const StyleName&) const;
-	//@}
+	//!@}
 
 private:
 	/*!
@@ -618,10 +689,14 @@ public:
 	Font(const FontFamily&, FontSize = DefaultSize,
 		FontStyle = FontStyle::Regular);
 
-	DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
-	DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))
-	DefPred(const ynothrow, Underline, bool(style & FontStyle::Underline))
-	DefPred(const ynothrow, Strikeout, bool(style & FontStyle::Strikeout))
+	YB_ATTR_nodiscard
+		DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
+	YB_ATTR_nodiscard
+		DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))
+	YB_ATTR_nodiscard
+		DefPred(const ynothrow, Underline, bool(style & FontStyle::Underline))
+	YB_ATTR_nodiscard
+		DefPred(const ynothrow, Strikeout, bool(style & FontStyle::Strikeout))
 
 	/*!
 	\brief 取跨距。
@@ -641,12 +716,13 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE std::int8_t
 	GetDescender() const;
-	DefGetterMem(const ynothrow, const FamilyName&, FamilyName,
-		GetFontFamily())
-	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, GetTypeface())
-	DefGetter(const ynothrow, FontSize, Size, font_size)
+	YB_ATTR_nodiscard DefGetterMem(const ynothrow, const FamilyName&,
+		FamilyName, GetFontFamily())
+	YB_ATTR_nodiscard DefGetterMem(const ynothrow, const FontFamily&,
+		FontFamily, GetTypeface())
+	YB_ATTR_nodiscard DefGetter(const ynothrow, FontSize, Size, font_size)
 	//! \since build 414
-	DefGetter(const ynothrow, FontStyle, Style, style)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, FontStyle, Style, style)
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	\param c 指定需要被渲染的字符。
@@ -665,7 +741,7 @@ public:
 	YB_ATTR_nodiscard YB_PURE FontSize
 	GetHeight() const ynothrow;
 	//! \since build 628
-	DefGetter(const, StyleName, StyleName, FetchName(style))
+	YB_ATTR_nodiscard DefGetter(const, StyleName, StyleName, FetchName(style))
 
 private:
 	/*!
@@ -680,7 +756,7 @@ public:
 	\brief 取字型引用。
 	\since build 280
 	*/
-	DefGetter(const ynothrow, Typeface&, Typeface, typeface)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Typeface&, Typeface, typeface)
 
 	/*!
 	\brief 设置字体大小。

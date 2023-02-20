@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2022 FrankHB.
+	© 2013-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r280
+\version r314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2022-06-05 01:38 +0800
+	2023-02-17 08:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "range.hpp" // for "range.hpp", std::next, std::prev,
 //	std::make_move_iterator, std::reverse_iterator, std::make_pair, begin, end;
-#include "deref_op.hpp" // for "deref_op.hpp", yconstraint, YB_VerifyIterator;
-#include "operators.hpp" // for input_iteratable, output_iteratable,
-//	forward_iteratable, bidirectional_iteratable, random_access_iteratable, _t;
+#include "deref_op.hpp" // for "deref_op.hpp", yconstraint, YB_VerifyIterator,
+//	std::addressof;
+#include "operators.hpp" // for "operators.hpp", input_iteratable,
+//	output_iteratable, forward_iteratable, bidirectional_iteratable,
+//	random_access_iteratable, _t;
 
 namespace ystdex
 {
@@ -42,13 +44,13 @@ namespace ystdex
 \brief 迭代器操作。
 \since build 375
 */
-//@{
+//!@{
 /*!
 \brief 迭代器指向的值满足条件时取邻接迭代器，否则取原值。
 \param i 指定的迭代器。
 \pre 迭代器可解引用，蕴含断言：满足 YB_VerifyIterator 。
 */
-//@{
+//!@{
 template<typename _tIn, typename _fPred>
 _tIn
 next_if(_tIn i, _fPred f,
@@ -65,13 +67,13 @@ next_if_eq(_tIn i, const _type& val,
 	YB_VerifyIterator(i);
 	return *i == val ? std::next(i, n) : i;
 }
-//@}
+//!@}
 
 /*!
 \brief 迭代器指向的值满足条件时取反向邻接迭代器，否则取原值。
 \pre 迭代器可解引用。
 */
-//@{
+//!@{
 template<typename _tBi, typename _fPred>
 _tBi
 prev_if(_tBi i, _fPred f,
@@ -86,8 +88,8 @@ prev_if_eq(_tBi i, const _type& val,
 {
 	return *i == val ? std::prev(i, n) : i;
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \since build 833
@@ -115,7 +117,7 @@ make_reverse_iterator(_tIter i)
 } // inline namespace cpp2014;
 
 //! \ingroup helper_functions
-//@{
+//!@{
 /*!
 \brief 按 std::move_if_noexcept 的条件构造转移迭代器或非转移迭代器。
 \since build 866
@@ -153,7 +155,7 @@ make_move_iterator_pair(_tRange& c)
 {
 	return ystdex::make_move_iterator_pair(begin(c), end(c));
 }
-//@}
+//!@}
 
 
 //! \since build 576
@@ -207,6 +209,29 @@ struct iterator_operators<_tIter, _tTraits, std::random_access_iterator_tag>
 */
 template<typename _tIter, typename _tTraits = std::iterator_traits<_tIter>>
 using iterator_operators_t = _t<details::iterator_operators<_tIter, _tTraits>>;
+
+
+/*!
+\brief 间接操作代理。
+\warning 非虚析构。
+\since build 968
+*/
+template<typename _tReference>
+struct indirection_proxy
+{
+	_tReference ref;
+
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE _tReference*
+	operator->() ynothrow
+	{
+		return std::addressof(ref);
+	}
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE _tReference*
+	operator->() const ynothrow
+	{
+		return std::addressof(ref);
+	}
+};
 
 } // namespace ystdex;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019-2020, 2022 FrankHB.
+	© 2009-2016, 2019-2020, 2022-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 框架初始化。
-\version r896
+\version r904
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2022-09-23 01:05 +0800
+	2023-02-20 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 
 
 //! \since build 899
-//@{
+//!@{
 /*!
 \brief 判断指定程序映像的路径字符串指示的位置是否符合局部 FHS 目录布局。
 \see https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.html 。
@@ -101,7 +101,7 @@ FetchRootPathString();
 */
 YB_ATTR_nodiscard YF_API YB_PURE IO::Path
 GetLocalFHSRootPathOf(const string&);
-//@}
+//!@}
 
 
 /*!
@@ -157,11 +157,13 @@ InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 /*!
 \brief 取值类型根节点。
 \exception GeneralEvent 异常中立：由 FetchEnvironmnet 抛出。
-\since build 688
+\since build 968
 */
 YF_API ValueNode&
-FetchRoot() ynothrow;
+FetchRoot();
 
+//! \note 使用应用程序实例的分配器。
+//!@{
 /*!
 \brief 取默认字体缓存。
 \exception FatalError 字体缓存初始化失败。
@@ -177,6 +179,7 @@ FetchDefaultFontCache();
 */
 YF_API MIMEBiMapping&
 FetchMIMEBiMapping();
+//!@}
 
 } // namespace YSLib;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2019-2020 FrankHB.
+	© 2014-2016, 2019-2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r300
+\version r334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2020-01-31 16:10 +0800
+	2023-02-20 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_UI_TreeView_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_ComboList // for function;
+#include YFM_YSLib_UI_ComboList // for function, ordered_value_map, linked_set;
+#include <ystdex/hash.hpp> // for ystdex::range_hash;
 #include YFM_YSLib_Core_ValueNode // for YSLib::ValueNode;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
@@ -59,8 +60,13 @@ public:
 		Branch,
 		Expanded
 	};
-	//! \since build 532
-	using IndentMap = map<IndexType, IndentType>;
+	/*!
+	\brief 缩进映射。
+	\since build 532
+
+	保证有序以快速查询索引边界。
+	*/
+	using IndentMap = ordered_value_map<IndexType, IndentType>;
 	//! \since build 532
 	using NodePath = vector<IndexType>;
 
@@ -110,11 +116,11 @@ private:
 	\brief 判断是否已经展开的索引。
 	\warning 当前不支持设置状态，修改子节点后若状态无法保持一致，需要重新绑定。
 	\sa Bind
-	\since build 532
+	\since build 968
 	\todo 除了重新绑定外，允许设置状态，避免修改子节点后的状态不一致。
 	\todo 使用 trie 树优化。
 	*/
-	set<NodePath> expanded{};
+	linked_set<NodePath, ystdex::range_hash> expanded{};
 
 public:
 	//! \brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
@@ -138,9 +144,11 @@ public:
 	Rect
 	GetIndentBoxBounds(IndexType) const;
 	//! \since build 533
-	DefGetter(const ynothrow, Size, IndentBoxSize, Size(16, GetItemHeight()))
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Size, IndentBoxSize,
+		Size(16, GetItemHeight()))
 	//! \since build 532
-	DefGetter(const ynothrow, const IndentMap&, IndentMap, indent_map)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const IndentMap&, IndentMap, indent_map)
 	YB_ATTR_nodiscard YB_PURE SDst
 	GetIndentWidth(IndexType) const;
 	//! \since build 532
@@ -175,14 +183,14 @@ public:
 	PDefH(NodeState, CollapseNode, size_t idx)
 		ImplRet(ExpandOrCollapseNode(NodeState::Expanded, idx))
 
-	static String
+	YB_ATTR_nodiscard YB_PURE static String
 	DefaultExtractText(const ValueNode&);
 
-	static String
+	YB_ATTR_nodiscard YB_PURE static String
 	ExtractNodeName(const ValueNode&);
 
 	//! \since build 541
-	//@{
+	//!@{
 	/*!
 	\brief 满足节点展开条件（状态为 NodeState::Branch ）时展开节点。
 	\return 折叠前节点的状态。
@@ -198,7 +206,7 @@ private:
 	//! \since build 540
 	void
 	ExpandOrCollapseNodeImpl(NodeState, size_t);
-	//@}
+	//!@}
 
 public:
 	/*!
@@ -212,7 +220,7 @@ public:
 
 /*!
 \brief 带滚动条的树形视图。
-\invariant <tt>dynamic_cast<TreeList*>(pTextList.get())</tt> 。
+\invariant \c dynamic_cast<TreeList*>(pTextList.get()) 。
 \since build 534
 \todo 实现 Resize 事件调整内容布局。
 */
@@ -230,25 +238,30 @@ public:
 	*/
 	~TreeView() override;
 
-	DefGetter(, GEvent<void(IndexType)>&, Collapse, GetTreeListRef().Collapse)
-	DefGetter(, GEvent<void(IndexType)>&, Expand, GetTreeListRef().Expand)
+	YB_ATTR_nodiscard DefGetter(, GEvent<void(IndexType)>&, Collapse,
+		GetTreeListRef().Collapse)
+	YB_ATTR_nodiscard
+		DefGetter(, GEvent<void(IndexType)>&, Expand, GetTreeListRef().Expand)
 	//! \since build 851
-	DefGetter(, function<String(const ValueNode&)>&, ExtractText,
-		GetTreeListRef().ExtractText)
-	DefGetterMem(const, Rect, IndentBox, GetTreeListRef())
+	YB_ATTR_nodiscard DefGetter(, function<String(const ValueNode&)>&,
+		ExtractText, GetTreeListRef().ExtractText)
+	YB_ATTR_nodiscard DefGetterMem(const, Rect, IndentBox, GetTreeListRef())
 	PDefH(Rect, GetIndentBoxBounds, IndexType idx) const
 		ImplRet(GetTreeListRef().GetIndentBoxBounds(idx))
-	DefGetterMem(const ynothrow, Size, IndentBoxSize, GetTreeListRef())
-	DefGetterMem(const ynothrow, const IndentMap&, IndentMap, GetTreeListRef())
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, Size, IndentBoxSize, GetTreeListRef())
+	YB_ATTR_nodiscard DefGetterMem(const ynothrow, const IndentMap&, IndentMap,
+		GetTreeListRef())
 	PDefH(SDst, GetIndentWidth, IndexType idx) const
 		ImplRet(GetTreeListRef().GetIndentWidth(idx))
 	PDefH(NodePath, GetNodePath, IndexType idx) const
 		ImplRet(GetTreeListRef().GetNodePath(idx))
 	PDefH(const ValueNode&, GetNodeRef, IndexType idx) const
 		ImplRet(GetTreeListRef().GetNodeRef(idx))
-	DefGetter(const, TreeList&, TreeListRef,
+	YB_ATTR_nodiscard DefGetter(const, TreeList&, TreeListRef,
 		*ystdex::polymorphic_downcast<TreeList*>(pTextList.get()))
-	DefGetter(const, ValueNode&, TreeRootRef, GetTreeListRef().TreeRoot)
+	YB_ATTR_nodiscard
+		DefGetter(const, ValueNode&, TreeRootRef, GetTreeListRef().TreeRoot)
 
 	PDefH(void, Bind, size_t max_depth = size_t(-1))
 		ImplExpr(GetTreeListRef().Bind(max_depth))

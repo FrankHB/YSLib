@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r2045
+\version r2063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2023-02-13 03:42 +0800
+	2023-02-20 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -350,7 +350,7 @@ YBase 要求以下显式的依赖：
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "function_adaptor.hpp" 依赖 "bind.hpp" 和 "compose.hpp" ；
 "functional.hpp" 依赖 "function_adaptor.hpp" 和 "expanded_function.hpp" ；
-"tree.h" 、"hash_table.h" 和 "container.hpp" 依赖 "range.hpp" ；
+"tree.h" 、"hash_table.h" 、"container.hpp" 、"flat_map.hpp" 和 "flat_set.hpp" 依赖 "range.hpp" ；
 "tree.h" 和 "hash_table.h" 依赖 "node_handle.hpp" ； 
 "hash_table.h" 依赖 "hash.hpp" ；
 "string.hpp" 依赖 "container.hpp" ；
@@ -389,6 +389,7 @@ YBase 要求以下显式的依赖：
 "memory.hpp" 内部依赖 "placement.hpp" 和 "ref.hpp" ；
 "memory_resource.h" 内部依赖 "memory.hpp" ；
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
+"hash.hpp" 内部依赖 "range.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "compose.hpp" 内部依赖 "functor.hpp" 和 "hash.hpp" ；
 "function.hpp" 内部依赖 "type_op.hpp" 和 "apply.h" ；
@@ -412,6 +413,7 @@ YBase 要求以下显式的依赖：
 "list.hpp" 依赖 "range.hpp" ；
 "map.hpp" 和 "set.hpp" 依赖 "tree.h"（蕴含公开依赖 "range.hpp" ）；
 "unordered_map.hpp" 和 "unordered_set.hpp" 依赖 "hash_table.h"（蕴含公开依赖 "range.hpp" ）；
+"flat_map.hpp" 和 "flat_set.hpp" 依赖 "range.hpp" ；
 "scope_guard.hpp" 内部依赖 "function.hpp" 。
 除此之外，内部依赖对标准库头的依赖也视为内部依赖。
 
@@ -551,8 +553,8 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 @2.5.7.8 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.7.9 交换操作 Swap ：
-部分扩展标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
+@2.5.7.9 交换操作和可交换类型 Swap ：
+部分扩展标准库头 <utility> ，提供一些和 std::swap 相关的交换操作、可交换特征和 std::exchange 的替代实现以及特定的可交换类型。
 
 @2.5.7.10 枚举相关操作 Enum ：
 部分扩展标准库头 <utility> ，提供枚举相关操作和类型。
@@ -712,19 +714,29 @@ ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证�
 扩展标准库头 <unordered_set> ，提供类模板作为和 ISO C++20 std::unordered_set 类似且支持不完整的键类型的实现。
 附加 ISO C++11 不保证的附加特性不依赖 ISO C++20 及其具体实现。
 
-@2.5.10.16 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.10.16 平坦映射容器 FlatMap ：
+提供 ISO C++23 标准库头 <flat_map> 的替代接口和实现。
+不支持 <compare> 。
+不支持 from_range_t 构造。
+
+@2.5.10.17 平坦集合容器 FlatSet ：
+提供 ISO C++23 标准库头 <flat_set> 的替代接口和实现。
+不支持 <compare> 。
+不支持 from_range_t 构造。
+
+@2.5.10.18 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展标准库头 <streambuf> 。
 
-@2.5.10.17 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.10.19 ISO C++ 标准输入流扩展 InputStream ：
 扩展标准库头 <istream> 。
 
-@2.5.10.18 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.10.20 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.10.19 ISO C++ <future> 扩展 Future ：
+@2.5.10.21 ISO C++ <future> 扩展 Future ：
 扩展标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.10.20 伪互斥量 PseudoMutex ：
+@2.5.10.22 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.11 其它扩展接口：

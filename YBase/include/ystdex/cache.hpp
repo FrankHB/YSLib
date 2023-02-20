@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r773
+\version r843
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2023-02-06 22:43 +0800
+	2023-02-20 06:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,33 +42,35 @@
 namespace ystdex
 {
 
-//! \since build 611
-//!@{
 /*!
 \brief 使用双向链表实现的最近使用列表。
 \note 保证移除项时的顺序为最远端先移除。
 \warning 非虚析构。
+\since build 968
 */
 template<typename _tKey, typename _tMapped,
-	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
-class recent_used_list : private std::list<std::pair<const _tKey, _tMapped>>
+	class _tBase = std::list<std::pair<const _tKey, _tMapped>>>
+class recent_used_list : private _tBase
 {
 public:
+	//! \since build 968
+	using base_type = _tBase;
+	//! \since build 611
+	//!@{
 	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造。
 	*/
-	using allocator_type = _tAlloc;
+	using allocator_type = typename base_type::allocator_type;
 	using value_type = std::pair<const _tKey, _tMapped>;
-	using list_type = std::list<value_type, allocator_type>;
-	using size_type = typename list_type::size_type;
-	using const_iterator = typename list_type::const_iterator;
-	using iterator = typename list_type::iterator;
+	using size_type = typename base_type::size_type;
+	using iterator = typename base_type::iterator;
+	using const_iterator = typename base_type::const_iterator;
 
 	//! \since build 942
-	using list_type::list_type;
+	using base_type::base_type;
 
-	using list_type::begin;
+	using base_type::begin;
 
 	//! \since build 942
 	YB_ATTR_nodiscard YB_PURE friend inline iterator
@@ -77,30 +79,30 @@ public:
 		return con.erase(i, i);
 	}
 
-	using list_type::cbegin;
+	using base_type::cbegin;
 
-	using list_type::cend;
+	using base_type::cend;
 
-	using list_type::clear;
+	using base_type::clear;
 
 	template<typename... _tParams>
 	iterator
 	emplace(_tParams&&... args)
 	{
-		list_type::emplace_front(yforward(args)...);
+		base_type::emplace_front(yforward(args)...);
 		return begin();
 	}
 
-	using list_type::empty;
+	using base_type::empty;
 
-	using list_type::end;
+	using base_type::end;
 
-	using list_type::front;
+	using base_type::front;
 
 	iterator
 	refresh(iterator i) ynothrowv
 	{
-		list_type::splice(begin(), *this, i);
+		base_type::splice(begin(), *this, i);
 		return i;
 	}
 
@@ -110,10 +112,10 @@ public:
 	{
 		yassume(!empty());
 
-		auto& val(list_type::back());
+		auto& val(base_type::back());
 
 		m.erase(val.first);
-		list_type::pop_back();
+		base_type::pop_back();
 	}
 	template<typename _tMap, typename _func>
 	void
@@ -121,11 +123,11 @@ public:
 	{
 		yassume(!empty());
 
-		auto& val(list_type::back());
+		auto& val(base_type::back());
 
 		f(val);
 		m.erase(val.first);
-		list_type::pop_back();
+		base_type::pop_back();
 	}
 	template<typename _tMap, typename... _tParams>
 	void
@@ -143,41 +145,53 @@ public:
 	undo_emplace() ynothrowv
 	{
 		yassume(!empty());
-		list_type::pop_front();
+		base_type::pop_front();
 	}
+	//!@}
 };
 
 
 /*!
-\brief 最近刷新策略的缓存特征。
 \ingroup traits
+\brief 最近刷新策略的缓存特征。
+\since build 968
 */
 //!@{
 template<typename _tKey, typename _tMapped, typename _fHash = hash<_tKey>,
-	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>,
-	class _tList = recent_used_list<_tKey, _tMapped, _tAlloc>>
+	class _tList = recent_used_list<_tKey, _tMapped>>
 struct used_list_cache_traits
 {
+	//! \since build 611
+	//!@{
 	using map_type = std::unordered_map<_tKey, _tMapped, _fHash,
-		std::equal_to<_tKey>, _tAlloc>;
+		std::equal_to<_tKey>, typename _tList::allocator_type>;
 	using used_list_type = _tList;
 	using used_cache_type = std::unordered_map<_tKey, typename _tList::iterator,
-		_fHash, typename map_type::key_equal, rebind_alloc_t<_tAlloc,
+		_fHash, typename map_type::key_equal,
+		rebind_alloc_t<typename _tList::allocator_type,
 		std::pair<const _tKey, typename _tList::iterator>>>;
+	//!@}
 };
 
-template<typename _tKey, typename _tMapped, class _tAlloc, class _tList>
-struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
+template<typename _tKey, typename _tMapped, class _tList>
+struct used_list_cache_traits<_tKey, _tMapped, void, _tList>
 {
-	using map_type = std::map<_tKey, _tMapped, std::less<_tKey>, _tAlloc>;
+	//! \since build 611
+	//!@{
+	using map_type = std::map<_tKey, _tMapped, std::less<_tKey>,
+		typename _tList::allocator_type>;
 	using used_list_type = _tList;
 	using used_cache_type = std::map<_tKey, typename _tList::iterator,
-		typename map_type::key_compare, rebind_alloc_t<_tAlloc,
+		typename map_type::key_compare,
+		rebind_alloc_t<typename _tList::allocator_type,
 		std::pair<const _tKey, typename _tList::iterator>>>;
+	//!@}
 };
 //!@}
 
 
+//! \since build 611
+//!@{
 /*!
 \brief 按最近使用策略刷新的缓存。
 \note 默认策略替换最近最少使用的项，保留其它项。
@@ -193,23 +207,32 @@ public:
 	//! \since build 611
 	using traits_type = _tTraits;
 	using map_type = typename traits_type::map_type;
+	using used_list_type = typename traits_type::used_list_type;
+	using used_cache_type = typename traits_type::used_cache_type;
 	using key_type = typename map_type::key_type;
 	//! \since build 604
 	using value_type = typename map_type::value_type;
 	using size_type = typename map_type::size_type;
-	using used_list_type = typename traits_type::used_list_type;
-	using used_cache_type = typename traits_type::used_cache_type;
-	using const_iterator = typename used_list_type::const_iterator;
-	using iterator = typename used_list_type::iterator;
 	//! \since build 611
 	static_assert(are_same<size_type, typename used_list_type::size_type,
 		typename used_cache_type::size_type>(), "Invalid size found.");
+	//! \since build 968
+	using reference = typename map_type::reference;
+	//! \since build 968
+	using const_reference = typename map_type::const_reference;
+	using iterator = typename used_list_type::iterator;
+	using const_iterator = typename used_list_type::const_iterator;
 		
 private:
 	//! \since build 942
 	template<typename _tParam>
 	using not_key_t = nor_<is_convertible<_tParam, const key_type&>,
 		is_convertible<_tParam, std::piecewise_construct_t>>;
+	//! \since build 968
+	template<class _tAlloc>
+	using enable_uses_alloc_t = enable_if_t<std::uses_allocator<
+		map_type, _tAlloc>::value || std::uses_allocator<
+		used_list_type, _tAlloc>::value, int>;
 
 	/*!
 	\invariant <tt>std::count(used_list.begin(), used_list.end())
@@ -234,6 +257,14 @@ public:
 	explicit
 	used_list_cache(size_type s = yimpl(15U))
 		: used_list(), used_cache(), max_use(s)
+	{}
+	//! \since build 968
+	template<class _tAlloc, yimpl(enable_uses_alloc_t<_tAlloc> = 0)>
+	inline
+	used_list_cache(size_type s, const _tAlloc& a)
+		: used_list(ystdex::make_obj_using_allocator<used_list_type>(a)),
+		used_cache(ystdex::make_obj_using_allocator<used_cache_type>(a)),
+		max_use(s)
 	{}
 	//! \note 强异常安全保证依赖模板参数指定的容器转移时都不抛出异常。
 	//!@{

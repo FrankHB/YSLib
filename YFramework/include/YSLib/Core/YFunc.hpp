@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2021 FrankHB.
+	© 2010-2016, 2018-2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1324
+\version r1331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2021-12-29 01:24 +0800
+	2023-02-20 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition // for module
-//	YSLib::Core::YShellDefinition;
+//	YSLib::Core::YShellDefinition, linked_map;
 #include <ystdex/functional.hpp> // for <ystdex/functional.hpp>,
 //	ystdex::function;
 #include YFM_YSLib_Adaptor_YTextBase // for string;
@@ -81,7 +81,8 @@ template<class _tDerived, typename _tKey, typename _fHandler>
 struct GHandlerRegisterBase
 {
 private:
-	unordered_map<_tKey, _fHandler> registered_map{};
+	//! \since build 968
+	linked_map<_tKey, _fHandler> registered_map{};
 
 public:
 	//! \since build 495
@@ -122,12 +123,12 @@ public:
 	{
 		YAssert(first != last && std::distance(first, last)
 			== decltype(std::distance(first, last))(
-			std::tuple_size<_tTuple>::value + 1), "Wrong range found.");
+			std::tuple_size<_tTuple>() + 1), "Wrong range found.");
 		Register<_type>(*first);
 		++first;
-		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),
+		YAssert((first == last) == (std::tuple_size<_tTuple>() == 0),
 			"Wrong number of parameters found.");
-	//	static_if(std::tuple_size<_tTuple>::value != 0)
+	//	static_if(std::tuple_size<_tTuple>() != 0)
 	//		RegisterTail<_tIn, std::tuple_element<0, _tTuple>,
 	//			typename tuple_split<_tTuple>::tail>(first, last);
 		RegisterTail<_tIn>(ystdex::identity<_tTuple>(), first, last);

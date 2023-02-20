@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2022 FrankHB.
+	© 2009-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3997
+\version r4017
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2022-11-05 21:47 +0800
+	2023-02-20 07:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_Initialization // for IO::Path, IO::FetchSeparator,
 //	FetchCurrentWorkingDirectory, IO::MaxPathLength, GeneralEvent,
-//	pmr::new_delete_resource_t, ystdex::nptr, pair, map, mutex, lock_guard,
-//	IO::EnsureDirectory, IO::VerifyDirectory, PerformKeyAction,
+//	pmr::new_delete_resource_t, ystdex::nptr, pair, value_map, mutex,
+//	lock_guard, IO::EnsureDirectory, IO::VerifyDirectory, PerformKeyAction,
 //	IO::TraverseChildren, NodeCategory, NativePathView, String;
 #if !(YCL_Win32 || YCL_Linux)
 #	include <ystdex/string.hpp> // for ystdex::rtrim;
@@ -106,7 +106,7 @@ yconstexpr const char TU_MIME[]{R"NPLA1(
 )NPLA1"};
 
 //! \since build 899
-//@{
+//!@{
 #if YCL_Win32 || (YCL_Linux && !YCL_Android)
 #	define YF_Helper_Initialization_UseFallbackConf_ true
 #endif
@@ -266,7 +266,7 @@ FetchPreferredConfPath()
 	return FetchRootPathString();
 #endif
 }
-//@}
+//!@}
 
 #if YCL_DS
 #	define YF_Helper_Initialization_DataDirectory_ "/Data/"
@@ -410,7 +410,7 @@ TryReadRawNPLStream(std::istream& is)
 }
 
 //! \since build 899
-//@{
+//!@{
 YB_ATTR_nodiscard YB_NONNULL(1, 2) ValueNode
 LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
 {
@@ -475,14 +475,15 @@ yconstexpr const char* ConfFileDisp("configuration file");
 
 #if YF_Helper_Initialization_UseFallbackConf_
 using ValueNodeLoadEntry = pair<string, ValueNode(*)()>;
-using VecRecordMap = map<string, string>;
+using VecRecordMap = value_map<string, string>;
 
 mutex NPLA1PathVecRecordMutex;
 
 YB_ATTR_nodiscard YB_PURE VecRecordMap&
 FetchNPLA1PathVecRecordRef()
 {
-	static VecRecordMap m;
+	static pmr::new_delete_resource_t r;
+	static VecRecordMap m(&r);
 
 	return m;
 }
@@ -601,7 +602,7 @@ FetchConfPathForSave()
 	return FetchPreferredConfPath();
 #endif
 }
-//@}
+//!@}
 
 //! \since build 725
 template<typename _type, typename _fLoader, typename _func>
@@ -826,7 +827,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 
 
 ValueNode&
-FetchRoot() ynothrow
+FetchRoot()
 {
 	return FetchEnvironment().Root;
 }
@@ -834,10 +835,12 @@ FetchRoot() ynothrow
 Drawing::FontCache&
 FetchDefaultFontCache()
 {
-	return FetchDefaultResource<Drawing::FontCache>([]{
-		return make_unique<Drawing::FontCache>();
-	}, [](ValueNode& node, unique_ptr<Drawing::FontCache>& locked)
-		-> Drawing::FontCache&{
+	using Drawing::FontCache;
+
+	return FetchDefaultResource<FontCache>([]{
+		return make_unique<FontCache>(+FontCache::DefaultGlyphCacheSize,
+			FetchAppInstance().get_allocator());
+	}, [](ValueNode& node, unique_ptr<FontCache>& locked) -> FontCache&{
 		InitializeSystemFontCache(*locked, AccessChild<string>(node,
 			"FontFile"), AccessChild<string>(node, "FontDirectory"));
 		return *locked.get();
@@ -848,13 +851,12 @@ MIMEBiMapping&
 FetchMIMEBiMapping()
 {
 	return FetchDefaultResource<MIMEBiMapping>([]{
-		return MIMEBiMapping();
+		return MIMEBiMapping(FetchAppInstance().get_allocator());
 	}, [](ValueNode& node, MIMEBiMapping& locked) -> MIMEBiMapping&{
 		AddMIMEItems(locked, LoadNPLA1File("MIME database", (AccessChild<string>
 			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
-				return
-					A1::NodeLoader(FetchEnvironment().Global).LoadNode(TU_MIME);
-			}, true));
+			return A1::NodeLoader(FetchEnvironment().Global).LoadNode(TU_MIME);
+		}, true));
 		return locked;
 	});
 }

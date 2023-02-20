@@ -11,13 +11,13 @@
 /*!	\file hash.hpp
 \ingroup YStandardEx
 \brief 散列接口。
-\version r360
+\version r404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:12:11 +0800
 \par 修改时间:
-	2023-02-07 12:52 +0800
+	2023-02-20 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 //	index_sequence_for, std::pair;
 #include <functional> // for <functional>, std::hash, std::__is_fast_hash
 //	conditionally;
+#include "range.hpp" // for internal "range.hpp", ystdex::cbegin, ystdex::cend;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -231,14 +232,14 @@ hash_combine(size_t& seed, const _type& val)
 */
 //!@{
 template<typename _type>
-yconstfn size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 hash_combine_seq(size_t seed, const _type& val)
 	ynoexcept_spec(hash<_type>()(val))
 {
 	return ystdex::hash_combine(seed, val), seed;
 }
 template<typename _type, typename... _tParams>
-yconstfn size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 hash_combine_seq(size_t seed, const _type& val, const _tParams&... args)
 	ynoexcept_spec(hash<_type>()(val))
 {
@@ -254,7 +255,7 @@ hash_combine_seq(size_t seed, const _type& val, const _tParams&... args)
 //!@{
 //! \since build 531
 template<typename _tIn>
-inline size_t
+YB_ATTR_nodiscard YB_PURE inline size_t
 hash_range(size_t seed, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, seed,
@@ -264,11 +265,12 @@ hash_range(size_t seed, _tIn first, _tIn last)
 	});
 }
 template<typename _tIn>
-inline size_t
+YB_ATTR_nodiscard YB_PURE inline size_t
 hash_range(_tIn first, _tIn last)
 {
 	return ystdex::hash_range(0, first, last);
 }
+//!@}
 //!@}
 
 
@@ -339,6 +341,51 @@ struct combined_hash<_type1, _type2, _types...>
 	: combined_hash<std::tuple<_type1, _type2, _types...>>
 {};
 //!@}
+
+//! \since build 968
+//!@{
+//! \relates combined_hash
+//!@{
+template<typename _type>
+struct is_fast_hash<combined_hash<_type>> : is_fast_hash<hash<_type>>
+{};
+
+template<typename... _types>
+struct is_fast_hash<combined_hash<std::tuple<_types...>>>
+	: and_<is_fast_hash<hash<_types>>...>
+{};
+
+template<typename _type1, typename _type2>
+struct is_fast_hash<combined_hash<std::pair<_type1, _type2>>>
+	: is_fast_hash<combined_hash<std::tuple<_type1, _type2>>>
+{};
+
+template<typename _type1, typename _type2, typename... _types>
+struct is_fast_hash<combined_hash<_type1, _type2, _types...>>
+	: is_fast_hash<combined_hash<std::tuple<_type1, _type2, _types...>>>
+{};
+//!@}
+
+
+/*!
+\ingroup hashers
+\brief 范围散列仿函数。
+\sa ystdex::hash_range
+*/
+struct range_hash
+{
+	template<typename _type>
+	YB_ATTR_nodiscard YB_PURE inline size_t
+	operator()(const _type& x) const
+	{
+		return ystdex::hash_range(ystdex::cbegin(x), ystdex::cend(x));
+	}
+};
+
+//! \relates combined_hash
+template<>
+struct is_fast_hash<range_hash> : false_
+{};
 //!@}
 
 } // namespace ystdex;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019, 2021-2022 FrankHB.
+	© 2010-2016, 2019, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1942
+\version r1972
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2022-11-28 19:44 +0800
+	2023-02-17 08:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YWidgetEvent_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YComponent // for ystdex::enable_if_same_t;
+#include YFM_YSLib_UI_YComponent // for ystdex::enable_if_same_t, value_map;
 #include YFM_YSLib_Core_YEvent // for module YCore::Event, GHEvent;
 #include YFM_YSLib_Core_YString // for String;
 #include YFM_YSLib_Core_YDevice // for Devices::KeyInputDevice::Tester,
@@ -46,11 +46,11 @@ namespace UI
 \brief 用户界面绘制优先级。
 \since build 294
 */
-//@{
+//!@{
 yconstexpr const EventPriority BackgroundPriority(0xC0);
 yconstexpr const EventPriority BoundaryPriority(0x60);
 yconstexpr const EventPriority ForegroundPriority(0x40);
-//@}
+//!@}
 
 
 /*!
@@ -86,7 +86,7 @@ public:
 	*/
 	DefDeCopyAssignment(UIEventArgs)
 
-	DefGetter(const ynothrow, IWidget&, Sender, sender)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, IWidget&, Sender, sender)
 	PDefH(void, SetSender, IWidget& wgt)
 		ImplExpr(sender = wgt)
 };
@@ -168,7 +168,7 @@ public:
 	\brief 转换为按键代码类型。
 	\since build 298
 	*/
-	DefCvt(const ynothrow, const KeyInput&, Keys)
+	YB_ATTR_nodiscard DefCvt(const ynothrow, const KeyInput&, Keys)
 
 	/*!
 	\brief 使用 Tester 和 Keys 判断按键状态。
@@ -181,7 +181,7 @@ public:
 	\brief 取按键代码。
 	\since build 298
 	*/
-	DefGetter(const ynothrow, const KeyInput&, Keys, Keys)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const KeyInput&, Keys, Keys)
 };
 
 
@@ -238,7 +238,7 @@ public:
 	\brief 转换为输入类型。
 	\since build 482
 	*/
-	DefCvt(const ynothrow, const InputType&, Position)
+	YB_ATTR_nodiscard DefCvt(const ynothrow, const InputType&, Position)
 };
 
 
@@ -269,7 +269,7 @@ public:
 	*/
 	~CursorWheelEventArgs() override;
 
-	DefGetter(const ynothrow, WheelDelta, Delta, delta)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, WheelDelta, Delta, delta)
 };
 
 
@@ -318,7 +318,7 @@ struct GValueEventArgs : public UIEventArgs
 		: UIEventArgs(wgt),
 		Value(yforward(args)...)
 	{}
-	DefCvt(const ynothrow, ValueType, Value)
+	YB_ATTR_nodiscard DefCvt(const ynothrow, ValueType, Value)
 };
 
 
@@ -376,14 +376,14 @@ using HTextInputEvent = GHEvent<void(TextInputEventArgs&&)>;
 enum VisualEvent : size_t
 {
 	//\note 视图变更事件。
-	//@{
+	//!@{
 	//! \brief 移动：位置调整。
 	Move,
 	//! \brief 大小调整。
 	Resize,
-	//@}
+	//!@}
 	//! \note GUI 输入事件。
-	//@{
+	//!@{
 	//! \brief 键接触结束。
 	KeyUp,
 	//! \brief 键接触开始。
@@ -420,26 +420,26 @@ enum VisualEvent : size_t
 	\since build 482
 	*/
 	TextInput,
-	//@}
+	//!@}
 	//! \note GUI 输出事件。
-	//@{
+	//!@{
 	//! \brief 界面绘制。
 	Paint,
-	//@}
+	//!@}
 	//! \note 焦点事件。
-	//@{
+	//!@{
 	//! \brief 焦点获得。
 	GotFocus,
 	//! \brief 焦点失去。
 	LostFocus,
-	//@}
+	//!@}
 	//边界事件。
-	//@{
+	//!@{
 	//! \brief 控件进入。
 	Enter,
 	//! \brief 控件离开。
 	Leave,
-	//@}
+	//!@}
 	/*!
 	\brief 事件边界。
 	\since build 580
@@ -487,7 +487,7 @@ DefEventTypeMapping(Leave, HCursorEvent)
 
 
 //! \since build 850
-//@{
+//!@{
 //! \brief 取索引指定的事件处理器类型。
 template<VisualEvent _vID>
 using HandlerOf = typename EventTypeMapping<_vID>::HandlerType;
@@ -495,7 +495,7 @@ using HandlerOf = typename EventTypeMapping<_vID>::HandlerType;
 //! \brief 取索引指定的事件类型。
 template<VisualEvent _vID>
 using EventOf = GEvent<typename HandlerOf<_vID>::FuncType>;
-//@}
+//!@}
 
 
 /*!
@@ -529,7 +529,7 @@ public:
 	DefDeCopyMoveCtorAssignment(EventRef)
 
 	//! \throw std::bad_cast 转换失败。
-	//@{
+	//!@{
 	//! \brief 转换映射项为签名指定的事件类型的对象引用。
 	template<typename _fSig>
 	GEvent<_fSig>&
@@ -545,11 +545,11 @@ public:
 	{
 		return content.Access<EventOf<_vID>&>();
 	}
-	//@}
+	//!@}
 };
 
 //! \brief 映射表类型。
-using VisualEventMap = map<VisualEvent, EventItem>;
+using VisualEventMap = value_map<VisualEvent, EventItem>;
 
 
 /*!
@@ -564,12 +564,12 @@ public:
 	using LoggedEvent::LoggedEvent;
 
 	//! \since build 586
-	//@{
+	//!@{
 	DefDeCtor(BadEvent)
 	DefDeCopyCtor(BadEvent)
 	//! \brief 虚析构：类定义外默认实现。
 	~BadEvent() override;
-	//@}
+	//!@}
 };
 
 
@@ -582,14 +582,14 @@ class YF_API UIEventSignal : public Messaging::MessageSignal
 {
 public:
 	//! \since build 586
-	//@{
+	//!@{
 	using MessageSignal::MessageSignal;
 
 	DefDeCopyCtor(UIEventSignal)
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
 	~UIEventSignal();
-	//@}
+	//!@}
 };
 
 
@@ -618,7 +618,7 @@ public:
 	*/
 	~AController() override;
 
-	DefPred(const ynothrow, Enabled, enabled)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Enabled, enabled)
 	/*!
 	\brief 判断指定事件是否启用。
 	\note 默认实现：仅启用 Paint 事件。

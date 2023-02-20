@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r1282
+\version r1476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2023-02-13 03:21 +0800
+	2023-02-17 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,8 @@
 //	std::unordered_multiset;
 #include <queue>
 #include <stack>
+#include <ystdex/flat_map.hpp> // for ystdex::flat_map;
+#include <ystdex/flat_set.hpp> // for ystdex::flat_set;
 #if !defined(NDEBUG) && __GLIBCXX__
 #include <debug/deque>
 #include <debug/forward_list>
@@ -61,6 +63,7 @@
 #endif
 #include <ystdex/allocator.hpp> // for ystdex::propagating_allocator_adaptor,
 //	ystdex::make_obj_using_allocator;
+#include <ystdex/variadic.hpp> // for ystdex::vseq::_a, ystdex::vseq::apply_t;
 #include <iosfwd> // for std::basic_istringstream, std::basic_ostringstream,
 //	std::basic_stringstream;
 #include <ystdex/hash.hpp> // for ystdex::hash, ystdex::hash_range;
@@ -195,6 +198,230 @@ using queue = std::queue<_type, _tSeqCon>;
 
 template<typename _type, class _tSeqCon = deque<_type>>
 using stack = std::stack<_type, _tSeqCon>;
+//!@}
+
+//! \since build 968
+//!@{
+template<typename _tKey, typename _tMapped,
+	typename _fComp = ystdex::less<_tKey>, class _tKeyCon = vector<_tKey>,
+	class _tMappedCon = vector<_tMapped>>
+using flat_map
+	= ystdex::flat_map<_tKey, _tMapped, _fComp, _tKeyCon, _tMappedCon>;
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tKeyCon = vector<_tKey>>
+using flat_set = ystdex::flat_set<_tKey, _fComp, _tKeyCon>;
+
+
+/*!
+\brief 选择关联容器类型模板。
+\see WG21 N4928 [flat.map.overview][flat.set.overview] 。
+
+通过成员提供容器。
+模板参数表示选项，分别指定要求容器：
+	要求有序；
+	要求链接性质；
+	要求插入和删除元素具有亚线性插入时间复杂度。
+其中，链接性质指容器满足类似标准库关联容器的要求：
+	支持节点句柄相关的 API ；
+	可保证迭代器不被无效化。
+后两个选项指定的容器具有 std::flat_map 和 std::flat_set
+	相对 std::map 和 std::set 缺少的一些保证。
+选项指定的性质中，节点句柄相关的 API 和多键容器可能退化，
+	即限于已被 YCLib::Container 模块支持的容器模板。
+退化的容器是对应的标准库容器。
+其它性质应被确切地满足。
+成员指定 map_a 为后缀的映射容器或 set_a 为后缀的集合容器构造器。
+构造器蕴含指定容器类型的成员模板。
+成员模板的第一个参数是键类型。
+对映射容器，成员模板的第二个参数是被映射的对象类型。
+对符合链接性质的容器，成员模板的最后一个参数是分配器，否则是底层容器。
+成员模板的其它模板参数未指定。
+*/
+//!@{
+#define YCL_Impl_AssocAliasADecl(_m, _p) \
+	using _m##_a = ystdex::vseq::_a<_p##_m>;
+template<bool, bool _bLinked, bool = _bLinked>
+struct associative
+{
+	YCL_Impl_AssocAliasADecl(map, )
+	YCL_Impl_AssocAliasADecl(multimap, )
+	YCL_Impl_AssocAliasADecl(set, )
+	YCL_Impl_AssocAliasADecl(multiset, )
+};
+
+// XXX: Currently even unordered flat containers use ordered containers, so
+//	they need comparison objects instead of hash function and predicates.
+template<bool _bOrdered>
+struct associative<_bOrdered, false, false>
+{
+	YCL_Impl_AssocAliasADecl(map, flat_)
+#if false
+	YCL_Impl_AssocAliasADecl(multimap, flat_)
+#else
+	YCL_Impl_AssocAliasADecl(multimap, )
+#endif
+	YCL_Impl_AssocAliasADecl(set, flat_)
+#if false
+	YCL_Impl_AssocAliasADecl(multiset, flat_)
+#else
+	YCL_Impl_AssocAliasADecl(multiset, )
+#endif
+};
+
+template<bool _bSublinearInsert>
+struct associative<false, true, _bSublinearInsert>
+{
+	YCL_Impl_AssocAliasADecl(map, unordered_)
+	YCL_Impl_AssocAliasADecl(multimap, unordered_)
+	YCL_Impl_AssocAliasADecl(set, unordered_)
+	YCL_Impl_AssocAliasADecl(multiset, unordered_)
+};
+#undef YCL_Impl_AssocAliasADecl
+//!@}
+
+
+//! \relates associative
+//!@{
+// XXX: See the comment above.
+using value_associative = associative<false, false>;
+
+using linked_associative = associative<false, true>;
+
+using ordered_value_associative = associative<true, false>;
+
+using ordered_linked_associative = associative<true, true>;
+
+// XXX: G++ has the bug of the template default argument evaluation fixed since
+//	12.1. See $2023-02 @ %Documentation::Workflow.
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 120100
+// XXX: The following declarations are workaround to the bug. They shall be
+//	consistent to the %associative specializations.
+template<typename _tKey, typename _tMapped,
+	typename _fComp = ystdex::less<_tKey>, class _tKeyCon = vector<_tKey>,
+	class _tMappedCon = vector<_tMapped>>
+using value_map = flat_map<_tKey, _tMapped, _fComp, _tKeyCon, _tMappedCon>;
+
+#	if false
+template<typename _tKey, typename _tMapped,
+	typename _fComp = ystdex::less<_tKey>, class _tKeyCon = vector<_tKey>,
+	class _tMappedCon = vector<_tMapped>>
+using value_multimap
+	= flat_multimap<_tKey, _tMapped, _fComp, _tKeyCon, _tMappedCon>;
+#	else
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
+using value_multimap = multimap<_tKey, _tMapped, _fComp, _tAlloc>;
+#	endif
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tKeyCon = vector<_tKey>>
+using value_set = flat_set<_tKey, _fComp, _tKeyCon>;
+
+#	if false
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tKeyCon = vector<_tKey>>
+using value_multiset = flat_multiset<_tKey, _fComp, _tKeyCon>;
+#	else
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = default_allocator<_tKey>>
+using value_multiset = multiset<_tKey, _fComp, _tAlloc>;
+#	endif
+
+template<typename _tKey, typename _tMapped,
+	typename _fHash = ystdex::hash<_tKey>, typename _fPred = ystdex::equal_to<
+	_tKey>, class _tAlloc = default_allocator<std::pair<const _tKey, _tMapped>>>
+using linked_map = unordered_map<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
+
+template<typename _tKey, typename _tMapped,
+	typename _fHash = ystdex::hash<_tKey>, typename _fPred = ystdex::equal_to<
+	_tKey>, class _tAlloc = default_allocator<std::pair<const _tKey, _tMapped>>>
+using linked_multimap
+	= unordered_multimap<_tKey, _tMapped, _fHash, _fPred, _tAlloc>;
+
+template<typename _tKey, typename _fHash = ystdex::hash<_tKey>,
+	typename _fPred = ystdex::equal_to<_tKey>,
+	class _tAlloc = default_allocator<_tKey>>
+using linked_set = unordered_set<_tKey, _fHash, _fPred, _tAlloc>;
+
+template<typename _tKey, typename _fHash = ystdex::hash<_tKey>, typename _fPred
+	= ystdex::equal_to<_tKey>, class _tAlloc = default_allocator<_tKey>>
+using linked_multiset = unordered_multiset<_tKey, _fHash, _fPred, _tAlloc>;
+
+template<typename _tKey, typename _tMapped,
+	typename _fComp = ystdex::less<_tKey>, class _tKeyCon = vector<_tKey>,
+	class _tMappedCon = vector<_tMapped>>
+using ordered_value_map
+	= flat_map<_tKey, _tMapped, _fComp, _tKeyCon, _tMappedCon>;
+
+#	if false
+template<typename _tKey, typename _tMapped,
+	typename _fComp = ystdex::less<_tKey>, class _tKeyCon = vector<_tKey>,
+	class _tMappedCon = vector<_tMapped>>
+using ordered_value_multimap
+	= flat_multimap<_tKey, _tMapped, _fComp, _tKeyCon, _tMappedCon>;
+#	else
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
+using ordered_value_multimap = multimap<_tKey, _tMapped, _fComp, _tAlloc>;
+#	endif
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tKeyCon = vector<_tKey>>
+using ordered_value_set = flat_set<_tKey, _fComp, _tKeyCon>;
+
+#	if false
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tKeyCon = vector<_tKey>>
+using ordered_value_multiset = flat_multiset<_tKey, _fComp, _tKeyCon>;
+#	else
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = default_allocator<_tKey>>
+using ordered_value_multiset = multiset<_tKey, _fComp, _tAlloc>;
+#	endif
+
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
+using ordered_linked_map = map<_tKey, _tMapped, _fComp, _tAlloc>;
+
+template<typename _tKey, typename _tMapped, typename _fComp
+	= ystdex::less<_tKey>, class _tAlloc
+	= default_allocator<std::pair<const _tKey, _tMapped>>>
+using ordered_linked_multimap = multimap<_tKey, _tMapped, _fComp, _tAlloc>;
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = default_allocator<_tKey>>
+using ordered_linked_set = set<_tKey, _fComp, _tAlloc>;
+
+template<typename _tKey, typename _fComp = ystdex::less<_tKey>,
+	class _tAlloc = default_allocator<_tKey>>
+using ordered_linked_multiset = multiset<_tKey, _fComp, _tAlloc>;
+#else
+#	define YCL_Impl_AssocAlias(_n, _m) \
+	template<typename... _tParams> \
+	using _n##_##_m \
+		= ystdex::vseq::apply_t<_n##_##associative::_m##_a, _tParams...>;
+#	define YCL_Impl_AssocAliasCons(_n) \
+	YCL_Impl_AssocAlias(_n, map) \
+	YCL_Impl_AssocAlias(_n, multimap) \
+	YCL_Impl_AssocAlias(_n, set) \
+	YCL_Impl_AssocAlias(_n, multiset)
+
+YCL_Impl_AssocAliasCons(value)
+
+YCL_Impl_AssocAliasCons(linked)
+
+YCL_Impl_AssocAliasCons(ordered_value)
+
+YCL_Impl_AssocAliasCons(ordered_linked)
+
+#	undef YCL_Impl_AssocAliasCons
+#	undef YCL_Impl_AssocAliasDef
+#endif
+//!@}
 //!@}
 
 } // inline namespace containers;

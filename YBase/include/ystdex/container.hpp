@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2022 FrankHB.
+	© 2010-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2770
+\version r2927
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2022-11-21 01:35 +0800
+	2023-02-20 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ namespace ystdex
 \brief 构造指定类型的容器。
 \since build 532
 */
-//@{
+//!@{
 template<class _tCon, typename _tIter>
 inline _tCon
 make_container(_tIter first, _tIter last)
@@ -56,7 +56,7 @@ make_container(_tIter first, _tIter last)
 	return _tCon(first, last);
 }
 //! \note 使用 ystdex::begin 和 ystdex::end 指定范围迭代器。
-//@{
+//!@{
 template<class _tCon, typename _tRange>
 inline _tCon
 make_container(_tRange&& c)
@@ -70,8 +70,8 @@ make_container(_tRange&& c, _func f)
 	return _tCon(ystdex::make_transform(ystdex::begin(c), f),
 		ystdex::make_transform(ystdex::end(c), f));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -81,12 +81,12 @@ make_container(_tRange&& c, _func f)
 \note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
 \note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
 */
-//@{
+//!@{
 /*!
 \brief 插入参数指定的元素到容器。
 \since build 274
 */
-//@{
+//!@{
 template<class _tCon, typename... _tParams>
 inline void
 assign(_tCon& con, _tParams&&... args)
@@ -99,7 +99,7 @@ assign(_tCon& con, const _type(&arr)[_vN])
 {
 	con.assign(arr, arr + _vN);
 }
-//@}
+//!@}
 
 
 /*!
@@ -109,7 +109,7 @@ assign(_tCon& con, const _type(&arr)[_vN])
 \since build 546
 \todo 返回非 \c void 。
 */
-//@{
+//!@{
 template<class _tCon, typename _tIn>
 void
 concat(_tCon& con, _tIn first, _tIn last)
@@ -124,7 +124,7 @@ concat(_tCon& con, _tRange&& c)
 	con.insert(ystdex::end(con), std::make_move_iterator(ystdex::begin(
 		yforward(c))), std::make_move_iterator(ystdex::end(yforward(c))));
 }
-//@}
+//!@}
 
 
 /*!
@@ -151,7 +151,7 @@ insert_reversed(_tCon& con, typename _tCon::const_iterator i, _tIn first,
 	}
 	return i;
 }
-//@}
+//!@}
 
 
 /*!
@@ -196,7 +196,7 @@ seq_insert(_tCon& con, _tParams&&... args)
 
 
 /*!
-\ingroup functor
+\ingroup functors
 \brief 擦除容器前缀：移除容器起始至指定迭代器的元素。
 \warning 非虚析构。
 \since build 942
@@ -232,7 +232,7 @@ namespace details
 {
 
 //! \since build 663
-//@{
+//!@{
 template<class _type, typename... _tParams>
 using mem_remove_t
 	= decltype(std::declval<_type>().remove(std::declval<_tParams>()...));
@@ -243,12 +243,12 @@ using mem_remove_if_t
 
 template<class _type>
 using key_type_t = typename _type::key_type;
-//@}
+//!@}
 
 //! \since build 942
-//@{
+//!@{
 template<class _type>
-using mem_key_compare_t = decltype(_type::key_compare);
+using mem_key_compare_t = typename _type::key_compare;
 
 template<class _type>
 using key_comp_res_t = decltype(std::declval<_type&>().key_comp());
@@ -260,25 +260,30 @@ using has_mem_key_comp_impl = is_detected_convertible<typename
 template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 using lower_bound_res_t = decltype(std::declval<_tAssocCon&>().lower_bound(
 	std::declval<const _tKey&>()));
-//@}
+//!@}
 
 //! \since build 888
-//@{
-template<class _type, typename _tKey>
-using mem_count_t = decltype(std::declval<const _type&>().count(
-	std::declval<const _tKey&>()));
-
+//!@{
 template<class _type, typename _tKey>
 using mem_find_t = decltype(std::declval<const _type&>().find(
 	std::declval<const _tKey&>()) == ystdex::end(std::declval<const _type&>()));
-//@}
+
+template<class _type, typename _tKey>
+using mem_count_t = decltype(std::declval<const _type&>().count(
+	std::declval<const _tKey&>()));
+//!@}
+
+//! \since build 968
+template<class _type, typename _tKey>
+using mem_contains_t = decltype(std::declval<const _type&>().contains(
+	std::declval<const _tKey&>()));
 
 } // namespace details;
 
 //! \ingroup type_traits_operations
-//@{
+//!@{
 //! \since build 960
-//@{
+//!@{
 //! \brief 判断类型是否具有接受指定参数类型的 remove 成员类型。
 template<typename _type, typename... _tParams>
 using has_mem_remove = is_detected<details::mem_remove_t, _type, _tParams...>;
@@ -291,10 +296,10 @@ using has_mem_remove_if
 //! \brief 判断类型是否具有接受 key_type 成员类型。
 template<typename _type>
 using has_mem_key_type = is_detected<details::key_type_t, _type>;
-//@}
+//!@}
 
 //! \since build 942
-//@{
+//!@{
 /*!
 \brief 判断类型是否为可按键类型比较的容器。
 \note 判断键类型即判断存在 key_compare 成员类型；若不存在，则视为不可比较。
@@ -309,58 +314,79 @@ template<class _type, typename _tKey = typename _type::key_type,
 	typename _tIter = typename _type::const_iterator>
 using has_mem_lower_bound = is_detected_convertible<_tIter,
 	details::lower_bound_res_t, _type, _tKey>;
-//@}
+//!@}
 
 //! \since build 960
-//@{
+//!@{
+//! \brief 判断类型是否具有接受指定键类型参数且结果能和迭代器比较的 find 成员函数。
+template<typename _type, typename _tKey = typename _type::key_type>
+using has_mem_find = is_detected_convertible<bool, details::mem_find_t, _type,
+	_tKey>;
+
 //! \brief 判断类型是否具有接受指定键类型参数的 count 成员函数。
 template<typename _type, typename _tKey = typename _type::key_type>
 using has_mem_count
 	= is_detected_convertible<size_t, details::mem_count_t, _type, _tKey>;
+//!@}
 
-//! \brief 判断类型是否具有接受指定键类型参数的 find 成员函数。
+//! \brief 判断类型是否具有接受指定键类型参数的 contains 成员函数。
 template<typename _type, typename _tKey = typename _type::key_type>
-using has_mem_find = is_detected_convertible<bool, details::mem_find_t, _type,
-	_tKey>;
-//@}
-//@}
+using has_mem_contains = is_detected_convertible<bool, details::mem_contains_t,
+	_type, _tKey>;
+//!@}
 
 
 //! \since build 488
 namespace details
 {
 
-//! \since build 888
-//@{
+//! \since build 968
+//!@{
 template<class _tCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& k, false_, false_)
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, false_, false_, false_)
 {
 	return std::find(ystdex::cbegin(con), ystdex::cend(con), k)
 		!= ystdex::cend(con);
 }
 template<class _tCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& k, false_, true_)
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, false_, false_, true_)
 {
 	return con.count(k) != 0;
 }
+//!@}
+//! \since build 888
+//!@{
 template<class _tCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& k, false_)
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, false_, false_)
 {
-	return details::exists(con, k, false_(), has_mem_count<_tCon, _tKey>());
+	return details::exists(con, k, false_(), false_(),
+		has_mem_count<_tCon, _tKey>());
 }
 template<class _tCon, typename _tKey>
-YB_ATTR_nodiscard YB_PURE bool
-exists(const _tCon& con, const _tKey& k, true_)
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, false_, true_)
 {
 	return con.find(k) != ystdex::cend(con);
 }
-//@}
+template<class _tCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, false_)
+{
+	return details::exists(con, k, false_(), has_mem_find<_tCon, _tKey>());
+}
+template<class _tCon, typename _tKey>
+YB_ATTR_nodiscard YB_PURE inline bool
+exists(const _tCon& con, const _tKey& k, true_)
+{
+	return con.contains(k);
+}
+//!@}
 
 //! \since build 663
-//@{
+//!@{
 template<typename _tSeqCon, typename _type>
 inline void
 erase_remove(_tSeqCon& con, decltype(ystdex::begin(con)) first,
@@ -376,10 +402,10 @@ erase_remove_if(_tSeqCon& con, decltype(ystdex::begin(con)) first,
 {
 	con.erase(std::remove_if(first, last, pred), last);
 }
-//@}
+//!@}
 
 //! \since build 730
-//@{
+//!@{
 template<typename _tSeqCon, typename _type>
 inline void
 erase_all_in_seq(_tSeqCon& con, _type&& value, true_)
@@ -471,24 +497,25 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 {
 	details::erase_all_if_in_seq(con, pred, has_mem_remove_if<_tCon>());
 }
-//@}
+//!@}
 
 } // namespace details;
 
 //! \ingroup algorithms
-//@{
+//!@{
 /*!
 \sa ystdex::cbegin
 \sa ystdex::cend
 */
-//@{
+//!@{
 /*!
 \brief 判断指定的容器中存在指定的键。
 \since build 488
 
 按容器类型支持的操作判断参数指定的键的存在性。
 按以下顺序查找支持的操作：
-尝试使用 find 非静态成员函数，返回可比较的迭代器，迭代器比较结果类型可转换为 bool ；
+尝试使用 contains 非静态成员函数，结果类型可转换为 bool ；
+尝试使用 find 非静态成员函数，结果是可比较的迭代器，迭代器比较结果类型可转换为 bool ；
 尝试使用 count 非静态成员函数返回可转换为 size_t 的整数类型的值；
 使用 std::find 在容器中查找键。
 优先使用成员 find 而不是 count 以提升一般性能。
@@ -497,7 +524,7 @@ template<class _tCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE inline bool
 exists(const _tCon& con, const _tKey& k)
 {
-	return details::exists(con, k, has_mem_find<_tCon, _tKey>());
+	return details::exists(con, k, has_mem_contains<_tCon, _tKey>());
 }
 
 /*!
@@ -512,20 +539,20 @@ exists_if(const _tCon& con, _fPred pred)
 {
 	return std::find_if(ystdex::cbegin(con), ystdex::cend(con), pred);
 }
-//@}
+//!@}
 
 
 /*!
 \note 对不含 key_type 的容器视为序列容器。
 \since build 633
 */
-//@{
+//!@{
 /*!
 \brief 删除指定容器中指定区间中的或全部元素。
 \note 对整个序列容器使用 ystdex::remove 移除元素范围。
 \note 对序列容器中的部分序列使用 std::remove 移除元素范围。
 */
-//@{
+//!@{
 template<typename _tCon, typename _tIter>
 inline void
 erase_all(_tCon& con, _tIter first, _tIter last)
@@ -544,7 +571,7 @@ erase_all(_tCon& con, const _type& value)
 {
 	details::erase_all(con, value, has_mem_key_type<_tCon>());
 }
-//@}
+//!@}
 
 /*!
 \brief 删除指定容器中指定区间中的或全部满足谓词的元素。
@@ -554,7 +581,7 @@ erase_all(_tCon& con, const _type& value)
 对序列容器中的部分序列或不存在成员 remove_if 的序列容器，
 	使用 std::remove_if 移除元素范围。
 */
-//@{
+//!@{
 template<typename _tCon, typename _tIter, typename _fPred>
 inline void
 erase_all_if(_tCon& con, _tIter first, _tIter last, _fPred pred)
@@ -567,11 +594,11 @@ erase_all_if(_tCon& con, _fPred pred)
 {
 	details::erase_all_if(con, pred, has_mem_key_type<_tCon>());
 }
-//@}
-//@}
+//!@}
+//!@}
 
 //! \since build 680
-//@{
+//!@{
 /*!
 \brief 删除指定关联容器中等价于指定键的起始元素。
 \return 是否成功删除。
@@ -594,7 +621,7 @@ erase_first(_tAssocCon& con, const _tKey& k)
 \brief 删除指定关联容器中等价于指定键的所有元素。
 \return 删除的元素数。
 */
-//@{
+//!@{
 template<class _tAssocCon>
 inline typename _tAssocCon::size_type
 erase_multi(_tAssocCon& con, const typename _tAssocCon::key_type& k)
@@ -616,8 +643,8 @@ erase_multi(_tAssocCon& con, const _tKey& k)
 	}
 	return 0;
 }
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 删除指定容器中指定迭代器起始指定数量的元素。
@@ -625,7 +652,7 @@ erase_multi(_tAssocCon& con, const _tKey& k)
 \pre 断言：删除的范围不超出容器。
 \since build 531
 */
-//@{
+//!@{
 template<typename _tCon>
 typename _tCon::const_iterator
 erase_n(_tCon& con, typename _tCon::const_iterator i,
@@ -645,14 +672,14 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 		"Invalid difference value found.");
 	return con.erase(i, std::next(i, n));
 }
-//@}
+//!@}
 
 
 /*!
 \brief 移除 const_iterator 的 const 限定。
 \since build 942
 */
-//@{
+//!@{
 template<class _tCon>
 YB_ATTR_nodiscard YB_PURE inline typename _tCon::iterator
 cast_mutable(_tCon& con, typename _tCon::const_iterator i) ynothrow
@@ -667,7 +694,7 @@ cast_mutable(_tCon& con, const std::pair<typename _tCon::const_iterator,
 {
 	return {cast_mutable(con, pr.first), pr.second};
 }
-//@}
+//!@}
 
 
 /*!
@@ -688,7 +715,7 @@ sort_unique(_tCon& con)
 \brief 保证非空容器以参数指定的元素结尾。
 \since build 567
 */
-//@{
+//!@{
 template<class _tCon>
 _tCon&&
 trail(_tCon&& con, const typename decay_t<_tCon>::value_type& value = {})
@@ -713,11 +740,11 @@ trail(_tCon&& con, _tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
 	}
 	return static_cast<_tCon&&>(con);
 }
-//@}
+//!@}
 
 
 //! \since build 885
-//@{
+//!@{
 /*!
 \brief 若容器末尾存在指定值的元素则移除。
 \pre 容器支持无异常抛出的 empty 、back 和 pop_back 操作。
@@ -749,7 +776,7 @@ pop_front_val(_tCon& con, const typename _tCon::value_type& value) ynothrow
 	}
 	return {};
 }
-//@}
+//!@}
 
 
 /*!
@@ -757,7 +784,7 @@ pop_front_val(_tCon& con, const typename _tCon::value_type& value) ynothrow
 \note 使用 ADL size 。
 \since build 546
 */
-//@{
+//!@{
 template<class _tVector, typename _tIn>
 void
 vector_concat(_tVector& vec, _tIn first, _tIn last)
@@ -772,7 +799,7 @@ vector_concat(_tVector& vec, _tRange&& c)
 	vec.reserve(size(vec) + ystdex::range_size(c));
 	ystdex::concat(vec, yforward(c));
 }
-//@}
+//!@}
 
 
 /*!
@@ -782,7 +809,7 @@ vector_concat(_tVector& vec, _tRange&& c)
 \see LWG 2466 。
 \since build 699
 */
-//@{
+//!@{
 template<class _tVector, typename _func>
 YB_ATTR_nodiscard _tVector
 retry_for_vector(typename _tVector::size_type s, _func f)
@@ -809,7 +836,7 @@ retry_for_vector(typename _tVector::size_type s,
 		res.resize(s *= yimpl(2));
 	return res;
 }
-//@}
+//!@}
 
 
 /*!
@@ -849,7 +876,7 @@ template<class _tAssocCon>
 struct assoc_con_traits
 {
 	//! \since build 942
-	//@{
+	//!@{
 	// XXX: For general cases, the hint is ignored. This is also true in the
 	//	implementations of the ISO C++ unordered containers in libstdc++ and
 	//	libc++. It is even more unlikely to have some efficient way without
@@ -887,44 +914,44 @@ struct assoc_con_traits
 			std::forward_as_tuple(yforward(k)),
 			std::forward_as_tuple(yforward(args)...));
 	}
-	//@}
+	//!@}
 
-	//! \since build 942
-	//@{
+	//! \since build 968
+	//!@{
 	static inline const typename _tAssocCon::key_type&
-	extract_key(false_, const typename _tAssocCon::value_type& val) ynothrow
+	extract_key(false_, typename _tAssocCon::const_reference v) ynothrow
 	{
-		return val;
+		return v;
 	}
 	static inline const typename _tAssocCon::key_type&
-	extract_key(true_, const typename _tAssocCon::value_type& val) ynothrow
+	extract_key(true_, typename _tAssocCon::const_reference v) ynothrow
 	{
-		return val.first;
+		return v.first;
 	}
 
-	static inline typename _tAssocCon::value_type&
-	extract_mapped(false_, typename _tAssocCon::value_type& val) ynothrow
+	static inline typename _tAssocCon::reference
+	extract_mapped(false_, typename _tAssocCon::reference v) ynothrow
 	{
-		return val;
+		return v;
 	}
-	static inline const typename _tAssocCon::value_type&
-	extract_mapped(false_, const typename _tAssocCon::value_type& val) ynothrow
+	static inline typename _tAssocCon::const_reference
+	extract_mapped(false_, typename _tAssocCon::const_reference v) ynothrow
 	{
-		return val;
+		return v;
 	}
 	template<typename _tMap = _tAssocCon>
 	static inline typename _tMap::mapped_type&
-	extract_mapped(true_, typename _tAssocCon::value_type& val) ynothrow
+	extract_mapped(true_, typename _tAssocCon::reference v) ynothrow
 	{
-		return val.second;
+		return v.second;
 	}
 	template<typename _tMap = _tAssocCon>
 	static inline const typename _tMap::mapped_type&
-	extract_mapped(true_, const typename _tAssocCon::value_type& val) ynothrow
+	extract_mapped(true_, typename _tAssocCon::const_reference v) ynothrow
 	{
-		return val.second;
+		return v.second;
 	}
-	//@}
+	//!@}
 };
 
 template<class _type>
@@ -947,32 +974,31 @@ emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 		_tKey, _tParams...>(), con, hint, yforward(k), yforward(args)...);
 }
 
-//! \since build 942
-//@{
+//! \since build 968
+//!@{
 //! \brief 从关联容器的值取键。
 template<class _tAssocCon, typename _type,
-	yimpl(typename = enable_if_convertible_t<const _type&,
-	const typename _tAssocCon::value_type&>)>
+	yimpl(typename = enable_if_convertible_t)<const _type&,
+	typename _tAssocCon::const_reference>>
 inline const typename _tAssocCon::key_type&
-extract_key(const _type& val) ynothrow
+extract_key(const _type& v) ynothrow
 {
 	return details::assoc_con_traits<_tAssocCon>::extract_key(
-		is_detected<details::mapped_type_t, _tAssocCon>(), val);
+		is_detected<details::mapped_type_t, _tAssocCon>(), v);
 }
 
 //! \brief 从关联容器的值取映射的值。
-template<class _tAssocCon, typename _type,
-	yimpl(typename = enable_if_convertible_t<_type&,
-	typename _tAssocCon::value_type&>)>
+template<class _tAssocCon, typename _type, yimpl(typename
+	= enable_if_convertible_t)<_type&, typename _tAssocCon::reference>>
 inline auto
-extract_mapped(_type& val) ynothrow
+extract_mapped(_type& v) ynothrow
 	-> decltype(details::assoc_con_traits<_tAssocCon>::extract_mapped(
-		is_detected<details::mapped_type_t, _tAssocCon>(), val))
+	is_detected<details::mapped_type_t, _tAssocCon>(), v))
 {
 	return details::assoc_con_traits<_tAssocCon>::extract_mapped(
-		is_detected<details::mapped_type_t, _tAssocCon>(), val);
+		is_detected<details::mapped_type_t, _tAssocCon>(), v);
 }
-//@}
+//!@}
 
 
 //! \since build 792
@@ -980,7 +1006,7 @@ namespace details
 {
 
 //! \since build 942
-//@{
+//!@{
 template<class _tAssocCon, typename _tKey>
 YB_ATTR_nodiscard YB_PURE std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(false_, const _tAssocCon& con, const _tKey& k)
@@ -1018,6 +1044,8 @@ search_map(true_, const _tOrdCon& con, typename _tOrdCon::const_iterator hint,
 	if(!con.empty())
 	{
 		const auto& comp(con.key_comp());
+		// XXX: As now, this only support unique keys. Equivalent keys would be
+		//	ignored by incorrect %fit_before or %fit_after.
 		const bool fit_before(hint == ystdex::cbegin(con)
 			|| bool(comp(extract_key<_tOrdCon>(*std::prev(hint)), k))),
 			fit_after(hint == ystdex::cend(con)
@@ -1030,7 +1058,7 @@ search_map(true_, const _tOrdCon& con, typename _tOrdCon::const_iterator hint,
 	yconstraint(hint == ystdex::cend(con));
 	return {hint, true};
 }
-//@}
+//!@}
 
 /*!
 \note 使用 ADL extract_mapped 。
@@ -1049,17 +1077,18 @@ extract_mapped_if(const std::pair<typename _tAssocCon::iterator, bool>& pr,
 
 
 /*!
-\return 一个用于表示结果的 std::pair 实例的值，其成员 \c first 为迭代器，
+\return 一个用于表示结果的 std::pair 实例的值，其成员 \c first 为最接近的迭代器，
 	\c second 表示未搜索到指定的键。
 \note 对非 const 容器使用 ADL cast_mutable 转换迭代器。
+\note 对有序容器受限使用 \c lower_bound 确定迭代器结果，其它情形使用 \c find 。
 \note 对使用提示参数的实现使用 ystdex::cend 和 extract_key 。
 */
-//@{
+//!@{
 /*!
 \brief 按指定键搜索指定关联容器。
 \since build 942
 */
-//@{
+//!@{
 template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 YB_ATTR_nodiscard YB_PURE inline
 	std::pair<typename _tAssocCon::const_iterator, bool>
@@ -1079,16 +1108,16 @@ search_map(_tAssocCon& con, const _tKey& k)
 {
 	return cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
 }
-//@}
+//!@}
 //! \since build 680
-//@{
+//!@{
 /*!
 \brief 按指定键和提示的迭代器位置搜索指定关联容器。
 \pre 容器非空或提示的迭代器位置指向尾部。
 \note 使用 ystdex::cbegin 。
 \since build 942
 */
-//@{
+//!@{
 template<class _tAssocCon, typename _tKey = typename _tAssocCon::key_type>
 YB_ATTR_nodiscard YB_PURE inline
 	std::pair<typename _tAssocCon::const_iterator, bool>
@@ -1107,16 +1136,16 @@ search_map(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	return
 		cast_mutable(con, ystdex::search_map(ystdex::as_const(con), hint, k));
 }
-//@}
+//!@}
 
 /*!
 \brief 按指定键值搜索指定映射并执行操作。
 \pre 最后的参数构造新的值。
-\return 插入成员的迭代器。
-\note 行为类似 std::map::operator[] 。
+\return 同 ystdex::search_map ，但执行的操作结果覆盖成员 \c first 的值。
+\note 若操作原地插入元素，则行为类似 \c std::map::try_emplace 。
 \since build 734
 */
-//@{
+//!@{
 template<typename _func, class _tAssocCon, typename... _tParams>
 std::pair<typename _tAssocCon::const_iterator, bool>
 search_map_by(_func f, const _tAssocCon& con, _tParams&&... args)
@@ -1134,9 +1163,9 @@ search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 	return cast_mutable(con,
 		ystdex::search_map_by(f, ystdex::as_const(con), yforward(args)...));
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 /*!
 \note 使用 ADL emplace_hint_in_place 。
@@ -1144,9 +1173,9 @@ search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 \note 和 WG21 N4279 不同，支持透明比较器和非特定的键类型。
 \see WG21 N4279 。
 */
-//@{
+//!@{
 //! \since build 680
-//@{
+//!@{
 template<class _tAssocCon, typename _tKey, typename... _tParams>
 std::pair<typename _tAssocCon::iterator, bool>
 try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
@@ -1169,13 +1198,13 @@ try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 			std::forward<_tParams>(args)...);
 	}, con, hint, k);
 }
-//@}
+//!@}
 
 /*!
 \note 使用 ADL emplace_hint_in_place 和 extract_mapped 。
 \since build 681
 */
-//@{
+//!@{
 template<class _tAssocCon, typename _tKey, typename _tParam>
 inline std::pair<typename _tAssocCon::iterator, bool>
 insert_or_assign(_tAssocCon& con, _tKey&& k, _tParam&& arg)
@@ -1196,9 +1225,9 @@ insert_or_assign_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	details::extract_mapped_if<_tAssocCon>(pr, yforward(arg));
 	return pr;
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 } // namespace ystdex;
 

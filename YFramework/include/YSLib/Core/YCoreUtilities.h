@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2022 FrankHB.
+	© 2010-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2653
+\version r2680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2022-09-06 12:36 +0800
+	2023-02-20 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YException // for LoggedEvent, string, string_view,
 //	std::string, std::exception, size_t, ExtractException, FatalError,
-//	to_std_string, make_string_view, function;
+//	to_std_string, make_string_view, linked_map;
 #include <ystdex/algorithm.hpp> // for ystdex::clamp;
 
 namespace YSLib
@@ -78,7 +78,7 @@ HalfDifference(_type x, _type y)
 
 /*!
 \brief 判断 i 是否在左闭右开区间 [_type(0), b) 中。
-\pre 断言： <tt>_type(0) < b</tt> 。
+\pre 断言：<tt>_type(0) < b</tt> 。
 \since build 319
 */
 template<typename _type>
@@ -91,7 +91,7 @@ IsInInterval(_type i, _type b) ynothrow
 }
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
-\pre 断言： <tt>a < b</tt> 。
+\pre 断言：<tt>a < b</tt> 。
 \since build 319
 */
 template<typename _type>
@@ -104,7 +104,7 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 
 /*!
 \brief 判断 i 是否在闭区间 [_type(0), b] 中。
-\pre 断言： <tt>_type(0) < b</tt> 。
+\pre 断言：<tt>_type(0) < b</tt> 。
 \since build 470
 */
 template<typename _type>
@@ -117,7 +117,7 @@ IsInClosedInterval(_type i, _type b) ynothrow
 }
 /*!
 \brief 判断 i 是否在闭区间 [a, b] 中。
-\pre 断言： <tt>a < b</tt> 。
+\pre 断言：<tt>a < b</tt> 。
 \since build 470
 */
 template<typename _type>
@@ -130,7 +130,7 @@ IsInClosedInterval(_type i, _type a, _type b) ynothrow
 
 /*!
 \brief 判断 i 是否在开区间 (_type(0), b) 内。
-\pre 断言： <tt>_type(0) < b</tt> 。
+\pre 断言：<tt>_type(0) < b</tt> 。
 \since build 319
 */
 template<typename _type>
@@ -143,7 +143,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 }
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
-\pre 断言： <tt>a < b</tt> 。
+\pre 断言：<tt>a < b</tt> 。
 \since build 319
 */
 template<typename _type>
@@ -155,12 +155,12 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 }
 
 /*!
-\pre 断言： <tt>n != 0</tt> 。
-\pre 间接断言： <tt>a</tt> 。
-\pre 断言： <tt>!(v < *a)</tt> 。
+\pre 断言：<tt>n != 0</tt> 。
+\pre 间接断言：<tt>a</tt> 。
+\pre 断言：<tt>!(v < *a)</tt> 。
 \since build 319
 */
-//@{
+//!@{
 /*!
 \brief 计算满足指定的值 v 在区间 [\c a[i], <tt>a[i + 1]</tt>) 内最小的 i 。
 */
@@ -196,11 +196,11 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 		;
 	return i - 1;
 }
-//@}
+//!@}
 
 /*!
 \brief 约束 v 在闭区间 [a, b] 中。
-\pre 间接断言： <tt>!(b < a)</tt> 。
+\pre 间接断言：<tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
 \since build 448
 */
@@ -213,7 +213,7 @@ RestrictInClosedInterval(_type& v, const _type& a, const _type& b) ynothrow
 
 /*!
 \brief 约束整数 i 在左闭右开区间 [a, b) 中。
-\pre 断言： <tt>a < b</tt> 。
+\pre 断言：<tt>a < b</tt> 。
 \post <tt>!(i < a) && i < b</tt> 。
 \since build 519
 */
@@ -245,7 +245,7 @@ RestrictUnsignedStrict(_type& u, _type b) ynothrow
 
 /*!
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
-\pre 断言： <tt>b != _type(0)</tt> 。
+\pre 断言：<tt>b != _type(0)</tt> 。
 \post <tt>!(u < _type(0)) && u < b</tt> 。
 \since build 319
 */
@@ -279,7 +279,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 \since build 833
 \sa ystdex::narrow
 */
-//@{
+//!@{
 //! \brief 检查算术类型数值不小于指定类型的下界。
 template<typename _tDst, typename _type>
 inline _tDst
@@ -345,7 +345,7 @@ CheckPositive(_type val, const string& name = {}, RecordLevel lv = Err)
 		throw LoggedEvent("Failed getting positive " + name + " value.", lv);
 	return CheckUpperBound<_tDst>(val, name, lv);
 }
-//@}
+//!@}
 
 
 /*!
@@ -416,13 +416,13 @@ public:
 	CommandArguments::VectorType Arguments{};
 
 	//! \since build 919
-	//@{
+	//!@{
 	DefDeCtor(ArgumentsVector)
 	ArgumentsVector(CommandArguments::VectorType::allocator_type a)
 		: Arguments(a)
 	{}
 	DefDeCopyMoveCtorAssignment(ArgumentsVector)
-	//@}
+	//!@}
 
 	/*!
 	\brief 设置值。
@@ -430,7 +430,7 @@ public:
 	设置参数向量的值。
 	参数分别指定参数向量和表示 NTMBS 的指针数组。
 	*/
-	//@{
+	//!@{
 	/*!
 	\pre 间接断言：第二参数的元素都是非空指针。
 	\exception LoggedEvent 输入的参数数小于 0 。
@@ -445,7 +445,7 @@ public:
 	//! \since build 919
 	PDefH(void, Reset, CommandArguments&& cmd_args)
 		ImplExpr(Arguments = std::move(cmd_args).ToVector())
-	//@}
+	//!@}
 };
 
 /*!
@@ -460,7 +460,7 @@ LockCommandArguments();
 
 
 //! \since build 567
-//@{
+//!@{
 //! \brief 默认命令缓冲区大小。
 yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
 
@@ -479,8 +479,10 @@ YF_API YB_NONNULL(1) pair<string, int>
 FetchCommandOutput(const char*, size_t = DefaultCommandBufferSize);
 
 
+// XXX: The results can be potentionally large. Use %linked_map is more
+//	efficient than %value_map in such case.
 //! \brief 命令和命令执行结果的缓冲区类型。
-using CommandCache = unordered_map<string, string>;
+using CommandCache = linked_map<string, string>;
 
 /*!
 \brief 锁定命令执行缓冲区。
@@ -488,7 +490,7 @@ using CommandCache = unordered_map<string, string>;
 */
 YF_API locked_ptr<CommandCache>
 LockCommandCache();
-//@}
+//!@}
 
 /*!
 \brief 取缓冲的命令执行结果。

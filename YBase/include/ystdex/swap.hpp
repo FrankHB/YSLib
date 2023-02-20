@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file swap.hpp
 \ingroup YStandardEx
-\brief 交换操作。
-\version r701
+\brief 交换操作和可交换类型。
+\version r800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2022-02-15 18:04 +0800
+	2023-02-20 01:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,33 +42,33 @@
 \see WG21 P0941R2 2.2 。
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 */
-//@{
+//!@{
 /*!
 \brief \c \<type_traits> 特性测试宏。
 \see https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd 。
 \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 834
 */
-//@{
+//!@{
 #ifndef __cpp_lib_is_swappable
 #	if (_MSC_FULL_VER >= 190024210L && _MSVC_LANG >= 201603L) \
 	|| __cplusplus >= 201603L
 #		define __cpp_lib_is_swappable 201603L
 #	endif
 #endif
-//@}
+//!@}
 /*!
 \brief \c \<utility> 特性测试宏。
 \since build 628
 */
-//@{
+//!@{
 #ifndef __cpp_lib_exchange_function
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
 #		define __cpp_lib_exchange_function 201304L
 #	endif
 #endif
-//@}
-//@}
+//!@}
+//!@}
 
 #if __cpp_lib_is_swappable >= 201603L
 #	define YB_Impl_Swap_Traits true
@@ -82,9 +82,9 @@ namespace ystdex
 {
 
 //! \since build 834
-//@{
+//!@{
 //! \ingroup unary_type_traits
-//@{
+//!@{
 // XXX: No %tuple is instantiated in namespace %ystdex, so no tuple check like
 //	libstdc++.
 template<typename _type>
@@ -94,12 +94,12 @@ using is_swap_movable = and_<is_move_constructible<_type>,
 template<typename _type>
 using is_nothrow_swap_movable = and_<is_nothrow_move_constructible<_type>,
 	is_nothrow_move_assignable<_type>>;
-//@}
+//!@}
 
 //! \ingroup transformation_traits
 template<typename _tSwapped, typename _type = void>
 using enable_if_swap_movable_t
-	= enable_if_t<is_swap_movable<_tSwapped>::value, _type>;
+	= enable_if_t<is_swap_movable<_tSwapped>{}, _type>;
 
 
 #if !YB_Impl_Swap_Traits
@@ -114,7 +114,7 @@ struct is_nothrow_swappable;
 
 } // inline namespace cpp2017;
 #endif
-//@}
+//!@}
 
 } // namespace ystdex;
 
@@ -132,7 +132,7 @@ using YB_Impl_Swap_ns::is_nothrow_swappable;
 \ingroup YBase_replacement_features
 \see WG21 P0879R0 。
 */
-//@{
+//!@{
 /*!
 \ingroup customization_points
 \brief 符合 ISO C++20 要求的 std::swap 替代实现。
@@ -147,11 +147,11 @@ using YB_Impl_Swap_ns::is_nothrow_swappable;
 实例：
 提供 ystdex::swap 可导致 libstdc++ 的 std::unique_ptr 实例的 swap 实现发生歧义。
 */
-//@{
+//!@{
 //! \see WG21 P0185R1 。
 template<typename _type>
 yconstfn_relaxed yimpl(enable_if_swap_movable_t)<_type>
-swap(_type& a, _type& b) ynoexcept(is_nothrow_swap_movable<_type>::value)
+swap(_type& a, _type& b) ynoexcept(is_nothrow_swap_movable<_type>())
 {
 	_type tmp = std::move(a);
 
@@ -160,10 +160,10 @@ swap(_type& a, _type& b) ynoexcept(is_nothrow_swap_movable<_type>::value)
 }
 //! \see LWG 809 。
 template<typename _type, size_t _vN>
-yconstfn_relaxed yimpl(enable_if_t)<is_swappable<_type>::value>
+yconstfn_relaxed yimpl(enable_if_t)<is_swappable<_type>{}>
 swap(_type(&a)[_vN], _type(&b)[_vN])
-	ynoexcept(is_nothrow_swappable<_type>::value);
-//@}
+	ynoexcept(is_nothrow_swappable<_type>());
+//!@}
 
 /*!
 \brief 符合 ISO C++20 要求的 std::iter_swap 替代实现。
@@ -193,12 +193,12 @@ swap_ranges(_tFwd1 first1, _tFwd1 last1, _tFwd2 first2)
 		ystdex_swap::iter_swap(first1, first2);
 	return first2;
 }
-//@}
+//!@}
 
 template<typename _type, size_t _vN>
-yconstfn_relaxed yimpl(enable_if_t)<is_swappable<_type>::value>
+yconstfn_relaxed yimpl(enable_if_t)<is_swappable<_type>{}>
 swap(_type(&a)[_vN], _type(&b)[_vN])
-	ynoexcept(is_nothrow_swappable<_type>::value)
+	ynoexcept(is_nothrow_swappable<_type>())
 {
 	ystdex_swap::swap_ranges(a, a + _vN, b);
 }
@@ -212,21 +212,21 @@ namespace dep_swap
 {
 
 //! \since build 834
-//@{
+//!@{
 yimpl(using ystdex::nonesuch);
 yimpl(using ystdex::any_constructible);
 yimpl(using ystdex::is_same);
 
 using ystdex_swap::swap;
-//@}
+//!@}
 //! \since build 649
 nonesuch
 swap(any_constructible, any_constructible);
 
 //! \since build 845
-//@{
+//!@{
 //! \ingroup metafunctions
-//@{
+//!@{
 template<typename _type, typename _type2>
 using swap_t = decltype(swap(std::declval<_type>(), std::declval<_type2>()));
 
@@ -239,7 +239,7 @@ template<typename _type, typename _type2>
 struct well_formed_swap<_type, _type2, ystdex::void_t<swap_t<_type, _type2>>>
 	: ystdex::true_
 {};
-//@}
+//!@}
 
 // XXX: The order of instantiation is significant. Whether in the primary
 //	template or in an additional explicit specialziation, the fallback one has
@@ -249,7 +249,7 @@ struct well_formed_swap<_type, _type2, ystdex::void_t<swap_t<_type, _type2>>>
 //	'-std=c++14' (tested for 'ystdex' container with 'std::less'), while Clang++
 //	7 is permissive.
 template<typename _type, typename _type2,
-	bool = well_formed_swap<_type, _type2>::value>
+	bool = well_formed_swap<_type, _type2>{}>
 struct yimpl(helper)
 {
 	static yconstexpr const bool value = !is_same<decltype(
@@ -273,7 +273,7 @@ struct yimpl(helper)<_type, _type2, true>
 		ynoexcept_spec(swap(std::declval<_type>(), std::declval<_type2>()))
 	{}
 };
-//@}
+//!@}
 
 } // namespace dep_swap;
 
@@ -291,7 +291,7 @@ inline namespace cpp2017
 \see WG21 P0185R1 。
 \see ISO C++17 [swappable.requirements] 。
 */
-//@{
+//!@{
 #if YB_Impl_Swap_Traits
 using std::is_swappable_with;
 using std::is_swappable;
@@ -299,15 +299,15 @@ using std::is_nothrow_swappable_with;
 using std::is_nothrow_swappable;
 #else
 //! \since build 586
-//@{
+//!@{
 //! \ingroup YBase_replacement_features
-//@{
+//!@{
 //! \brief 判断是否可以调用 \c swap 。
-//@{
+//!@{
 //! \ingroup binary_type_traits
 template<typename _type, typename _type2>
 struct is_swappable_with
-	: bool_<yimpl(ystdex_swap::dep_swap::helper<_type, _type2>::value)>
+	: bool_<yimpl(ystdex_swap::dep_swap::helper<_type, _type2>{})>
 {};
 
 
@@ -316,11 +316,11 @@ template<typename _type>
 struct is_swappable
 	: and_<is_referenceable<_type>, is_swappable_with<_type&, _type&>>
 {};
-//@}
+//!@}
 
 
 //! \brief 判断是否可以无抛出地调用 \c swap 。
-//@{
+//!@{
 template<typename _type, typename _type2>
 struct is_nothrow_swappable_with : is_nothrow_default_constructible<
 	yimpl(ystdex_swap::dep_swap::helper<_type, _type2>)>
@@ -331,11 +331,11 @@ template<typename _type>
 struct is_nothrow_swappable
 	: and_<is_referenceable<_type>, is_nothrow_swappable_with<_type&, _type&>>
 {};
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 #endif
-//@}
+//!@}
 
 } // inline namespace cpp2017;
 
@@ -350,11 +350,11 @@ namespace details
 {
 
 //! \since build 851
-//@{
+//!@{
 namespace yimpl(swap_dep_impl)
 {
 
-template<typename _type, typename = enable_if_t<is_void<_type>::value>>
+template<typename _type, typename = enable_if_t<is_void<_type>{}>>
 void
 swap(_type&);
 
@@ -373,7 +373,7 @@ swap_dep(_type& x, _type& y, true_)
 }
 
 } // namespace yimpl(swap_dep_impl);
-//@}
+//!@}
 
 } // namespace details;
 
@@ -408,7 +408,7 @@ swap_dependent(_type& x, _type& y) ynothrow(is_nothrow_swappable<_type>())
 {
 	details::yimpl(swap_dep_impl)::swap_dep(x, y,
 		// XXX: This has to be exactly %true_ for ADL overload.
-		bool_<is_class<_type>::value || is_enum<_type>::value>());
+		bool_<is_class<_type>() || is_enum<_type>()>());
 }
 
 /*!
@@ -416,7 +416,7 @@ swap_dependent(_type& x, _type& y) ynothrow(is_nothrow_swappable<_type>())
 \pre 可赋值。
 \since build 704
 */
-//@{
+//!@{
 template<typename _type>
 yimpl(enable_if_t)<is_nothrow_constructible<_type, volatile _type>()
 	&& is_nothrow_assignable<_type&, volatile _type&&>()
@@ -441,7 +441,7 @@ swap_volatile(volatile _type& x, _type& y)
 template<typename _type, size_t _vN>
 void
 swap_volatile(_type(&x)[_vN], add_volatile_t<_type[_vN]>& y)
-	ynoexcept(noexcept(ystdex::swap_volatile(x[0], y[0])))
+	ynoexcept_spec(ystdex::swap_volatile(x[0], y[0]))
 {
 	auto first(std::addressof(x[0]));
 	auto first2(std::addressof(y[0]));
@@ -449,15 +449,15 @@ swap_volatile(_type(&x)[_vN], add_volatile_t<_type[_vN]>& y)
 	for(const auto last(first + _vN); first != last; yunseq(++first, ++first2))
 		ystdex::swap_volatile(*first, *first2);
 }
-//@}
+//!@}
 
 //! \since build 704
 namespace details
 {
 
 template<typename _type, typename _type2>
-using swap_volatile_avail = bool_<is_volatile<remove_reference_t<_type>>::value
-	!= is_volatile<remove_reference_t<_type2>>::value>;
+using swap_volatile_avail = bool_<is_volatile<remove_reference_t<_type>>()
+	!= is_volatile<remove_reference_t<_type2>>()>;
 
 #if YB_HAS_NOEXCEPT
 template<typename _type, typename _type2>
@@ -499,7 +499,7 @@ swap_underlying(_type& x, _type& y) ynothrow
 \pre 参数类型可交换，或具有一个 volatile 类型可用 swap_volatie 交换。
 \since build 704
 */
-//@{
+//!@{
 //! \note 使用 ADL swap 或 ystdex_swap::swap 。
 template<typename _type, typename _type2, yimpl(typename
 	= enable_if_t<!details::swap_volatile_avail<_type, _type2>::value>)>
@@ -510,17 +510,17 @@ vswap(_type&& x, _type2&& y)
 	ystdex::swap_dependent(yforward(x), yforward(y));
 }
 //! \note 使用 ADL swap_volatile 或 ystdex::swap_volatile 。
-//@{
+//!@{
 template<typename _type, typename _type2>
 inline auto
 vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 	details::swap_volatile_noexcept, _type, _type2>())
-	-> yimpl(enable_if_t)<details::swap_volatile_avail<_type, _type2>::value>
+	-> yimpl(enable_if_t)<details::swap_volatile_avail<_type, _type2>{}>
 {
 	swap_volatile(yforward(x), yforward(y));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -528,7 +528,7 @@ vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 \warning 若交换使用赋值实现并重入调用，则调用的行为未定义。
 \sa ystdex::swap_dependent
 */
-//@{
+//!@{
 /*!
 \brief 创建对象并交换。
 \since build 879
@@ -562,7 +562,7 @@ copy_and_swap(_type& obj, const _type2& new_val)
 {
 	return ystdex::create_and_swap(obj, new_val);
 }
-//@}
+//!@}
 
 inline namespace cpp2014
 {
@@ -597,6 +597,54 @@ exchange(_type& obj, _type2&& new_val)
 \since build 926
 */
 yconstexpr_inline const struct trivial_swap_t{} trivial_swap{};
+
+
+/*!
+\brief 和引用可交换的有序对代理。
+\since build 968
+*/
+template<typename _type1, typename _type2>
+struct pair_proxy : std::pair<_type1, _type2>
+{
+	using base = std::pair<_type1, _type2>;
+
+	using base::base;
+
+	pair_proxy&
+	operator=(const std::pair<remove_cvref_t<_type1>,
+		remove_cvref_t<_type2>>& x)
+	{
+		yunseq(this->first = x.first, this->second = x.second);
+		return *this;
+	}
+	pair_proxy&
+	operator=(const std::pair<remove_cvref_t<_type1>,
+		remove_cvref_t<_type2>>&& x)
+	{
+		yunseq(this->first = std::move(x.first),
+			this->second = std::move(x.second));
+		return *this;
+	}
+
+	friend void
+	swap(pair_proxy x, pair_proxy y)
+	{
+		ystdex::swap_dependent(x.first, y.first),
+		ystdex::swap_dependent(x.second, y.second);
+	}
+	friend void
+	swap(pair_proxy x, base& y)
+	{
+		ystdex::swap_dependent(x.first, y.first),
+		ystdex::swap_dependent(x.second, y.second);
+	}
+	friend void
+	swap(base& x, pair_proxy y)
+	{
+		ystdex::swap_dependent(x.first, y.first),
+		ystdex::swap_dependent(x.second, y.second);
+	}
+};
 
 } // namespace ystdex;
 

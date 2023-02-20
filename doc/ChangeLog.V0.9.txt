@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r14813
+\version r15070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-02-14 21:46 +0800
+	2023-02-20 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,264 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "class template %indirection_proxy" @ %IteratorOperation,
+		/ %Swap $=
+		(
+			+ "class template %pair_proxy" @ %Swap,
+			/ $re_add(b966) DLDI "simplified exception specification with \
+				single noexcept expression" ^ "%ynoexcept_spec" ~ "%(noexcept, \
+				ynoexcept)" $effective @ "function %swap_volatile#3",
+			/ DLDI "all '::value' not forming an operand to an operator and \
+				not after a qualified type-id" $=
+			(
+				$re_add(b967) @ "operand of %noexcept operator" -> '()'
+					$effective @ "all 2 function templates %swap",
+				$re_add(b966) @ "non-type argument of some metafunctions"
+					-> '{}' $effective @ ("transformation trait \
+					%enable_if_swap_movable_t", "function templates %swap#(2, \
+					3)", $impl "default template argument" @ "internal helper",
+					"binary type trait %is_swappable_with", "function template \
+					%(details::yimpl(swap_dep_impl)::swap#1, vswap)#2"),
+				$re_add(b966) @ "other value contexts" -> '()'
+			)
+		),
+		/ @ %Cache $=
+		(
+			/ @ "class template %recent_used_list" $=
+			(
+				(
+				/ "3rd template parameter" -> "list type" ~ "allocator",
+				* "wrong base type when allocator is not same to the default \
+					argument" $since b611
+				),
+				/ "alias %list_type" => "%base_type"
+			),
+			- "allocator parameter"
+				@ "all traits specializations %used_list_cache_traits",
+				// This is implied by the list type.
+			/ @ "class template %used_list_cache" $=
+			(
+				+ "aliases %(reference, const_reference)",
+				+ "constructor template with allocator parameter"
+			)
+		),
+		/ %Container $=
+		(
+			(
+			/ "loosed constraints to support %const_reference or %reference \
+				not a reference type" @ "function templates %(extract_key, \
+				extract_mapped)" $dep_from ("%used_list_cache::(reference, \
+				const_reference)" @ %Cache),
+				// This is necessary for %flat_map::find.
+			* "member detection failure for ordered containers"
+				@ ("%has_mem_key_comp"; $comp "function template %search_map")
+				@ %Container $since b942
+				// This is necessary for implementing %(flat_map, \
+					flat_set)::find below by %ystdex::search_map without \
+					infinite recursion.
+			),
+			(
+			+ "type traits operation %has_mem_contains";
+			/ "supported conditional member %contains as 1st try"
+				@ "function templates %exists"
+			),
+			* DD "wrong group name" @ "'\ingroup' command" @ "Doxygen comment"
+				@ "class template %prefix_eraser" $since b942
+				$= (/ 'functor' => 'functors')
+		),
+		+ %FlatMap
+			$= (+ "class template %flat_map"
+				$dep_from (^ ("%pair_proxy" @ %Swap, "%indirection_proxy"
+				@ %IteratorOperation, "%ystdex::search_map" @ %Container),
+				("extract_key, extract_mapped" @ %Container)),
+		+ %FlatSet
+			$= (+ "class template %flat_set"
+				^ $dep_from ("%ystdex::search_map" @ %Container)),
+		/ %Hash $=
+		(
+			(
+			+ "class template %range_hash";
+			+ "class template specialization %is_fast_hash for %range_hash"
+			),
+			+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+				@ "all 2 function templates %(hash_combine_seq, hash_range)",
+			+ "class template specializations %is_fast_hash for %combined_hash \
+				instances"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib.Container $=
+		(
+			(
+			+ $dep_from "header inclusion %YBase.YStandardEx.FlatMap";
+			+ "alias template %flat_map" @ "inline namespace %containers"
+			),
+			(
+			+ $dep_from "header inclusion %YBase.YStandardEx.FlatSet";
+			+ "alias template %flat_set" @ "inline namespace %containers"
+			);
+			/ @ "inline namespace %containers" $=
+			(
+				+ "class template %associative";
+				+ "type aliases %(value_associative, linked_associative, \
+					ordered_value_associative, ordered_linked_associative)";
+				// See $2023-02 @ %Documentation::Workflow.
+				+ "alias templates whose names composed with prefixes \
+					%(value_, linked_, ordered_value_, linked_) and suffixes \
+					%(map, multimap, set, multiset)"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor.Font $=
+			(
+				/ @ "namespace %YSLib::Drawing" $=
+				(
+					+ "move %operator=" @ "class %NativeFontSize",
+					/ @ "class %Typeface" $=
+					(
+						+ 'YB_ATTR_nodiscard' @ "%operator()"
+							@ "bitmap key hash function type",
+						/ "internal cache types" ^ "custom traits with \
+							implicit default allocator" $dep_from
+							("%recent_used_list"
+							@ %YBase.YStandardEx.Cache),
+						/ @ "constructor %Typeface" $=
+						(
+							/ "enabled allocator" $dep_from ("internal cache \
+								types", "constructor %used_list_cache"
+								@ %YBase.YStandardEx.Cache),
+							/ "threw %LoggedEvent on CMap index check failure"
+								~ "assertion"
+						)
+					),
+					/ "supported trailing allocator parameter with default \
+						argument" @ "constructor %FontCache"
+				),
+				+ "class template specializations %is_fast_hash for bitmap key \
+					hash function type"
+			),
+			/ %Service $=
+			(
+				/ $dev $lib 'YB_PURE' @ "member function %TextFileBuffer::begin"
+					@ %TextManager -> 'yimpl(YB_STATELESS)',
+					// Also to eliminate G++ warning: \
+						[-Wsuggest-attribute=const].
+				/ %ContentType $=
+				(
+					- DLDI "header inclusion %YBase.YStandardEx.Path",
+						// This is implied by the header of %Core.ValueNode.
+					/ @ "class %MIMEBiMapping" $=
+					(
+						+ "alias %allocator_type";
+						+ "explicit consturctor with %allocator_type parameter",
+						/ "supported trailing %allocator_type parameter with \
+							default argument" @ "all 2 constructor templates",
+						+ "function %get_allocator"
+					)
+				)
+			),
+			/ DLDI "all '::value' not forming an operand to an operator and \
+				not after a qualified type-id in class scope"
+				@ "other value contexts" -> '()' @ %Core.YFunc,
+			/ "framework associative container types optimization"
+				^ $dep_from ("type aliases" @ %YCLib.Container) $effective $=
+			(
+				/ ("member alias %FontFamily::FaceMap" @ %Adaptor.Font,
+					(("member alias %Menu::SubMap", "container of data member \
+					%MenuHost::Roots") @ %Menu, "alias %VisualEventMap"
+					@ %YWidgetEvent) @ %UI) ^ "%value_map" ~ "%map",
+				/ ("member types %(FontFamily, FontCache)::FaceMap"
+					@ %Adaptor.Font, "member type %TextFileBuffer::MapType"
+					@ %Service.TextManager) ^ "%linked_map" ~ "%map",
+					// Member types are exposed for fonts, so they should \
+						remain linked. All blocks in %TextFileBuffer::MapType \
+						are indexed, so no order requirement on blocks during \
+						iteration over the buffer iterators in a block should \
+						be stable, thus %value_map is insufficient and \
+						%ordered_linked_map is redundant.
+				/ ("glyph index cache", "size cache" $dep_from
+					"%NativeFontSize") @ "class %FontCache" @ %Adaptor.Font
+					^ "%value_map" ~ "%unordered_map",
+				/ %UI $=
+				(
+					/ "menu set" @ "%MenuHost" @ %Menu ^ "%value_set" ~ "%set",
+					/ @ "class %TreeList" @ %TreeView $=
+					(
+						/ DLDI "alias %IndentMap" ^ "%ordered_value_map"
+							~ "%map",
+						/ "type"@ "expanded set" ^ ("%linked_set", $dep_from
+							"ystdex::node_range_hash" @ %YBase.YStandardEx.Hash)
+							~ "%set",
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+							@ "static member functions \
+							%(DefaultExtractText, ExtractNodeName)"
+					),
+					/ ("private base class", "alias %HandlerTable") @ "class \
+						%StyleMap" @ %YStyle ^ "%ordered_linked_map" ~ "%map"
+				),
+				/ DLDI ("member alias %FontCache::FamilyType" @ %Adaptor.Font,
+					("alias %CommandCache" @ %YCoreUtilities, "container of \
+					internal handler map" @ "class template \
+					%GHandlerRegisterBase" @ %YFunc) @ %Core,
+					"alias %HandlerTable" @ %UI.YStyle) ^ "%linked_map"
+					~ "%unordered_map",
+				/ "member type %MIMEBiMapping::(ExtensionMap, MIMEMap)"
+					@ %Service.ContentType
+					^ $dep_from ("%value_multimap" @ %Container) ~ "%multimap"
+			),
+			/ DD "all '//!<'" -> '//! \brief' @ %(Adaptor.Font, UI.YStyle),
+			+ $re_add(b966) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions \
+				with one of %(DefCvt, DefPred, DefGetterMem)"
+				@ %Adaptor.(Font, UI.(TreeView, YWidgetEvent)),
+			+ $re_add(b967) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions \
+				with %DefGetter" @ %(Adaptor.Font, Service.(ContentType,
+				TextManager), UI.(Menu, TreeView, YStyle, YWidgetEvent))
+		),
+		/ %Helper.Initialization $=
+		(
+			/ DLI "enabled alloator from application instance" @ ("function \
+				%FetchDefaultFontCache" $dep_from ("constructor %FontCache"
+				@ %YSLib.Adaptor.Font), "function %FetchMIMEBiMapping" $dep_from
+				"non-templated constructor %MIMEBiMapping"
+				@ %YSLib.Service.ContentType),
+			* "wrong non-throwing exception specification"
+				@ "function %FetchRoot" $since b550,
+			/ @ "NPLA1 fallback" @ "function %SaveConfiguration" $=
+			(
+				/ DLI ^ "%value_map" ~ "%map",
+				* $re_add(b957) "allocator of internal resources might be used \
+					out of lifetime" $since b899
+			)
+		)
+	),
+	/ DD %Documentation.Workflow $=
+	(
+		(
+		/ $re_add(b966) "updated outdated URLs" @ ('$2013-07', '$2014-06', \
+			'$2014-07', '$2014-09', '$2015-03', '$2015-04', '$2017-05'),
+			// Pages on "cg.sjtu.edu.cn" and "connect.microsoft.com" are \
+				inaccessible in web.archive.org or redirected without keeping \
+				the information.
+		(
+		/ "URLs of WG21 papers" -> "document numbers";
+		- "URLs for WG21 papers which have been mentioned by document number"
+		);
+		/ $re_add(b966) "all accessible URLs" ^ 'https://' ~ 'http://'
+			// "leptonica.org", "www.gotw.ca" and "hjemmesider.diku.dk" are \
+				only accessible via 'http://'.
+		),
+		- ('en-US', "VS versions") @ "URLs of msdn.microsoft.com",
+		/ $re_add(b966) "shortened URLs of (stackoverflow.com, \
+			codereview.stackexchange.com)"
+	)
+),
+
+b967
 (
 	/ DLDI "simplified exception specification with single noexcept expression"
 		^ "%ynoexcept_spec" ~ "%(ynoexcept, noexcept)"

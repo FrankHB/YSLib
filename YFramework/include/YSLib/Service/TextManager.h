@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2018, 2020, 2022 FrankHB.
+	© 2010-2018, 2020, 2022-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3970
+\version r3992
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2022-11-28 20:01 +0800
+	2023-02-20 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_TextManager_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YString
+#include YFM_YSLib_Core_YString // for linked_map;
 #include YFM_YSLib_Service_TextFile
 #include <ystdex/iterator_op.hpp> // for ystdex::bidirectional_iteratable;
 #include <streambuf> // for std::streambuf;
@@ -49,23 +49,23 @@ class YF_API TextFileBuffer
 public:
 	/*!
 	\brief 缓冲区块类型。
+	\since build 641
 
 	保存转换后的文本区块和初始转换偏移状态。
-	\since build 641
 	*/
 	using BlockType = pair<vector<char16_t>, size_t>;
 	/*!
 	\brief 缓冲映射类型。
+	\since build 273
 
 	区块号到指定缓冲区快的映射。
-	\since build 273
 	*/
-	using MapType = map<size_t, BlockType>;
+	using MapType = linked_map<size_t, BlockType>;
 	/*!
 	\brief 目标编码迭代器类型。
 	\since build 460
 	*/
-	//@{
+	//!@{
 	class YF_API iterator
 		: public ystdex::bidirectional_iteratable<iterator, const char16_t&>
 	{
@@ -114,13 +114,13 @@ public:
 		operator==(const iterator&, const iterator&) ynothrow;
 
 		//! \since build 672
-		DefGetter(const ynothrow, observer_ptr<TextFileBuffer>, BufferPtr,
-			make_observer(p_buffer))
-		DefGetter(const ynothrow, size_t, BlockN, block)
-		DefGetter(const ynothrow, size_t, IndexN, index)
+		YB_ATTR_nodiscard DefGetter(const ynothrow,
+			observer_ptr<TextFileBuffer>, BufferPtr, make_observer(p_buffer))
+		YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, BlockN, block)
+		YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, IndexN, index)
 	};
 	using const_iterator = iterator;
-	//@}
+	//!@}
 
 	/*!
 	\brief 默认文本区块大小。
@@ -137,20 +137,20 @@ protected:
 
 private:
 	//! \since build 622
-	//@{
+	//!@{
 	size_t fsize;
 	Encoding encoding;
 	size_t bl;
-	//@}
+	//!@}
 	//! \since build 694
-	//@{
+	//!@{
 	//! \brief 文本大小。
 	size_t n_text_size;
 	//! \brief 区块数。
 	size_t n_block;
 	//! \brief 缓冲映射。
 	MapType buffer{};
-	//@}
+	//!@}
 
 private:
 	/*!
@@ -189,10 +189,10 @@ public:
 	\brief 取缓冲区块数。
 	\since build 273
 	*/
-	DefGetter(const ynothrow, size_t, BlockN, n_block)
-	DefGetter(const ynothrow, Encoding, Encoding, encoding)
-	DefGetter(const ynothrow, size_t, Size, fsize)
-	DefGetter(const ynothrow, size_t, TextSize, n_text_size)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, BlockN, n_block)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Encoding, Encoding, encoding)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, Size, fsize)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, TextSize, n_text_size)
 
 	/*!
 	\brief 取文本字节位置对应的迭代器。
@@ -216,12 +216,12 @@ public:
 	Seek(std::streamoff);
 
 	//! \since build 460
-	//@{
+	//!@{
 	/*!
 	\brief 取文本缓冲区起始迭代器。
 	\note 指向起始字符。
 	*/
-	YB_ATTR_nodiscard YB_PURE iterator
+	YB_ATTR_nodiscard yimpl(YB_STATELESS) iterator
 	begin() ynothrow;
 
 	/*!
@@ -230,7 +230,7 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE iterator
 	end() ynothrow;
-	//@}
+	//!@}
 };
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2019-2021 FrankHB.
+	© 2009-2016, 2019-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3727
+\version r3740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2022-08-01 19:12 +0800
+	2023-02-20 06:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ namespace Drawing
 {
 
 //! \since build 562
-//@{
+//!@{
 static_assert(std::is_same<FontException::FontError, ::FT_Error>(),
 	"Invalid type found.");
 static_assert(std::is_same<CharBitmap::BufferType, ::FT_Byte*>(),
@@ -85,7 +85,7 @@ static_assert(std::is_same<CharBitmap::ScaleType, ::FT_Byte>(),
 	"Invalid type found.");
 static_assert(std::is_same<CharBitmap::SignedScaleType, ::FT_Char>(),
 	"Invalid type found.");
-//@}
+//!@}
 
 
 ImplDeDtor(FontException)
@@ -317,11 +317,12 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, std::uint32_t i)
 				" with face request error: %08x\n.", error), Critical);
 		return pair<lref<FontFamily>, lref<::FT_FaceRec_>>(
 			cache.LookupFamily(face->family_name), *face);
-	}()), bitmap_cache(2047U), glyph_index_cache()
+	}()), bitmap_cache(2047U, cache.mFaces.get_allocator()),
+	glyph_index_cache(cache.mFaces.get_allocator())
 {
-	// FIXME: This should be exception, but not assertion for malformed fonts.
-	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
-		"Invalid CMap index found.");
+	if(YB_UNLIKELY(::FT_UInt(cmap_index)
+		>= ::FT_UInt(ref.second.get().num_charmaps)))
+		throw LoggedEvent("Invalid CMap index found.");
 	style_name = ref.second.get().style_name;
 	ref.first.get() += *this;
 }
@@ -353,7 +354,7 @@ Typeface::~Typeface()
 }
 
 Typeface::SmallBitmapData&
-Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
+Typeface::LookupBitmap(const BitmapKey& key) const
 {
 	return ystdex::cache_lookup(bitmap_cache, key, [&]{
 		LookupSize(key.Size).Activate();
@@ -413,8 +414,8 @@ FetchDefaultTypeface()
 }
 
 
-FontCache::FontCache(size_t /*cache_size*/)
-	: pDefaultFace()
+FontCache::FontCache(size_t, default_allocator<yimpl(byte)> a)
+	: mFaces(a), mFamilies(a), pDefaultFace()
 {
 	::FT_Error error;
 
@@ -568,8 +569,8 @@ Font::GetGlyph(char32_t c, unsigned flags) const
 		"Invalid default argument found.");
 	const auto& face(GetTypeface());
 
-	return &face.LookupBitmap(Typeface::BitmapKey{flags,
-		face.LookupGlyphIndex(c), font_size, style});
+	return &face.LookupBitmap(
+		BitmapKey{flags, face.LookupGlyphIndex(c), font_size, style});
 }
 FontSize
 Font::GetHeight() const ynothrow
