@@ -1101,6 +1101,9 @@
     <ClCompile Include="source\NPL\Exception.cpp">
       <Filter>source\NPL</Filter>
     </ClCompile>
+    <ClCompile Include="source\YSLib\Core\YConsole.cpp">
+      <Filter>source\YSLib\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt">

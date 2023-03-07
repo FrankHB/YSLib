@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2022 FrankHB.
+	© 2009-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1648
+\version r1657
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2022-10-01 12:57 +0800
+	2023-03-06 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,9 +96,16 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 实现可假定程序不存在使用 POSIX fork 引起进程内环境变量的并发数据竞争。
 
 @1.4.1.5 外部环境：
+作为符合和其它软件规范约定的一部分，除非应用另行指定，以下环境变量被支持：
+NO_COLOR ：若这个环境变量被设置为非空值，宿主实现环境忽略终端支持的彩色和其它视觉效果格式（如下划线）特性。
 除标准库和系统配置外，YFramework 可使用以下环境变量改变运行时行为：
 YF_DEBUG_OUTPUT ：若这个环境变量的值设置为 1 ，使用调试日志(@5.3) 。
-YF_Use_tput ：若这个环境变量被设置，宿主实现环境需要终端特性时，使用 tput 命令而不是内建的终端控制字符序列发送控制命令。
+当前仅在 Windows 平台使用。
+YF_Use_tput ：若这个环境变量被设置为非空值，宿主实现环境需要终端特性时，使用 tput 命令而不是内建的终端控制字符序列发送控制命令。
+当前仅在非 Windows 平台使用。
+除非另行指定，程序可假定以上环境变量不变，即仅在程序初始化时检查一次。
+**注释**
+NO_COLOR 符合 https://no-color.org/ 的约定。
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。

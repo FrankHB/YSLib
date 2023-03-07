@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r15070
+\version r15471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-02-20 19:59 +0800
+	2023-03-08 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,408 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %MemoryResource $=
+		(
+			* DD "wrong '\sa' command" @ "Doxygen comment"
+				@ "constructor %resource_pool" $since b863
+				$= (/ "'\sa' command for nonexisting member"
+					-> "2 valid '\sa' commands"),
+			- DLDI "redundant parameter names"
+				@ "member function %new_delete_resource_t::do_allocate",
+			- $re_add(b962) DLDI "outdated TODO comments",
+			/ @ "class %pool_resource" $=
+			(
+				* "wrong non-throwing exception specification"
+					@ "constructor#(1, 2)" $since b843,
+				+ $dev $lib 'YB_NONNULL(2)' @ "constructor#3"
+			),
+			/ $dev $build "supported case not \
+				'__cpp_sized_deallocation >= 201309L'" @ 'YB_Impl_aligned_new'
+				@ "member function %new_delete_resource_t::do_deallocate"
+				// This is not conforming, so it is not a bug. However, it is \
+					actually used by x86_64-pc-linux Clang++ in ISO C++17 mode \
+					onwards unless '-fsized-deallocation' is specified. See \
+					https://github.com/llvm/llvm-project/issues/56505.
+		),
+		/ %CString $=
+		(
+			/ $re_add(b968) DLDI "all '::value' not forming an operand to an \
+				operator and not after a qualified type-id"
+				@ "non-type argument of some metafunctions" -> '{}' $effective
+				"metafunction %enable_if_irreplaceable_char_t",
+			+ "function templates %(is_nonempty, str_check_length, \
+				str_check_terminator)",
+			* $re_add(b967) DD "unbalanced Doxygen group markers" $since b641,
+			+ DD "several '\c' before C++ names" @ "Doxygen comments"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				/ DLI "function %FetchModuleHandleCached" ^ "%ystdex::flat_map"
+					~ "%ystdex::map",
+				+ "function %HasPTYName",
+				+ DD '\ingroup deleters' @ "Doxygen comment"
+					@ $impl "private deleter" @ "class %DirectoryFindData"
+			),
+			/ @ "class %WConsole" @ %Consoles $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard YB_STATELESS' @ "functions \
+					%(DecomposeAttributes, FetchForeColor, FetchBackColor)",
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "functions %ComposeAttributes",
+				(
+				+ "%CoomposeAttributes overload with 3 parameters";
+				* "missing preserving non-color attributes"
+					@ "functions %(SetBackColor, SetForeColor)" $since b540
+					// These are DBCS attributes. They were set by %SetStyle \
+						removed since b540. Currently it is still not directly \
+						supported. Use public %Attributes data member to \
+						change it if necessary
+				),
+				/ @ "function %Fill" $=
+				(
+					* "invalid last argument for %(FillConsoleOutputAttribute, \
+						FillConsoleOutputCharacterW)" $since b520,
+						// The argument is not optional.
+					/ DLI "reordered call to fill characters and attributes",
+						// The order is unspecified. The intermediate state is \
+							undertermined. The new behavior is more intuitive \
+							in details (esp. on exception), though.
+				),
+				/ @ "function %Clear" $=
+				(
+					- 'static';
+					/ $impl ^ "%(Update, Erase)" ~ "%std::system"
+						$dep_from "%Fill" $dep_to "removal of shell call";
+					* $comp "not respecting current console handle"
+						$since b520
+				),
+				* "missing restoring %Attributes"
+					@ "function %RestoreAttributes" $since b520,
+				(
+				- $revert(b520) "all 2 static functions %SetSystemColor";
+					// %SetSystemColor also did not respect the current \
+						console handle. The effect can be implemented by \
+						%UpdateForeColor in a per terminal basis.
+				- "header inclusion <cstdlib>" $dep_from "removal of shell call"
+					// For %std::system.
+				),
+				/ DD "'\throw' commands" @ "Doxygen comment"
+					@ "all member functions" -> "'\exception' command"
+				+ DD "'\exception' command" @ "functions %(SetBackColor, \
+					SetCursorPosition, SetForeColor, Clear)"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				/ @ "class %Logger" $=
+				(
+					* "constructor might be defaulted as deleted due to \
+						mismatched exception specifications" $since b960
+						$= (/ $impl ^ '{}' ~ '= default;'),
+					(
+					/ "type" @ "%(Filter, Sender)"
+						^ "%ystdex::unchecked_function" ~ "%ystdex::function";
+					- DLDI "'\invariand' command" @ "Doxygen comment"
+						@ "internal sender and filter objects",
+						// These are now implied by the types.
+					),
+					/ "simplified functions %(SetFilter, SetSender)" $=
+					(
+						(
+						- "empty check" $dep_from "%(Filter, Sender)";
+							// Now this should be checked by user.
+						/ DLDI ^ "%DefSetter"
+						),
+						+ 'ynothrow'
+					),
+					+ "functions %(ExchangeFilter, ExchangeSender)"
+				),
+				/ "check empty or unknown filename" ^ $dep_from
+					("%ystdex::is_nonempty" @ %YBase.YStandardEx.Cstring)
+			),
+			/ %Host $=
+			(
+				/ "header inclusion %YSLib.Core.YException"
+					-> "%YSLib.Core.YShellDefinition",
+					// %LoggedEvent is not used since b615.
+				- $revert(b921) $impl "class name declaration %ITerminalData"
+					$dep_from ("%YSLib::Consoles::IOutputTerminal"
+					@ %YSLib.Core.YShellDefinition),
+				/ DLI "simplified"
+					^ $dep_from "%YSLib::Consoles::IOutputTerminal",
+				/ @ "class %Terminal" $=
+				(
+					/ @ "platform %Win32" @ "constructor" $=
+					(
+						// See $2023-03 @ %Documentation::Workflow.
+						/ DLDI ^ $dep_from ("%HasPTYName"
+							@ 'YCLib_(Win32)'.MinGW32)
+							$dep_to "exposed PTY check",
+						/ DLI "excluded %FILE_REMOTE_TYPE",
+						(
+						/ "set the stream unbuffered"
+							$dep_to "not requiring terminal stream flushes";
+						* $comp "missing synchronization" $since b567
+						)
+					),
+					(
+					+ "function %UpdateBackColor";
+					+ "function %LockBackColor"
+					),
+					(
+					+ "function %UpdateUnderline" ^ "%COMMON_LVB_UNDERSCORE"
+						$dep_from ("%WConsole::(SetBackColor, \
+						SetForeColor)" @ %'YCL_(Win32)'.Consoles);
+						// This uses DBCS attribute %COMMON_LVB_UNDERSCORE, so \
+							the attribute shall not be affected in other \
+							unexpected ways.
+					+ "function %LockUnderline" $dep_from
+						("%WConsole::(RestoreAttributes, SetBackColor, \
+						SetForeColor)" @ %'YCL_(Win32)'.Consoles)
+						// Colors are not affected by the bug of missing \
+							restoring the %Attributes data member because they \
+							are always immediately updated.
+					),
+					+ DLI 'ynothrowv' @ "internal printing functions",
+					(
+					/ DLI "simplified" ^ (("function %AllowsColorByEnvironment",
+						"class template %GDumbOutputTerminal",
+						"classes %(TPutTerminal, ISO6429Terminal)")
+						@ %YSLib.Core.YConsole),
+					* $comp "internal noexcept specification" @ "function \
+						%(Clear, RestoreAttributes, UpdateForeColor)"
+						$since b560
+						// Operations on command cache as well as string \
+							concatenation may throw on failure.
+					),
+					+ $dev $lib 'YB_ATTR_nodicard' @ "function %LockForeColor",
+					+ "4 constructors for coloring optionals" ^ $dep_from
+						("%YSLib::Consoles::(ColorOption, ColorOptionTag)"
+						@ %YSLib.Core.YConsole)
+						$dep_to "terminal coloring optionals",
+					+ "explicitly defaulted move (construtor, %operator=)"
+				),
+				* $comp "missing inclusion <cwchar>" $since b921
+					$dep_from "exposed PTY check",
+					// For %std::wcsstr.
+				* "missing inclusion (<algorithm>, %YBase.YStandardEx.Range)"
+					$since b624,
+					// For %(std::lower_bound, ystdex::(begin, end)).
+				/ $dev @ $impl "private deleter" @ !"platform %Win32"
+					@ "class %Semaphore" $=
+				(
+					/ $lib $design "class-key 'class'" -> 'struct',
+					+ $doc '\ingroup deleters' @ "Doxygen comment"
+				),
+				/ DD "'\warning' command" @ "Doxygen comment" @ "class \
+					%HandleDelete" @ "platform %Win32" -> '\ingroup deleters',
+				/ "external environment variable handling" ^ $dep_from
+					"%ystdex::is_nonempty" @ %YBase.YStandardEx.CString $=
+				(
+					/ "handling of %YF_Use_tput only treated when non-null \
+						value is set",
+					+ "support of %NO_COLOR to disable colors and underlines"
+						^ $dep_from ("%YSLib::Consoles::DetectsNoColor"
+						@ %YSLib.Core.YConsole)
+				),
+				/ DLDI "simplified" ^ $dep_from
+					("%YSLib::Consoles::ColorToSGRChar" @ %YSLib.Core.YConsole),
+				/ "function %UpdateForeColorByLevel" -> ("function template"
+					@ %YSLib.Core.YConsole),
+					// This does not check the terminal is valid now.
+				(
+				+ DLDI "header inclusion %Meta";
+				/ $re_add(b966) DLDI "simplified" @ "platform %Win32"
+					@ "function templates %(DecodeArg, EncodeArg)"
+					^ "%ystdex::enable_if_inconstructible_t"
+					~ "%ystdex::(enable_if_t, is_constructible)"
+				)
+			)
+		),
+		/ %YSLib.Core $=
+		(
+			/ %YShellDefinition $
+			(
+				(
+				+ "macros %(YSL_Version_Major, YSL_Version_Minor)",
+				+ "optional macro %YSL_Version_Patch";
+				+ "macros %(YSL_VerStr_Major, YSL_VerStr_Minor, \
+					YSL_VerStr_Patch)";
+				+ "macros %(YSL_SemVerStr_Short, YSL_SemVerStr_Full)"
+				),
+				+ "namespace %Consoles" $=
+				(
+					(
+					+ "enum class %ColorOption";
+					+ "alias template %ColorOptionTag"
+					),
+					+ "class name declaration %IOutputTerminal" ^ "%FwdDeclI"
+				)
+			),
+			/ %YConsole $=
+			(
+				(
+				+ "function %DetectsNoColor";
+				+ "function %AllowsColorByEnvironment"
+				),
+				/ "extracted implementation details" $=
+				(
+					// These implementations are from %YCLib.Host.
+					(
+					+ "static yconstexpr object %SGRIndexMap";
+					+ "yconstfn function %ColorToSGRChar"
+					),
+					(
+					+ "interface %IOutputTerminal";
+					+ "class %AOutputTerminal";
+					+ "class %TPutTerminal",
+					+ "class %ISO6429Terminal"
+					),
+					+ "class template %GDumbOutputTerminal"
+				)
+			)
+		),
+		/ %NPL.Dependency $=
+		(
+			/ @ "functions %DecomposeMakefileDepList" $=
+			(
+				+ "2nd allocator parameter with default argument '{}'";
+				/ DLI ^ "allocator",
+					// The change of container type to %YSLib::value_set is a \
+						bit efficient even without the allocator.
+				/ $forced DLDI "overload#2" ^ "%ystdex::bind1"
+			),
+			/ $re_add(b968) DLI "associative container types optimization"
+				^ ("type aliases" @ %YCLib.Container) $effective $=
+			(
+				/ ("function %DecomposeMakefileDepList#1", "applicative \
+					%SHBuild_TrimOptions_" @ "%LoadModule_SHBuild")
+					^ "%YSLib::value_set" ~ "%set",
+				/ @ "native implementation" @ "function %LoadModule_std_modules"
+					^ "%YSLib::linked_map" ~ "%YSLib::map"
+			)
+		),
+		+ $re_add(b966) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions with \
+			%DefBoolNeg" @ %(YCLib.Host, 'YCLib_(Win32)'.MinGW32)
+	),
+	/ %Tools $=
+	(
+		/ $re_add(b966) $build "updated %LIBS for \
+			%YFramework.YSLib.Core.Console" @ "%SHBuild-bootstrap.sh"
+			$dep_from $forced %YCLib.Host,
+		/ %SHBuild.Main $=
+		(
+			* $re_add(b967) DD "unbalanced Doxygen group markers" $since b546,
+			/ DLI "associative containers" ^ "%YSLib::(value_map, value_set)"
+				~ "%YSLib::(map, set)",
+			/ DLI ^ "allocator" @ "file building" $dep_from
+				("%DecomposeMakefileDepList" @ %YFramework.NPL.Dependency),
+			/ @ "main function" $=
+			(
+				/ "wrapped epoch fetching and terminals initialization in one \
+					more level of %FilterException call",
+					// Although rare, the initialization can throw. This \
+						improves the robustness with expected behavior other \
+						than the exit status from the implicit call to \
+						%std::terminate. 
+				/ DLI "simplified output" !^ "%std::fflush"
+					$dep_from "not requiring terminal stream flushes",
+				// See $2023-03 @ %Documentation::Workflow.
+				/ "help message" $=
+				(
+					/ "disabled buffering on %std::cout" ^ "%std::unitbuf";
+					/ "enhanced display effects" $=
+						^ (("%UpdateForeColor", $dep_from "%UpdateUnderline")
+						@ "class %Terminal" @ %YFramework.YCLib.Host) $=
+					(
+						/ "enriched the format",
+						/ "highlighted command, environment variable and \
+							option names",
+						+ "separated headings for environment, options and \
+							exit status"
+					),
+					+ "messages for environment variables %(NO_COLOR, \
+						YF_DEBUG_OUTPUT, YF_Use_tput)",
+						// These are supported by YFramework.
+					/ DLDI $dep_from ("%UpdateForeColorByLevel" @ %YCLib.Host)
+				),
+				+ $impl "terminals update function" $dep_from ("move %operator="
+					@ "class %Terminal" @ %YCLib.Host),
+				/ $revert_ex(b905) "%Debug message to indicate more than 1 \
+					command arguments have been loaded" @ "log messages" $=
+				(
+					/ "reordered after argument processing"
+						$dep_to "argument debug output delay";
+					+ "remained argument count"
+				),
+				/ "jumped to print help message on '-h' or '--help' option"
+					$dep_from "argument debug output delay"
+					$dep_to "showing help"
+					// There should be no debug message shown before printing.
+				(
+				* DLDI "missing inclusion <cstdio>" $since b547;
+					// For %std::fprintf.
+				/ "printing version information on '-V' or '--version' option"
+					^ $dep_from ("%YSL_SemVerStr_Short"
+					@ %YFramework.YSLib.Core.YShellDefinition) $dep_from
+					"argument debug output delay" $dep_to "showing version"
+					// For %std::puts.
+				)
+			),
+			/ @ "option table entries" $=
+			(
+				/ "supported multiple prefixes as synonyms";
+				/ $forced "entry initialization",
+				+ "option '--color=' with argument ('never', 'always', 'auto')"
+					 $dep_from ("terminal coloring optionals",
+					"terminals update function"),
+				+ "options ('-h', '--help')" $dep_from "showing help",
+				+ "options ('-V', '--version)'" $dep_from "showing version",
+				* "missing 2 newlines" @ "help message for option '-xdef,'"
+					$since b905
+			),
+			/ "wiped out unused arguments" @ "class %Command",
+			(
+			+ "constructor %Rule";
+			/ DLDI "simplified member function %BuildContext::Build"
+				^ "%make_shared" ~ 'new'
+			),
+			* "insufficient prevention of flag injection" @ "build command"
+				$since b474
+				// For example, some bogus escape of double quotation can \
+					affect all normal arguments later, so there will be \
+					confusion error complain "no input" even it is provided by \
+					SHBuild.
+				/ $= ("reordered all flags to the end"),
+			* DLDI "missing inclusion <algorithm>" $since b624,
+				// For %std::none_of. This is included by \
+					%YFramework.NPL.SContext by accident, though.
+			/ @ "class %BuildContext" $=
+			(
+				* "wrong dependency filename when the extension of the object \
+					filename is not of one character" @ "dependency generation"
+					@ "function %Build" $since b546
+				+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+					@ "functions %(GetFlags, GetLastResult, GetEnv)"
+			)
+		)
+	),
+	+ $re_add(b968) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions \
+		with one of %(DefCvt, DefPred, DefGetter)" @ %(YFramework.(YCLib.(Debug,
+		Host), 'YCLib_(Win32)'.(Consoles, MinGW32)), Tools.SHBuild.Main)
+),
+
+b968
 (
 	/ %YBase.YStandardEx $=
 	(

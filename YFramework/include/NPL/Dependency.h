@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r651
+\version r670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2023-01-11 12:20 +0800
+	2023-02-20 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,15 +47,16 @@ enum class DepsEventType : yimpl(size_t)
 };
 
 
-//! \brief 从内容为 GCC 兼容编译器 -MMD 选项生成的 Makefile 的流中分解路径。
-//@{
-//! \since build 742
+/*!
+\brief 从内容为 GCC 兼容编译器 -MMD 选项生成的 Makefile 的流中分解路径。
+\since build 969
+*/
+//!@{
 YF_API vector<string>
-DecomposeMakefileDepList(std::streambuf&);
-//! \since build 623
+DecomposeMakefileDepList(std::streambuf&, default_allocator<string> a = {});
 YF_API vector<string>
-DecomposeMakefileDepList(std::istream&);
-//@}
+DecomposeMakefileDepList(std::istream&, default_allocator<string> a = {});
+//!@}
 
 /*!
 \brief 过滤 GCC 兼容编译器 -MMD 选项生成的 Makefile 项列表并选取依赖项。
@@ -79,7 +80,7 @@ YB_ATTR_nodiscard YF_API YB_NONNULL(1) unique_ptr<std::istream>
 OpenFile(const char*);
 
 //! \since build 955
-//@{
+//!@{
 //! \brief 打开指定路径的文件作为 NPL 输入流并在上下文设置源代码名称。
 YB_ATTR_nodiscard YF_API unique_ptr<std::istream>
 OpenUnique(ContextState&, string);
@@ -96,7 +97,7 @@ YB_NONNULL(2) YF_API void
 PreloadExternal(ContextState&, const char*);
 
 //! \note 以参数指定的项的第一个子项作为 string 类型的名称指定翻译单元。
-//@{
+//!@{
 /*!
 \brief 规约加载外部翻译单元。
 \pre 要求同命名空间 Forms 中的规约函数。
@@ -113,8 +114,8 @@ ReduceToLoadExternal(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 RelayToLoadExternal(ContextNode&, TermNode&);
-//@}
-//@}
+//!@}
+//!@}
 
 namespace Forms
 {
@@ -124,7 +125,7 @@ namespace Forms
 \pre 间接断言：加载的目标环境未被冻结。
 \since build 955
 */
-//@{
+//!@{
 /*!
 \brief 加载 NPLA1 基础上下文。
 
@@ -143,7 +144,7 @@ LoadGroundContext(ContextState&);
 \warning 若不满足加载的前置条件，可能调用失败，抛出异常。
 \sa LoadGroundContext
 */
-//@{
+//!@{
 /*!
 \brief 加载续延模块。
 
@@ -180,7 +181,7 @@ LoadModule_std_strings(ContextState&);
 \pre 当前派生实现：已加载和初始化依赖的模块，在当前环境可访问的指定的模块名称。
 \exception NPLException 违反加载模块的前置条件而无法成功初始化。
 */
-//@{
+//!@{
 /*!
 \brief 加载输入/输出模块。
 \pre 断言：第二参数非空。
@@ -220,7 +221,7 @@ LoadModule_std_system(ContextState&);
 */
 YF_API void
 LoadModule_std_modules(ContextState&);
-//@}
+//!@}
 
 /*!
 \brief 加载 SHBuild 使用的内部模块。
@@ -230,8 +231,8 @@ LoadModule_std_modules(ContextState&);
 */
 YF_API void
 LoadModule_SHBuild(ContextState&);
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 加载 NPLA1 基础上下文和标准模块。

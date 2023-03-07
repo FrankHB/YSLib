@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2022 FrankHB.
+	© 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.cpp
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1859
+\version r1882
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-11-21 07:14 +0800
+	2023-02-25 07:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ namespace pmr
 #	define YB_Impl_aligned_new true
 #else
 //! \since build 845
-//@{
+//!@{
 struct hdr_t
 {
 	// NOTE: The types shall be decayed to avoid need of call to
@@ -59,7 +59,7 @@ struct hdr_t
 
 static_assert(is_trivial<hdr_t>(), "Invalid type found.");
 using offset_n_t = size_t_<ystdex::max(sizeof(hdr_t), yalignof(hdr_t))>;
-//@}
+//!@}
 #endif
 
 #define YB_Impl_do_is_equal_impl(_virt, _name_pfx) \
@@ -167,7 +167,7 @@ struct intrusive_stack
 	static YB_PURE yconstfn link_ptr
 	as_link(item_ptr p) ynothrow
 	{
-		static_assert(is_base_of<link_type, _type>::value,
+		static_assert(is_base_of<link_type, _type>(),
 			"Invalid target type found.");
 
 		return link_ptr(make_observer(static_cast<link_type*>(p.get().get())));
@@ -176,7 +176,7 @@ struct intrusive_stack
 	static YB_PURE yconstfn item_ptr
 	as_item(link_ptr p) ynothrow
 	{
-		static_assert(is_base_of<link_type, _type>::value,
+		static_assert(is_base_of<link_type, _type>(),
 			"Invalid target type found.");
 
 		return item_ptr(make_observer(static_cast<_type*>(p.get().get())));
@@ -216,7 +216,7 @@ struct intrusive_stack
 
 #if YB_Has_memory_resource != 1
 //! \since build 845
-//@{
+//!@{
 struct monobuf_header final : slink
 {
 	size_t size;
@@ -251,7 +251,7 @@ monobuf_scale(size_t size) ynothrow
 	return monobuf_scale(size, (mono_alloc_max - yalignof(monobuf_header) + 1)
 		/ mono_scale * mono_scale_div);
 }
-//@}
+//!@}
 #endif
 
 } // unnamed namespace;
@@ -270,31 +270,29 @@ new_delete_resource_t::do_allocate(size_t bytes, size_t alignment)
 		//	'+'. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19351.
 		if(YB_LIKELY(bytes + alignment > bytes))
 		{
-			auto space(offset_n_t::value + bytes + alignment);
+			auto space(offset_n_t() + bytes + alignment);
 
 			// NOTE: Ditto.
-			if(space > offset_n_t::value)
+			if(space > offset_n_t())
 			{
 				// XXX: Without the checks, there may be G++ warning:
 				//	[-Walloc-size-larger-than=] when this function is
 				//	effectively inlined (by LTO, etc.).
 				auto ptr(make_unique_default_init<byte[]>(space));
-				void* p(&ptr[offset_n_t::value]);
+				void* p(&ptr[offset_n_t()]);
 
 				if(std::align(alignment, bytes, p, space))
 				{
 					yassume(p);
 					yassume(static_cast<byte*>(p) >= ptr.get());
 
-					const auto
-						off(size_t(static_cast<byte*>(p) - ptr.get()));
+					const auto off(size_t(static_cast<byte*>(p) - ptr.get()));
 
-					yassume(off >= offset_n_t::value);
-
+					yassume(off >= offset_n_t());
 					// XXX: See
 					//	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70834.
-					(::new(&ptr[off - offset_n_t::value])
-						hdr_t)->p_block = ptr.get();
+					(::new(&ptr[off - offset_n_t()]) hdr_t)->p_block
+						= ptr.get();
 					ptr.release();
 					return p;
 				}
@@ -317,7 +315,11 @@ new_delete_resource_t::do_deallocate(void* p, size_t bytes, size_t alignment)
 {
 #if YB_Impl_aligned_new
 	if(alignment > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+#	if __cpp_sized_deallocation >= 201309L
 		::operator delete(p, bytes, std::align_val_t(alignment));
+#	else
+		::operator delete(p, std::align_val_t(alignment));
+#	endif
 #	if __cpp_sized_deallocation >= 201309L
 	::operator delete(p, bytes);
 #	else
@@ -333,7 +335,7 @@ new_delete_resource_t::do_deallocate(void* p, size_t bytes, size_t alignment)
 	{
 		// TODO: Blocked. Use [[assume_aligned]]? See WG21 P0886R0.
 		const auto p_hdr(static_cast<hdr_t*>(static_cast<void*>(
-			static_cast<byte*>(yaligned(p, alignment)) - offset_n_t::value)));
+			static_cast<byte*>(yaligned(p, alignment)) - offset_n_t())));
 
 		yassume(p_hdr);
 
@@ -434,7 +436,7 @@ private:
 	//! \since build 845
 	lref<memory_resource> mem_rsrc;
 	//! \since build 843
-	//@{
+	//!@{
 	size_t block_size;
 	intrusive_stack<slink> free_blocks{};
 	size_t free_count;
@@ -527,7 +529,7 @@ public:
 	{
 		return free_count == 0;
 	}
-	//@}
+	//!@}
 };
 
 resource_pool::chunk_t&
@@ -682,7 +684,6 @@ resource_pool::deallocate(void* p) ynothrowv
 
 
 pool_resource::pool_resource(const pool_options& opts, memory_resource* p_up)
-	ynothrow
 	: saved_options(opts), oversized((yconstraint(p_up), *p_up)), pools(p_up)
 {
 	adjust_pool_options(saved_options);

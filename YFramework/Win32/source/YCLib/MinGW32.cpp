@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017, 2019-2022 FrankHB.
+	© 2013-2017, 2019-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2483
+\version r2580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2022-11-21 07:14 +0800
+	2023-03-04 02:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Registry // for platform::NodeCategory,
-//	platform::Concurrency::mutex, YSLib::Warning, YSLib::TryInvoke, YSLib::Err,
-//	YSLib::RecordLevel, platform::Nonnull, ERROR_*, std::string, UniqueHandle,
+//	YSLib::Warning, YSLib::TryInvoke, YSLib::Err, YSLib::RecordLevel,
+//	platform::Nonnull, YCL_DeclW32Call, ERROR_*, std::string, UniqueHandle,
 //	::BY_HANDLE_FILE_INFORMATION, YCL_CallF_Win32, YCL_Raise_Win32E, NO_ERROR,
 //	::OVERLAPPED, wstring, ::GetSystemDirectoryW, ::GetSystemWindowsDirectoryW,
 //	::HMODULE, ystdex::ntcts_compare, ystdex::rtrim, ::FormatMessageW,
@@ -43,22 +43,31 @@
 //	::LockFileEx, ::UnlockFileEx, ::WaitForSingleObject, ::GetProcAddress;
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
+// XXX: This is not used because currently no '-lntdll' is expected in the
+//	linker command line, and the dynamic loading should be better in
+//	compatibility.
+#	if false && __has_include(<winternl.h>)
+#		include <winternl.h> // for optional ::NtQueryObject;
+#	endif
 #	include YFM_YCLib_Mutex // for platform::Concurrency::mutex,
 //	platform::Concurrency::lock_guard;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::make_unique_default_init, platform::EndsWithNonSeperator;
-#	include <ystdex/map.hpp> // for ystdex::map;
+#	include <ystdex/flat_map.hpp> // for ystdex::flat_map;
 #	include YFM_Win32_YCLib_NLS // for WCSToUTF8;
-#	include <ystdex/cache.hpp> // for ystdex::cache_lookup;
-#	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
+#	include <ystdex/type_pun.hpp> // for ystdex::replace_storage_t;
+#	include <cwchar> // for std::wcsstr;
+#	include <functional> // for std::bind, std::placeholders::_1;
 #	include <ystdex/scope_guard.hpp> // for ystdex::make_unique_guard,
-//	ystdex::dismiss, std::bind, std::placeholders::_1;
+//	ystdex::dismiss;
 #	include <ystdex/swap.hpp> // for ystdex::exchange;
+#	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
+#	include <ystdex/cache.hpp> // for ystdex::cache_lookup;
 
 //! \since build 658
 using platform::NodeCategory;
 //! \since build 937
-//@{
+//!@{
 using platform::Concurrency::mutex;
 using YSLib::Warning;
 using YSLib::TryInvoke;
@@ -67,7 +76,35 @@ using YSLib::IsInClosedInterval;
 using YSLib::RecordLevel;
 using platform::Concurrency::lock_guard;
 using platform::Nonnull;
-//@}
+//!@}
+
+//! \since build 969
+//!@{
+namespace
+{
+
+#	if !(false && __has_include(<winternl.h>))
+enum OBJECT_INFORMATION_CLASS
+{
+	ObjectBasicInformation,
+	ObjectNameInformation,
+	ObjectTypeInformation,
+	ObjectAllInformation,
+	ObjectDataInformation
+};
+#	endif
+
+namespace YCL_Impl_details
+{
+
+// NOTE: See $2023-03 @ %Documentation::Workflow.
+YCL_DeclW32Call(NtQueryObject, ntdll, long, ::HANDLE, OBJECT_INFORMATION_CLASS,
+	void*, unsigned long, unsigned long*)
+
+} // namespace YCL_Impl_details;
+
+} // unnamed namespace;
+//!@}
 #endif
 
 namespace platform_ex
@@ -200,8 +237,26 @@ public:
 };
 
 
+//! \since build 969
+//!@{
+struct UNICODE_STRING
+{
+	unsigned short Length;
+	unsigned short MaximumLength;
+	wchar_t* Buffer;
+};
+
+
+struct OBJECT_NAME_INFORMATION
+{
+	UNICODE_STRING Name;
+	wchar_t NameBuffer[1];
+};
+//!@}
+
+
 //! \since build 651
-//@{
+//!@{
 template<typename _func>
 auto
 FetchFileInfo(_func f, UniqueHandle::pointer h)
@@ -227,7 +282,7 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 	ImplRet(follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
 		: FileAttributesAndFlags::NormalAll)
-//@}
+//!@}
 
 
 //! \since build 660
@@ -235,7 +290,7 @@ yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
 
 
 //! \since build 721
-//@{
+//!@{
 // TODO: Extract to %YCLib.NativeAPI?
 YB_ATTR_nodiscard yconstfn YB_STATELESS
 	PDefH(unsigned long, High32, std::uint64_t val) ynothrow
@@ -254,11 +309,11 @@ DoWithDefaultOverlapped(_func f, std::uint64_t off)
 
 	return f(overlapped);
 }
-//@}
+//!@}
 
 
 //! \since build 693
-//@{
+//!@{
 enum class SystemPaths
 {
 	System,
@@ -283,17 +338,20 @@ FetchFixedSystemPath(SystemPaths e, size_t s)
 	}
 	return ystdex::rtrim(wstring(str), L'\\') + L'\\';
 }
-//@}
+//!@}
 
 
-//! \since build 937
-//@{
+// XXX: These should be %YSLib::value_map with the default allocator. For
+//	simplicity, %ystdex::flat_map is used directly.
+//! \since build 969
+//!@{
 mutex ModuleCacheMutex;
-ystdex::map<const wchar_t*, ::HMODULE, ystdex::ntcts_compare<>> ModuleCache;
+ystdex::flat_map<const wchar_t*, ::HMODULE, ystdex::ntcts_compare<>>
+	ModuleCache;
 
 mutex LoadProcMutex;
-ystdex::map<::HMODULE, ModuleProc*> LoadProcCache;
-//@}
+ystdex::flat_map<::HMODULE, ModuleProc*> LoadProcCache;
+//!@}
 
 } // unnamed namespace;
 
@@ -336,7 +394,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		{
 			wchar_t* buf{};
 
-			// NOTE: See See https://msdn.microsoft.com/library/windows/desktop/ms679351(v=vs.85).aspx.
+			// NOTE: See https://msdn.microsoft.com/library/windows/desktop/ms679351.aspx.
 			YCL_CallF_Win32(FormatMessageW, FORMAT_MESSAGE_ALLOCATE_BUFFER
 				| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
 				{}, ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
@@ -450,6 +508,31 @@ CheckWine()
 	return {};
 }
 
+bool
+HasPTYName(::HANDLE h) ynothrow
+{
+	using buf_t = byte[sizeof(OBJECT_NAME_INFORMATION)
+		+ MAX_PATH * sizeof(wchar_t)];
+	ystdex::replace_storage_t<buf_t, yalignof(OBJECT_NAME_INFORMATION)> storage;
+	unsigned long res;
+
+	if(YCL_Impl_details::NtQueryObject(h, ObjectNameInformation,
+		storage.access(), sizeof(buf_t) - 2, &res) >= 0)
+	{
+		const auto& n(storage.access<OBJECT_NAME_INFORMATION>().Name);
+		wchar_t* s(n.Buffer);
+
+		s[n.Length / sizeof(*s)] = 0;
+		// XXX: The prefix L"\\Device\\NamedPipe\\", the number of digits and
+		//	the suffix are not checked for simplicity and compatibility in
+		//	future (although the name scheme should not be likely to change
+		//	without sufficient reasons).
+		return (std::wcsstr(s, L"msys-") || std::wcsstr(s, L"cygwin-"))
+			&& std::wcsstr(s, L"-pty");
+	}
+	return {};
+}
+
 
 void
 DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
@@ -557,7 +640,7 @@ struct ReparsePointData::Data final
 		unsigned long Flags;
 		wchar_t PathBuffer[1];
 
-		DefGetter(const ynothrow, wstring_view, PrintName,
+		YB_ATTR_nodiscard DefGetter(const ynothrow, wstring_view, PrintName,
 			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
 			size_t(PrintNameLength / sizeof(wchar_t))})
 	};
@@ -569,7 +652,7 @@ struct ReparsePointData::Data final
 		unsigned short PrintNameLength;
 		wchar_t PathBuffer[1];
 
-		DefGetter(const ynothrow, wstring_view, PrintName,
+		YB_ATTR_nodiscard DefGetter(const ynothrow, wstring_view, PrintName,
 			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
 			size_t(PrintNameLength / sizeof(wchar_t))})
 	};
@@ -626,8 +709,8 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 					ystdex::throw_error(std::errc::not_supported, yfsig);
 				}
 			}
-			throw std::invalid_argument(
-				"Specified file is not a reparse point.");
+			throw
+				std::invalid_argument("Specified file is not a reparse point.");
 		}, h);
 	}, path, FileAttributesAndFlags::NormalAll);
 }

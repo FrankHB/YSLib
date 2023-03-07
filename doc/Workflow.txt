@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5259
+\version r5346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2023-02-17 23:43 +0800
+	2023-03-06 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5065,6 +5065,95 @@ New containers from 'ystdex' are used in YFramework module YCLib::Container and 
 			{}
 		As a result, the templates having different default arguments no longer work as expected unless all these template arguments are explicitly provided.
 		They work as expected with recent Clang++ and G++ since 12.1.
+
+$2021-03:
+
+report.impl:
+The terminal support in YFramework module YCLib::Host is revised.
+	Now all implementations disables the ISO C stream buffering.
+		This enforces the synchronization of the output stream and the buffer in the terminal.
+		The I/O performance may be affected, but it should be OK compared to the relatively slow interaction on the terminal.
+		It is needed when using the classic Windows console APIs because the ISO C buffering is not visible to Win32 APIs.
+		Although for implementations like built-in ISO/IEC 6429 escape sequence support, this is general redundant for the purpose of synchronization between the stream and output states, just keep it to be simpler.
+			It still makes the final 'std::fflush' call unconditionally unnecessary.
+	Terminals for Micorsoft Windows implementation is revised.
+		The 'HasPTY' internal functions is renamed to 'HasPTYName' and exposed in YFramework module 'YCLib_(Win32).MinGW32'.
+			The change of the name suggests it only perform the check on the object name associated to the handle value.
+			To determine the handle actually associated to a pipe simulating a PTY device, it should have been checked to be a pipe.
+		File type checks are reviewed and not changed except to exclude 'FILE_TYPE_REMOTE'.
+			'FILE_TYPE_REMOTE' is documented "unused" in https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-getfiletype.
+				Just keep it for historical compatibility.
+			Still, only a handle having specific file types with additional conditons are treated as a handler to a console.
+				Devices other than consoles (e.g. LPT devices) will fail in initialization of 'WConsole' which throws an exception caught later.
+				Otherwise, the preferred check is a call to '::GetConsoleMode', as suggested by https://learn.microsoft.com/windows/console/WriteConsole.
+					This incurs the cost of one more call to CSR and console driver on success.
+					This is used in ReactOS: https://doxygen.reactos.org/d9/dad/sdk_2lib_2conutils_2utils_8c.html#acf21ae29bf7d1777cc462cc92579e44c.
+				There is another old trick to detect the bit pattern of the handle value, which is broken since Microsoft Windows 8.
+					This once works on Microsoft Windows, Wine and ReactOS: https://lists.gnu.org/archive/html/bug-gnulib/2009-08/msg00065.html.
+						This is still in ReactOS: https://doxygen.reactos.org/d1/d75/sdk_2include_2reactos_2subsys_2win_2console_8h.html#ac39b31b1cd76e89ada949324ebf61ad0.
+					The incompatibility is visible in applications, see https://lists.gnu.org/archive/html/bug-gnulib/2014-06/msg00055.html.
+		There is no plan to drop 'WConsole', even though the roadmap (https://learn.microsoft.com/windows/console/ecosystem-roadmap) states in future the classic Windows console APIs will be switched to the virtual terminal sequences.
+			As said in https://learn.microsoft.com/windows/console/classic-vs-vt, the classic Windows console APIs are to be supported indefinitely.
+			Virtual terminal sequence is not relied on by the terminal initialization and the underlying 'WConsole' initialization.
+				It will only be supported on sufficient new version of Microsoft Windows. It is not compatible to older versions and other implementations (Wine and ReactOS). For compatibility, Windows Console APIs are always needed.
+					The detection of the availability of virtual terminal sequence at runtime is not obvious and it would require to be nominal by OS version check.
+						Such detail is not interesting when there are already higher level APIs in the terminal.
+						And it won't be portable via the terminal API here, since all other details are also not provided.
+				It can be opt-in by the user code using '::SetConsoleMode' with flags like 'ENABLE_VIRTUAL_TERMINAL_PROCESSING' when necessary.
+					See https://learn.microsoft.com/windows/console/setconsolemode.
+				As a minor benefit, omitting this by default is also efficient for the unncessity of calling to '::GetConsoleMode' to get the initial mode.
+				'ENABLE_VIRTUAL_TERMINAL_PROCESSING' is enabled by default in Microsoft Windows 10.0.10586, but disabled by default later for compatiblity.
+					See https://github.com/microsoft/WSL/issues/1173#issuecomment-254250445.
+					So if the program need portability behavior, it should set it explicitly.
+				'ENABLE_LVB_GRID_WORLDWIDE' is supported since some undocumented version not ealier than 'ENABLE_VIRTUAL_TERMINAL_PROCESSING'.
+					The painting is buggy since 10.0.15063, see https://github.com/microsoft/terminal/issues/47.
+						This is fixed since 10.0.17763, see https://github.com/microsoft/terminal/issues/47#issuecomment-433144939.
+				Even this is required in YFramework, the flags should not be directly used due to the requirment on Windows SDK version which is not explicitly documented here.
+				See also https://stackoverflow.com/questions/38772468.
+			24-bit color is supported in Windows console since 10.0.14393.
+				This is not supported directly by 'WConsole' or the terminal at current.
+				See https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/.
+	A scheme to disable coloring and advanced terminal formatting (underlines for now) is introduced.
+		This is enabled by environment variable 'NO_COLOR' to any nonempty value.
+			This follows the guidelines at https://no-color.org.
+		Another condition is setting the environment variable 'TERM' to 'dumb'.
+		To be consistent, all the settings also are supported on Windows platforms.
+		Application can use additional options and configurations to tweak the behavior, e.g. by following the guidlines at https://clig.dev.
+		The requirement of handling of 'NO_COLOR' in https://clig.dev is a bit different that it only requires set values (even empty).
+			The implementation here does requires it to be nonempty.
+			This conforms to the runtime environment requirement in https://frankhb.github.io/YSLib-book/Run.zh-CN.html#%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F.
+				Requiring nonempty is important for compatiblity with platforms not differentiate empty values of set variables and unset variables, e.g. on Win32 platforms or MSYS2 with 'MSYS=noemptyenvvalues'.
+		'TERM=dumb' is not supported here.
+			It is less specific and less clear to get away the colored output than 'NO_COLOR'.
+			'TERM' is about the type of the terminal being used, which is never respected traditionally on native Windows platforms, and still not meaningful for modern Windows environments.
+				Even the most recent Windows pseudoconsole supports virtual terminal sequence without other variants.
+	As an example, SHBuild is updated to use the new color and formatting schemes in the output text.
+		Notably, the help messages are updated.
+		The style basically follows https://github.com/clap-rs/clap/issues/4132.
+	Handling of environment variable 'YF_Use_tput' is adjusted to ensure only nonempty values are treated as enabled.
+		Similar to 'NO_COLOR' handling following https://no-color.org, this conforms to the runtime environment requirement, although this environment variable is still not used in Windows platforms at all.
+YCLib implementation of Win32 API is used idiomatically and remarked here.
+	The implemantation idiom is like (in the global namespace in each implementation translation unit):
+		namespace
+		{
+		namespace YCL_Impl_details
+		{
+		YCL_DeclW32Call(WinAPIName, DLLName, ParamTypes)
+		} // namespace YCL_Impl_details;
+		} // unnamed namespace;
+		namespace U
+		{
+		// Use YCL_Impl_details::WinAPIName instead of ::WinAPIName or WinAPIName here.
+		} // namespace U;
+	The Windows API name (here 'WinAPIName' for instance) is usually a Win32 API name or Windows NT API name from the external dependency of the build environment, i.e. SDK (Windows SDK or DDK).
+	The DLL name (here 'DLLName' for instance) is usually a well-known DLL filename without extension which denote a DLL file available in all the supported target environments (Microsoft Windows, Wine or ReactOS).
+	Such use allows opted-in declaration of Windows API name in the implementation-specific namespace YCL_Impl_details, which utilize SFINAE to provide WinAPIName from the SDK header, or by loading dynamically if not available from the SDK.
+	The namespace 'U' is the call site of 'WinAPIName'. This is typically 'platform' or 'platform_ex' in the actual implementation.
+	To avoid hiding of the global name ('::WinAPIName'), the declarations shall not be in namespace 'U' here.
+Use of nonX vs. non-X in documents and comments should follow the guideline by ISO C++ in general.
+	See https://github.com/cplusplus/draft/issues/440.
+	Some are still not clear up in ISO C++, though (e.g. nonempty vs. non-empty).
+	The changes (if any) would be gradule. Before the transision complete, there may be inconsistencies between files.
 
 ////
 

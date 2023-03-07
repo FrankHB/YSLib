@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2022 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r971
+\version r1000
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2022-11-05 19:04 +0800
+	2023-03-07 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,12 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Debug // for wstring, Nonnull, string_view, std::puts,
-//	std::fflush, pmr::new_delete_resource_t, stderr, YB_Use_YTrace;
+#include YFM_YCLib_Debug // for std::string, wstring, Nonnull, string_view,
+//	std::puts, std::fflush, pmr::new_delete_resource_t, stderr, YB_Use_YTrace;
+#include <ystdex/cstring.h> // for ystdex::is_nonempty;
+#if YF_Multithread == 1
+#	include <ystdex/concurrency.h> // for ystdex::get_this_thread_id;
+#endif
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
 //	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
@@ -39,9 +43,6 @@
 #	include <android/log.h>
 #endif
 #include YFM_YCLib_Host // for platfrom_ex::EncodeArg, StreamPut;
-#if YF_Multithread == 1
-#	include <ystdex/concurrency.h>
-#endif
 #if !YCL_DS
 #	include <iostream> // for std::cout, std::cerr;
 #endif
@@ -54,9 +55,9 @@ namespace platform
 namespace
 {
 
-//! \since build 564
-inline PDefH(const char*, chk_null, const char* s)
-	ImplRet(s && *s != char()? s : "<unknown>")
+//! \since build 969
+inline PDefH(const char*, EmptyOrUnknown, const char* s)
+	ImplRet(ystdex::is_nonempty(s) ? s : "<unknown>")
 
 #if YF_Multithread == 1
 //! \since build 626
@@ -139,19 +140,6 @@ Logger::Logger(Logger&& logger) ynothrow
 	: Logger()
 {
 	swap(logger, *this);
-}
-
-void
-Logger::SetFilter(Filter f)
-{
-	if(f)
-		filter = std::move(f);
-}
-void
-Logger::SetSender(Sender s)
-{
-	if(s)
-		sender = std::move(s);
 }
 
 bool
@@ -352,13 +340,14 @@ LogWithSource(const char* file, int line, const char* fmt, ...)
 		string str(vsfmt(fmt, args));
 
 		va_end(args);
-		return sfmt<string>("\"%s\":%i:\n", chk_null(file), line)
+		return sfmt<string>("\"%s\":%i:\n", EmptyOrUnknown(file), line)
 			+ std::move(str);
 	}
 #if YB_Use_YTrace
 	CatchExpr(...,
 		ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
-		chk_null(file), line, "LogWithSource error: unhandled exception."))
+		EmptyOrUnknown(file), line,
+		"LogWithSource error: unhandled exception."))
 #else
 	// XXX: All exceptions are ignored when tracing is not available.
 	CatchIgnore(...)
@@ -391,8 +380,8 @@ LogAssert(const char* expr_str, const char* file, int line,
 		::GetModuleFileNameA({}, prog, MAX_PATH);
 
 		const auto& errstr(sfmt("Assertion failed @ program %s: "
-			"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, chk_null(file),
-			line, chk_null(expr_str), chk_null(msg)));
+			"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, EmptyOrUnknown(file),
+			line, EmptyOrUnknown(expr_str), EmptyOrUnknown(msg)));
 
 		::OutputDebugStringA(errstr.c_str());
 		// XXX: Not safe in windows procedure, but not used in YFramework.
@@ -437,7 +426,7 @@ void
 SendDebugString(Logger::Level lv, Logger&, const char* str) ynothrowv
 {
 	// TODO: Use %::WaitForDebugEventEx if possible. See
-	//	https://msdn.microsoft.com/library/windows/desktop/mt171594(v=vs.85).aspx.
+	//	https://msdn.microsoft.com/library/windows/desktop/mt171594.aspx.
 	TryExpr(::OutputDebugStringA(
 		FetchThreadedMessage(FetchCurrentThreadID(), lv, str).c_str()))
 	CatchIgnore(...)

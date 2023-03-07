@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2022 FrankHB.
+	© 2013-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2479
+\version r2595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2022-11-05 20:53 +0800
+	2023-03-04 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for YSLib::RecordLevel, YSLib::Emergent, std::string,
-//	string_view, wstring, unique_ptr_from, ystdex::ends_with,
+//	string_view, ::HANDLE, wstring, unique_ptr_from, ystdex::ends_with,
 //	ystdex::aligned_storage_t, ystdex::pun_ref, vector, string, pair,
 //	ystdex::remove_pointer_t, std::is_function, YSLib::Err;
 #include YFM_YCLib_NativeAPI // for ERROR_SUCCESS, ::HMODULE, GetModuleHandleW,
@@ -88,9 +88,9 @@ public:
 	\warning 初始化参数时可能会改变 ::GetLastError() 的结果。
 	\since build 643
 	*/
-	//@{
+	//!@{
 	//! \since build 861
-	//@{
+	//!@{
 	YB_NONNULL(3)
 	Win32Exception(ErrorCode, const char* = "Win32 exception",
 		YSLib::RecordLevel = YSLib::Emergent);
@@ -98,7 +98,7 @@ public:
 		YSLib::RecordLevel = YSLib::Emergent);
 	Win32Exception(ErrorCode, string_view,
 		YSLib::RecordLevel = YSLib::Emergent);
-	//@}
+	//!@}
 	/*!
 	\pre 第三参数非空。
 	\note 第三参数是表示调用位置函数签名，可以使用 \c __func__ 。
@@ -106,7 +106,7 @@ public:
 	YB_NONNULL(4)
 	Win32Exception(ErrorCode, string_view, const char*,
 		YSLib::RecordLevel = YSLib::Emergent);
-	//@}
+	//!@}
 	//! \since build 586
 	DefDeCopyCtor(Win32Exception)
 	/*!
@@ -115,12 +115,13 @@ public:
 	*/
 	~Win32Exception() override;
 
-	DefGetter(const ynothrow, ErrorCode, ErrorCode, ErrorCode(code().value()))
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ErrorCode, ErrorCode,
+		ErrorCode(code().value()))
 	//! \since build 437
-	DefGetter(const ynothrow, std::string, Message,
+	YB_ATTR_nodiscard DefGetter(const ynothrow, std::string, Message,
 		FormatMessage(GetErrorCode()))
 
-	explicit DefCvt(const ynothrow, ErrorCode, GetErrorCode())
+	YB_ATTR_nodiscard explicit DefCvt(const ynothrow, ErrorCode, GetErrorCode())
 
 	/*!
 	\brief 取错误类别。
@@ -136,12 +137,12 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_PURE static std::string
 	FormatMessage(ErrorCode) ynothrow;
-	//@}
+	//!@}
 };
 
 
 //! \since build 714
-//@{
+//!@{
 /*!
 \brief 按 \c ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
 \note 先调用 \c ::GetLastError 以避免参数中的副作用影响结果。
@@ -180,12 +181,12 @@ public:
 \brief 调用 Win32 API 或其它可用 ::GetLastError 取得调用状态的例程。
 \note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
 */
-//@{
+//!@{
 /*!
 \note 若失败抛出 Windows::Win32Exception 对象。
 \sa YCL_Raise_Win32E
 */
-//@{
+//!@{
 #	define YCL_WrapCall_Win32(_fn, ...) \
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
@@ -200,14 +201,14 @@ public:
 
 //! \since build 638
 #	define YCL_CallF_Win32(_fn, ...) YCL_Call_Win32(_fn, yfsig, __VA_ARGS__)
-//@}
+//!@}
 
 /*!
 \note 若失败跟踪 ::GetLastError 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
 \sa YCL_Trace_Win32E
 */
-//@{
+//!@{
 #	define YCL_TraceWrapCall_Win32(_fn, ...) \
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
@@ -223,17 +224,17 @@ public:
 
 #	define YCL_TraceCallF_Win32(_fn, ...) \
 	YCL_TraceCall_Win32(_fn, yfsig, __VA_ARGS__)
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 //! \since build 629
-//@{
+//!@{
 /*!
 \brief 访问权限。
-\see https://msdn.microsoft.com/library/windows/desktop/aa374892(v=vs.85).aspx 。
-\see https://msdn.microsoft.com/library/windows/desktop/aa374896(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa374892.aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa374896.aspx 。
 */
 enum class AccessRights : ::ACCESS_MASK
 {
@@ -320,12 +321,12 @@ enum class CreationDisposition : unsigned long
 	OpenExisting = OPEN_EXISTING,
 	TruncateExisting = TRUNCATE_EXISTING
 };
-//@}
+//!@}
 
 
 //! \since build 639
-//@{
-//! \see https://msdn.microsoft.com/library/gg258117(v=vs.85).aspx 。
+//!@{
+//! \see https://msdn.microsoft.com/library/gg258117.aspx 。
 enum FileAttributes : unsigned long
 {
 	ReadOnly = FILE_ATTRIBUTE_READONLY,
@@ -353,7 +354,7 @@ enum FileAttributes : unsigned long
 	Invalid = INVALID_FILE_ATTRIBUTES
 };
 
-//! \see https://msdn.microsoft.com/library/aa363858(v=vs.85).aspx 。
+//! \see https://msdn.microsoft.com/library/aa363858.aspx 。
 enum FileFlags : unsigned long
 {
 	WriteThrough = FILE_FLAG_WRITE_THROUGH,
@@ -367,7 +368,7 @@ enum FileFlags : unsigned long
 	SessionAware = FILE_FLAG_SESSION_AWARE,
 	OpenReparsePoint = FILE_FLAG_OPEN_REPARSE_POINT,
 	OpenNoRecall = FILE_FLAG_OPEN_NO_RECALL,
-	// \see https://msdn.microsoft.com/library/windows/desktop/aa365150(v=vs.85).aspx 。
+	// \see https://msdn.microsoft.com/library/windows/desktop/aa365150.aspx 。
 	FirstPipeInstance = FILE_FLAG_FIRST_PIPE_INSTANCE
 };
 
@@ -388,7 +389,7 @@ enum FileAttributesAndFlags : unsigned long
 	NormalWithDirectory = Normal | BackupSemantics,
 	NormalAll = NormalWithDirectory | OpenReparsePoint
 };
-//@}
+//!@}
 
 
 /*!
@@ -417,7 +418,7 @@ YB_ATTR_nodiscard YB_STATELESS inline
 \throw Win32Exception 调用失败。
 \since build 701
 */
-//@{
+//!@{
 /*!
 \brief 按打开的文件句柄归类节点从属的属性类别。
 \return 指定句柄为字符、管道或未知类别。
@@ -431,7 +432,7 @@ TryCategorizeNodeAttributes(UniqueHandle::pointer);
 */
 YB_ATTR_nodiscard YF_API platform::NodeCategory
 TryCategorizeNodeDevice(UniqueHandle::pointer);
-//@}
+//!@}
 
 /*!
 \return 指定非目录或不被支持的重解析标签时为 NodeCategory::Empty ，
@@ -439,7 +440,7 @@ TryCategorizeNodeDevice(UniqueHandle::pointer);
 \since build 701
 \todo 对目录链接和符号链接的重解析标签提供适当实现。
 */
-//@{
+//!@{
 //! \brief 按 FileAttributes 和重解析标签归类节点类别。
 YB_ATTR_nodiscard YF_API YB_STATELESS platform::NodeCategory
 CategorizeNode(FileAttributes, unsigned long = 0) ynothrow;
@@ -454,7 +455,7 @@ YB_ATTR_nodiscard YB_STATELESS inline PDefH(platform::NodeCategory,
 YB_ATTR_nodiscard YB_STATELESS inline PDefH(platform::NodeCategory,
 	CategorizeNode, const ::WIN32_FIND_DATAW& d) ynothrow
 	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
-//@}
+//!@}
 /*!
 \brief 按打开的文件句柄归类节点类别。
 \return 指定句柄空时为 NodeCategory::Invalid ，
@@ -473,7 +474,7 @@ CategorizeNode(UniqueHandle::pointer) ynothrow;
 \note 调用 \c ::CreateFileW 实现。
 \since build 632
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) UniqueHandle
 MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
 	FileShareMode = FileShareMode::All, CreationDisposition
@@ -498,7 +499,7 @@ YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //! \since build 660
-//@{
+//!@{
 YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
 	const wchar_t* path, FileShareMode shared_mode, CreationDisposition
 	creation_disposition = CreationDisposition::OpenExisting,
@@ -522,18 +523,34 @@ YB_ATTR_nodiscard YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile,
 	const wchar_t* path, FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
 \brief 判断是否在 Wine 环境下运行。
 \note 检查 \c HKEY_CURRENT_USER 和 \c HKEY_LOCAL_MACHINE
-	下的 <tt>Software\Wine</tt> 键实现。
+	下的 \c Software\Wine 键实现。
 \since build 435
 */
 YB_ATTR_nodiscard YF_API bool
 CheckWine();
+
+/*!
+\brief 判断参数是否关联 Cygwin/MSYS 程序使用的 PTY 模拟的对象名称。
+\return 参数关联的对象名称符合 Cygwin/MSYS 的对象名称模式。
+\note MinTTY 等非 Win32 控制台实现的终端模拟器可能使用 PTY 模拟。
+\see $2021-06 @ %Documentation::Workflow 。
+\since build 969
+
+查询参数指定的句柄关联的对象名称信息，检查是否符合特定的名称模式。
+Cygwin/MSYS 程序可使用管道模拟 PTY ，且其对象名称具有这些名称模式。
+若查询对象名称失败，则视为不关联。
+模拟对象的句柄指定管道，即使用 ::GetFileType 得到类型为 FILE_TYPE_PIPE 的文件。
+判断句柄指定管道后，判断关联的对象 NT 名称一般即可确定管道是 PTY 模拟对象。
+*/
+YB_ATTR_nodiscard YF_API bool
+HasPTYName(::HANDLE h) ynothrow;
 
 
 /*!
@@ -544,7 +561,10 @@ CheckWine();
 class YF_API DirectoryFindData : private ystdex::noncopyable
 {
 private:
-	//! \since build 702
+	/*!
+	\ingroup deleters
+	\since build 702
+	*/
 	class YF_API Deleter
 	{
 	public:
@@ -581,7 +601,7 @@ public:
 	打开 UTF-16 路径指定的目录。
 	目录路径无视结尾的斜杠和反斜杠。 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	*/
-	//@{
+	//!@{
 	DirectoryFindData(wstring_view sv)
 		: DirectoryFindData(wstring(sv))
 	{}
@@ -591,27 +611,28 @@ public:
 	{}
 	//! \since build 705
 	DirectoryFindData(wstring);
-	//@}
+	//!@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	DefDeDtor(DirectoryFindData)
 
 	//! \since build 556
-	DefBoolNeg(explicit, p_node.get())
+	YB_ATTR_nodiscard DefBoolNeg(YB_ATTR_nodiscard explicit, p_node.get())
 
 	//! \since build 564
-	DefGetter(const ynothrow, unsigned long, Attributes,
+	YB_ATTR_nodiscard DefGetter(const ynothrow, unsigned long, Attributes,
 		find_data.dwFileAttributes)
 	/*!
 	\brief 返回当前查找项目名。
 	\return 当前查找项目名。
 	\since build 705
 	*/
-	YB_PURE DefGetter(const ynothrow,
+	YB_ATTR_nodiscard DefGetter(const ynothrow,
 		const wchar_t*, EntryName, find_data.cFileName)
-	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&,
+		FindData, find_data)
 	//! \since build 593
-	DefGetter(const ynothrow, const wstring&, DirName, (YAssert(
-		dir_name.length() > 1 && ystdex::ends_with(dir_name, L"\\*"),
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const wstring&, DirName,
+		(YAssert(dir_name.length() > 1 && ystdex::ends_with(dir_name, L"\\*"),
 		"Invalid directory name found."), dir_name))
 	/*!
 	\brief 取子节点的类型。
@@ -671,7 +692,7 @@ public:
 	*/
 	~ReparsePointData();
 
-	DefGetter(const ynothrow, Data&, , pun.get())
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Data&, , pun.get())
 };
 
 
@@ -683,14 +704,14 @@ public:
 \throw std::system_error 重解析点检查失败。
 	\li std::errc::not_supported 重解析点标签不被支持。
 */
-//@{
+//!@{
 //! \since build 660
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
 ResolveReparsePoint(const wchar_t*);
 //! \since build 705
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring_view
 ResolveReparsePoint(const wchar_t*, ReparsePointData::Data&);
-//@}
+//!@}
 
 
 /*!
@@ -706,7 +727,7 @@ ExpandEnvironmentStrings(const wchar_t*);
 \brief 解析应用程序命令行参数。
 \return UTF-8 编码的参数向量。
 \since build 928
-\see $2020-10 @ %Documentation::Workflow.
+\see $2020-10 @ %Documentation::Workflow 。
 
 解析 Unicode 编码的应用程序命令行参数字符串。
 参数向量同标准 C++ 的 \c ::main 命令行参数的格式，但不依赖实现使用的代码页。
@@ -714,33 +735,33 @@ ExpandEnvironmentStrings(const wchar_t*);
 特别地，使用声明为 \c ::WinMain 和 \c ::wWinMain 入口函数的程序也使用一致的参数。
 解析参数字符串不展开通配符。具体行为兼容 UCRT 的实现，不保证和 CRT 历史实现完全一致。
 */
-//@{
+//!@{
 //! \note 以 \c ::GetCommandLineW 调用取参数。
 YB_ATTR_nodiscard YF_API YB_PURE vector<string>
 ParseCommandArguments(vector<string>::allocator_type = {});
 //! \pre 断言：参数非空。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE vector<string>
 ParseCommandArguments(const wchar_t*, vector<string>::allocator_type = {});
-//@}
+//!@}
 
 
 /*!
-\see https://msdn.microsoft.com/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa363788.aspx 。
 \since build 638
 */
-//@{
+//!@{
 //! \brief 文件标识。
 using FileID = std::uint64_t;
 //! \brief 卷序列号。
 using VolumeID = std::uint32_t;
-//@}
+//!@}
 
 //! \throw Win32Exception 访问文件或查询文件元数据失败。
-//@{
+//!@{
 //! \since build 660
-//@{
+//!@{
 //! \brief 查询文件链接数。
-//@{
+//!@{
 //! \since build 637
 YB_ATTR_nodiscard YF_API size_t
 QueryFileLinks(UniqueHandle::pointer);
@@ -750,16 +771,16 @@ QueryFileLinks(UniqueHandle::pointer);
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) size_t
 QueryFileLinks(const wchar_t*, bool = {});
-//@}
+//!@}
 
 /*!
 \brief 查询文件标识。
 \return 卷标识和卷上文件的标识的二元组。
 \bug ReFS 上不保证唯一。
-\see https://msdn.microsoft.com/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/aa363788.aspx 。
 \see https://bugs.python.org/issue40095 。
 */
-//@{
+//!@{
 //! \since build 638
 YB_ATTR_nodiscard YF_API pair<VolumeID, FileID>
 QueryFileNodeID(UniqueHandle::pointer);
@@ -769,29 +790,29 @@ QueryFileNodeID(UniqueHandle::pointer);
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) pair<VolumeID, FileID>
 QueryFileNodeID(const wchar_t*, bool = {});
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 查询文件大小。
 \throw std::invalid_argument 查询文件得到的大小小于 0 。
 \since build 718
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API std::uint64_t
 QueryFileSize(UniqueHandle::pointer);
 //! \pre 间接断言：路径参数非空。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::uint64_t
 QueryFileSize(const wchar_t*);
-//@}
+//!@}
 
 /*
 \note 后三个参数可选，指针为空时忽略。
 \note 最高精度取决于文件系统。
 */
-//@{
+//!@{
 //! \brief 查询文件的创建、访问和/或修改时间。
-//@{
+//!@{
 /*!
 \pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
 	且具有 AccessRights::GenericRead 权限。
@@ -808,13 +829,13 @@ QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 YF_API YB_NONNULL(1) void
 QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {}, bool = {});
-//@}
+//!@}
 
 /*!
 \brief 设置文件的创建、访问和/或修改时间。
 \since build 651
 */
-//@{
+//!@{
 /*!
 \pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
 	且具有 FileSpecificAccessRights::WriteAttributes 权限。
@@ -829,15 +850,15 @@ SetFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 YF_API YB_NONNULL(1) void
 SetFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {}, bool = {});
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 /*!
 \throw std::system_error 调用失败。
 	\li std::errc::not_supported 输入的时间表示不被实现支持。
 */
-//@{
+//!@{
 /*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
 \since build 632
@@ -850,7 +871,7 @@ ConvertTime(const ::FILETIME&);
 */
 YB_ATTR_nodiscard YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
-//@}
+//!@}
 
 
 /*!
@@ -858,14 +879,14 @@ ConvertTime(std::chrono::nanoseconds);
 	且具有 AccessRights::GenericRead 或 AccessRights::GenericWrite 权限。
 \since build 901
 */
-//@{
+//!@{
 /*!
 \brief 锁定文件。
 \note 对内存映射文件为协同锁，其它文件为强制锁。
 \note 第二和第三参数指定文件锁定范围的起始偏移量和大小。
 \note 最后两个参数分别表示是否为独占锁和是否立刻返回。
 */
-//@{
+//!@{
 //! \throw Win32Exception 锁定失败。
 YF_API void
 LockFile(UniqueHandle::pointer, std::uint64_t = 0,
@@ -874,7 +895,7 @@ LockFile(UniqueHandle::pointer, std::uint64_t = 0,
 YB_ATTR_nodiscard YF_API bool
 TryLockFile(UniqueHandle::pointer, std::uint64_t = 0,
 	std::uint64_t = std::uint64_t(-1), bool = true, bool = true) ynothrow;
-//@}
+//!@}
 
 /*!
 \brief 解锁文件。
@@ -883,7 +904,7 @@ TryLockFile(UniqueHandle::pointer, std::uint64_t = 0,
 YF_API bool
 UnlockFile(UniqueHandle::pointer, std::uint64_t = 0,
 	std::uint64_t = std::uint64_t(-1)) ynothrow;
-//@}
+//!@}
 
 
 /*!
@@ -891,7 +912,7 @@ UnlockFile(UniqueHandle::pointer, std::uint64_t = 0,
 \note 时间间隔单位为毫秒。
 \since build 720
 */
-//@{
+//!@{
 //! \throw 等待失败。
 YF_API void
 WaitUnique(UniqueHandle::pointer, unsigned long = INFINITE);
@@ -899,7 +920,7 @@ WaitUnique(UniqueHandle::pointer, unsigned long = INFINITE);
 //! \return 是否等待成功。
 YB_ATTR_nodiscard YF_API bool
 TryWaitUnique(UniqueHandle::pointer, unsigned long = 0) ynothrow;
-//@}
+//!@}
 
 
 /*!
@@ -943,7 +964,7 @@ public:
 \throw Win32Exception 调用失败。
 \note 保证以一个分隔符结束。
 */
-//@{
+//!@{
 /*!
 \brief 取系统目录路径。
 \since build 593
@@ -957,14 +978,14 @@ FetchSystemPath(size_t = MAX_PATH);
 */
 YB_ATTR_nodiscard YF_API wstring
 FetchWindowsPath(size_t = MAX_PATH);
-//@}
+//!@}
 
 
 /*!
 \note 当前只支持 x64 系统下 32 位进程启用的重定向，不支持包括 ARM64 的其它情形。
 \since build 937
 */
-//@{
+//!@{
 /*!
 \brief 判断当前进程是否为 WOW64 进程。
 \note 调用的 API 结果会被缓存，在进程生存期中不会改变。
@@ -991,9 +1012,9 @@ public:
 	WOW64FileSystemRedirectionGuard&
 	operator=(WOW64FileSystemRedirectionGuard&&) ynothrow;
 
-	DefPred(ynothrow, Activated, activated)
+	YB_ATTR_nodiscard DefPred(ynothrow, Activated, activated)
 };
-//@}
+//!@}
 
 
 /*!
@@ -1005,7 +1026,7 @@ FetchModuleFileName(::HMODULE = {}, wstring::allocator_type = {},
 	YSLib::RecordLevel = YSLib::Err);
 
 //! \since build 937
-//@{
+//!@{
 //! \brief 取进程已加载的指定名称的模块句柄。
 YB_ATTR_nodiscard YB_NONNULL(1) inline
 	PDefH(::HMODULE, FetchModuleHandle, const wchar_t* module)
@@ -1014,10 +1035,10 @@ YB_ATTR_nodiscard YB_NONNULL(1) inline
 //! \brief 取内部缓存的进程已加载的指定名称的模块句柄。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) ::HMODULE
 FetchModuleHandleCached(const wchar_t*);
-//@}
+//!@}
 
 //! \since build 651
-//@{
+//!@{
 //! \brief 加载过程地址得到的过程类型。
 using ModuleProc
 	= ystdex::remove_pointer_t<decltype(::GetProcAddress(::HMODULE(), {}))>;
@@ -1038,7 +1059,7 @@ static_assert(std::is_function<ModuleProc>(), "Invalid type found.");
 \pre 参数非空。
 \exception Win32Exception 动态加载失败。
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
 LoadProc(::HMODULE, const char*);
 template<typename _func>
@@ -1086,7 +1107,7 @@ LoadProc(const wchar_t* module, const char* proc)
 \pre 加载的模块不被改变（包括卸载）。
 \note 使用全局内部缓存以减少重复的 Win32 API 调用。
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
 LoadProcCached(::HMODULE, const char*);
 template<typename _func>
@@ -1119,8 +1140,8 @@ LoadProcCached(const wchar_t* module, const char* proc)
 {
 	return LoadProcCached<_func>(FetchModuleHandleCached(module), proc);
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 #define YCL_Impl_W32Call_Fn(_fn) W32_##_fn##_t
@@ -1159,11 +1180,11 @@ LoadProcCached(const wchar_t* module, const char* proc)
 	{ \
 		return YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...); \
 	}
-//@}
+//!@}
 
 
 //! \since build 593
-//@{
+//!@{
 /*!
 \ingroup functors
 \brief 全局存储删除器。
@@ -1184,7 +1205,7 @@ struct YF_API GlobalDelete
 class YF_API GlobalLocked
 {
 private:
-	//! \invariant <tt>bool(p_locked)</tt> 。
+	//! \invariant \c bool(p_locked) 。
 	void* p_locked;
 
 public:
@@ -1192,13 +1213,13 @@ public:
 	\brief 构造：锁定存储。
 	\throw Win32Exception ::GlobalLock 调用失败。
 	*/
-	//@{
+	//!@{
 	GlobalLocked(::HGLOBAL);
 	template<typename _tPointer>
 	GlobalLocked(const _tPointer& p)
 		: GlobalLocked(p.get())
 	{}
-	//@}
+	//!@}
 	~GlobalLocked();
 
 	template<typename _type = void>
@@ -1208,7 +1229,7 @@ public:
 		return make_observer(static_cast<_type*>(p_locked));
 	}
 };
-//@}
+//!@}
 
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2018-2022 FrankHB.
+	© 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory_resource.h
 \ingroup YStandardEx
 \brief 存储资源。
-\version r1570
+\version r1620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 842
 \par 创建时间:
 	2018-10-27 19:30:12 +0800
 \par 修改时间:
-	2022-07-10 17:57 +0800
+	2023-02-21 06:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,27 +138,24 @@ pmr::polymorphic_allocator 对 is_bitwise_swappable 特化。
 \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 842
 */
-//@{
+//!@{
 #ifndef __cpp_lib_memory_resource
 #	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603L) \
 	|| __cplusplus >= 201603L
 #		define __cpp_lib_memory_resource 201603L
 #	endif
 #endif
-//@}
+//!@}
 
 //! \since build 842
 namespace ystdex
 {
 
-// TODO: Check support of P0591R4 and use %std::pmr::polymorphic_allocator if
-//	possible.
-
 namespace details
 {
 
 //! \note 和 Microsoft VC++ 实现中的 %std::_Get_size_of_n 类似。
-//@{
+//!@{
 // XXX: Neither %SIZE_MAX nor %std::numeric_limits<size_t>::max() (as per LWG
 //	3310) are used, to avoid dependencies on <climits> or <limits>. This is
 //	totally legimate as %size_t(-1) is equivalent.
@@ -176,7 +173,7 @@ get_size_of_n<1>(size_t n)
 {
 	return n;
 }
-//@}
+//!@}
 
 } // namespace details;
 
@@ -196,7 +193,7 @@ using std::pmr::memory_resource;
 using std::pmr::get_default_resource;
 #else
 //! \ingroup YBase_replacement_features
-//@{
+//!@{
 /*!
 \brief 存储资源。
 \see LWG 2724 。
@@ -212,16 +209,14 @@ public:
 	\since build 850
 	\see WG21 P0619R4 。
 	*/
-	//@{
+	//!@{
 	memory_resource() = default;
 	memory_resource(const memory_resource&) = default;
-	//@}
+	//!@}
 	// XXX: Microsoft VC++, libstdc++ (in GCC 9.1 and 9.2) and libc++
 	//	(in %std::experimanetal) all defined the destructor inline. Keeping it
 	//	out-of-line for the style consistency and to avoid Clang++ warning
 	//	[-Wweak-vtables] reilably.
-	// TODO: Measure the benefits preciesly. Alternatively, change it as
-	//	https://github.com/microsoft/STL/issues/1314?
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
 	~memory_resource();
@@ -233,7 +228,7 @@ public:
 	}
 
 	//! \pre 断言：对齐值是 2 的整数次幂。
-	//@{
+	//!@{
 	//! \post 断言：返回值符合参数指定的对齐值要求。
 	YB_ALLOCATOR YB_ATTR(alloc_align(3), alloc_size(2)) YB_ATTR_returns_nonnull
 		void*
@@ -259,7 +254,7 @@ public:
 		yconstraint(is_power_of_2_positive(alignment));
 		return do_deallocate(p, bytes, alignment);
 	}
-	//@}
+	//!@}
 
 	YB_ATTR_nodiscard bool
 	is_equal(const memory_resource& other) const ynothrow
@@ -289,14 +284,14 @@ private:
 
 YB_ATTR_nodiscard YB_API YB_ATTR_returns_nonnull memory_resource*
 get_default_resource() ynothrow;
-//@}
+//!@}
 #endif
 
 } // inline namespace cpp2017;
 
 
 //! \ingroup allocators
-//@{
+//!@{
 #if YB_Impl_P0339R6
 //! \since build 863
 using std::pmr::polymorphic_allocator;
@@ -326,7 +321,7 @@ public:
 	{
 		yconstraint(r);
 	}
-	polymorphic_allocator(const polymorphic_allocator& other) = default;
+	polymorphic_allocator(const polymorphic_allocator&) = default;
 	template<typename _tOther>
 	polymorphic_allocator(const polymorphic_allocator<_tOther>& other) ynothrow
 		: memory_rsrc(other.resource())
@@ -355,7 +350,7 @@ public:
 	\see WG21 P0339R6 。
 	\since build 863
 	*/
-	//@{
+	//!@{
 	void*
 	allocate_bytes(size_t nbytes, size_t alignment = yalignof(std::max_align_t))
 	{
@@ -411,7 +406,7 @@ public:
 		destroy(p);
 		deallocate_object(p);
 	}
-	//@}
+	//!@}
 
 	/*!
 	\see WG21 P0591R4 。
@@ -439,7 +434,7 @@ public:
 };
 
 //! \relates polymorphic_allocator
-//@{
+//!@{
 template<typename _type1, typename _type2>
 YB_ATTR_nodiscard inline bool
 operator==(const polymorphic_allocator<_type1>& a,
@@ -455,10 +450,10 @@ operator!=(const polymorphic_allocator<_type1>& a,
 {
 	return !(a == b);
 }
-//@}
+//!@}
 #endif
 #undef YB_Impl_P0339R6
-//@}
+//!@}
 
 
 inline namespace cpp2017
@@ -472,7 +467,7 @@ using std::pmr::set_default_resource;
 using std::pmr::pool_options;
 #else
 //! \ingroup YBase_replacement_features
-//@{
+//!@{
 YB_ATTR_nodiscard YB_API memory_resource*
 new_delete_resource() ynothrow;
 
@@ -493,13 +488,13 @@ struct YB_API pool_options
 	size_t max_blocks_per_chunk = 0;
 	size_t largest_required_pool_block = 0;
 };
-//@}
+//!@}
 #endif
 
 } // inline namespace cpp2017;
 
 //! \ingroup YBase_replacement_extensions
-//@{
+//!@{
 /*!
 \brief 和 pmr::new_delete_resource 返回的资源具有一致效果的存储资源。
 \note 不保证 pmr::new_delete_resource 的动态类型是这个类型。
@@ -515,7 +510,7 @@ public:
 	do_allocate(size_t, size_t) override;
 
 	void
-	do_deallocate(void* p, size_t bytes, size_t alignment) ynothrow override;
+	do_deallocate(void*, size_t, size_t) ynothrow override;
 
 	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
@@ -523,7 +518,7 @@ public:
 
 
 //! \since build 863
-//@{
+//!@{
 /*!
 \brief 修改池选项的默认值。
 \post 参数中的数据成员不含 0 值。
@@ -548,12 +543,12 @@ private:
 	//! \brief 块存储对类型。
 	using chunk_pr_t = std::pair<id_t, chunk_t>;
 	//! \since build 864
-	//@{
+	//!@{
 	//! \build 块集合类型。
 	using chunks_t = list<chunk_pr_t, polymorphic_allocator<chunk_pr_t>>;
 	//! \build 块集合迭代器类型。
 	using chunks_iter_t = chunks_t::iterator;
-	//@}
+	//!@}
 	//! \brief 保存在块末尾的元数据类型。
 	struct block_meta_t
 	{
@@ -587,16 +582,16 @@ private:
 	*/
 	size_t block_size;
 	//! \since build 863
-	//@{
+	//!@{
 	//! \brief 附加数据。
 	size_t extra_data;
 
 public:
 	//! \brief 最小区块大小。
 	static yconstexpr const size_t min_block_size = sizeof(block_meta_t) + 1;
-	//@}
+	//!@}
 	//! \since build 887
-	//@{
+	//!@{
 	//! \brief 块中的默认区块容量。
 	static yconstexpr const size_t default_capacity = yimpl(4);
 
@@ -607,8 +602,9 @@ public:
 	\pre 断言：区块大小不小于 \c resource_pool::min_block_size 。
 	\pre 断言：区块大小不小于 \c resource_pool::min_block_size 。
 	\pre 断言：起始区块容量大于 1 。
+	\sa adjust_for_block
+	\sa ceiling_lb
 	\sa get_extra_data
-	\sa size_for_capacity
 
 	通过参数指定的上级存储资源和块属性构造块。
 	附加数据是可选的。使用以 2 为底的区块大小的对数可加速对数分布的池的查询过程。
@@ -617,7 +613,7 @@ public:
 		size_t = default_capacity) ynothrowv;
 	//! \since build 867
 	resource_pool(resource_pool&&) ynothrow;
-	//@}
+	//!@}
 	//! \since build 863
 	~resource_pool();
 
@@ -757,7 +753,7 @@ public:
 	void
 	release() ynothrow;
 };
-//@}
+//!@}
 
 
 /*!
@@ -783,15 +779,18 @@ public:
 	\note 实现定义：参见 adjust_pool_options 的调整的值。
 	\sa adjust_pool_options
 	*/
-	//@{
-	pool_resource() ynothrow
+	//!@{
+	//! \since build 969
+	//!@{
+	pool_resource()
 		: pool_resource(pool_options(), get_default_resource())
 	{}
 	//! \pre 断言：指针参数非空。
 	YB_NONNULL(3)
-	pool_resource(const pool_options&, memory_resource*) ynothrow;
+	pool_resource(const pool_options&, memory_resource*);
+	//!@}
 	//! \pre 间接断言：指针参数非空。
-	explicit
+	YB_NONNULL(2) explicit
 	pool_resource(memory_resource* upstream)
 		: pool_resource(pool_options(), upstream)
 	{}
@@ -799,7 +798,7 @@ public:
 	pool_resource(const pool_options& opts)
 		: pool_resource(opts, get_default_resource())
 	{}
-	//@}
+	//!@}
 	~pool_resource() override;
 
 	void
@@ -844,7 +843,7 @@ private:
 		return *p_upstream;
 	}
 };
-//@}
+//!@}
 
 inline namespace cpp2017
 {
@@ -861,7 +860,7 @@ using std::pmr::unsynchronized_pool_resource;
 using std::pmr::monotonic_buffer_resource;
 #else
 //! \ingroup YBase_replacement_features
-//@{
+//!@{
 //! \since build 845
 class YB_API synchronized_pool_resource : yimpl(public pool_resource)
 {
@@ -925,7 +924,7 @@ private:
 
 public:
 	//! \note 实现定义：未指定时，初始大小为不小于 4 * sizeof(size_t) 的定值。
-	//@{
+	//!@{
 	monotonic_buffer_resource()
 		: monotonic_buffer_resource(get_default_resource())
 	{}
@@ -940,7 +939,7 @@ public:
 	monotonic_buffer_resource(void* buffer, size_t buffer_size) yimpl(ynothrow)
 		: monotonic_buffer_resource(buffer, buffer_size, get_default_resource())
 	{}
-	//@}
+	//!@}
 	~monotonic_buffer_resource() override;
 
 	void
@@ -965,7 +964,7 @@ protected:
 	YB_ATTR_nodiscard yimpl(YB_STATELESS) bool
 	do_is_equal(const memory_resource&) const ynothrow override;
 };
-//@}
+//!@}
 
 #	undef YB_Impl_mutex_ns
 

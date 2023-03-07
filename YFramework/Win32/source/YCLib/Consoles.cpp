@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2020 FrankHB.
+	© 2013-2016, 2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r350
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2020-12-24 12:09 +0800
+	2023-03-04 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,18 +98,9 @@ WConsole::GetScreenBufferInfo() const
 }
 
 void
-WConsole::SetSystemColor(std::uint8_t color)
-{
-	char cmd[9];
-
-	std::sprintf(cmd, "COLOR %02x", int(color));
-	std::system(cmd);
-}
-
-void
 WConsole::SetBackColor(std::uint8_t bc) ynothrow
 {
-	Attributes = ComposeAttributes(FetchForeColor(Attributes), bc);
+	Attributes = ComposeAttributes(Attributes, FetchForeColor(Attributes), bc);
 }
 void
 WConsole::SetCursorPosition(::COORD pos)
@@ -121,13 +112,7 @@ WConsole::SetCursorPosition(::COORD pos)
 void
 WConsole::SetForeColor(std::uint8_t fc) ynothrow
 {
-	Attributes = ComposeAttributes(fc, FetchBackColor(Attributes));
-}
-
-::WORD
-WConsole::ComposeAttributes(std::uint8_t fore, std::uint8_t back) ynothrow
-{
-	return (fore & 15) | ((back & 15) << 4);
+	Attributes = ComposeAttributes(Attributes, fc, FetchBackColor(Attributes));
 }
 
 void
@@ -154,16 +139,19 @@ WConsole::Erase(wchar_t c)
 void
 WConsole::Fill(::COORD coord, unsigned long n, wchar_t c)
 {
-	YCL_CallF_Win32(FillConsoleOutputCharacterW, h_out, c, n, coord, {});
-	YCL_CallF_Win32(FillConsoleOutputAttribute, h_out, Attributes, n, coord, {});
+	unsigned long w;
+
+	YCL_CallF_Win32(FillConsoleOutputCharacterW, h_out, c, n, coord, &w);
+	YCL_CallF_Win32(FillConsoleOutputAttribute, h_out, Attributes, n, coord,
+		&w);
 	YCL_CallF_Win32(SetConsoleCursorPosition, h_out, {coord.X, coord.Y});
 }
 
 void
 WConsole::RestoreAttributes()
 {
-//	SetColor();
-	Update(GetSavedAttributes());
+	Attributes = saved_attr;
+	Update();
 }
 
 void
@@ -172,9 +160,9 @@ WConsole::Update()
 	Update(Attributes);
 }
 void
-WConsole::Update(::WORD value)
+WConsole::Update(::WORD attr)
 {
-	YCL_CallF_Win32(SetConsoleTextAttribute, h_out, value);
+	YCL_CallF_Win32(SetConsoleTextAttribute, h_out, attr);
 }
 
 void

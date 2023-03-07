@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1051
+\version r1107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2022-11-05 20:17 +0800
+	2023-03-07 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YCLib_YCommon
 #include YFM_YCLib_Container // for string_view, string, ystdex::sfmt,
 //	std::ostream;
-#include <ystdex/function.hpp> // for ystdex::function;
+#include <ystdex/function.hpp> // for ystdex::unchecked_function;
 #include YFM_YCLib_Mutex // for Concurrency;
 #include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 
@@ -115,9 +115,10 @@ public:
 		}
 	};
 	using Level = Descriptions::RecordLevel;
-	using Filter = ystdex::function<bool(Level, Logger&)>;
+	using Filter = ystdex::unchecked_function<bool(Level, Logger&)>;
 	//! \note 传递的第三参数非空。
-	using Sender = ystdex::function<void(Level, Logger&, const char*)>;
+	using Sender
+		= ystdex::unchecked_function<void(Level, Logger&, const char*)>;
 
 	//! \brief 过滤等级：可用于参照以决定是否过滤的阈值。
 #ifdef NDEBUG
@@ -127,9 +128,7 @@ public:
 #endif
 
 private:
-	//! \invariant \c bool(filter) 。
 	Filter filter{DefaultFilter};
-	//! \invariant \c bool(Sender) 。
 	Sender sender{FetchDefaultSender()};
 	/*!
 	\brief 日志记录互斥量。
@@ -142,13 +141,18 @@ private:
 
 public:
 	//! \since build 803
-	//@{
+	//!@{
 	/*!
 	\brief 无参数构造：使用过滤器和发送器。
 	\note 由 ystdex::function 的构造模板提供的保证确保无异常抛出。
+	\warning 若互斥量初始化失败，则程序终止。
 	\since build 960
 	*/
-	Logger() ynothrow = default;
+	Logger() ynothrow
+	// XXX: Do not use '= default' becuause it is not guaranteed to be
+	//	'noexcept' in construction of %record_mutex, so it might be defaulted as
+	//	deleted.
+	{}
 	//! \brief 复制构造：复制过滤等级、过滤器和发送器，使用新创建的互斥量。
 	Logger(const Logger&);
 	/*!
@@ -157,7 +161,7 @@ public:
 	\see LWG 2062 。
 	*/
 	Logger(Logger&&) ynothrow;
-	//@}
+	//!@}
 
 	//! \since build 879
 	PDefHOp(Logger&, =, const Logger& logger)
@@ -167,21 +171,15 @@ public:
 		ImplRet(swap(*this, logger), *this)
 
 	//! \since build 628
-	DefGetter(const ynothrow, const Sender&, Sender, sender)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const Sender&, Sender, sender)
 
-	/*!
-	\brief 设置过滤器。
-	\note 忽略空过滤器。
-	*/
-	void
-	SetFilter(Filter);
-	/*!
-	\brief 设置发送器。
-	\note 忽略空发送器。
-	\since build 519
-	*/
-	void
-	SetSender(Sender);
+	//! \since build 969
+	//@{
+	//! \brief 设置过滤器。
+	DefSetter(ynothrow, Filter, Filter, filter)
+	//! \brief 设置发送器。
+	DefSetter(ynothrow, Sender, Sender, sender)
+	//@}
 
 	/*!
 	\brief 访问日志记录执行指定操作。
@@ -202,7 +200,7 @@ public:
 	DefaultFilter(Level, Logger&) ynothrow;
 
 	//! \pre 间接断言：第三参数非空。
-	//@{
+	//!@{
 	/*!
 	\brief 默认发送器：使用 std::cerr 输出。
 	\pre 非 DS 平台：std::cerr 不设置在错误时抛出异常。
@@ -217,20 +215,20 @@ public:
 	*/
 	static YB_NONNULL(3) void
 	DefaultSendLogToFile(Level, Logger&, const char*) ynothrowv;
-	//@}
+	//!@}
 
 	/*!
 	\brief 转发等级和日志至发送器。
 	\note 忽略字符串参数对应的空数据指针参数。
 	\note 保证串行发送。
 	*/
-	//@{
+	//!@{
 	void
 	DoLog(Level, const char*);
 	//! \since build 659
 	PDefH(void, DoLog, Level lv, string_view sv)
 		ImplRet(DoLog(lv, sv.data()))
-	//@}
+	//!@}
 
 private:
 	/*!
@@ -238,13 +236,13 @@ private:
 	\pre 间接断言：字符串参数对应的数据指针非空。
 	\since build 510
 	*/
-	//@{
+	//!@{
 	YB_NONNULL(3) void
 	DoLogRaw(Level, const char*);
 	//! \since build 659
 	PDefH(void, DoLogRaw, Level lv, string_view sv)
 		ImplRet(DoLogRaw(lv, sv.data()))
-	//@}
+	//!@}
 
 public:
 	/*!
@@ -255,6 +253,16 @@ public:
 	*/
 	void
 	DoLogException(Level level, const std::exception&) ynothrow;
+
+	//! \since build 969
+	//!@{
+	//! \brief 置换过滤器。
+	PDefH(Filter, ExchangeFilter, Filter f) ynothrow
+		ImplRet(ystdex::exchange(filter, f))
+	//! \brief 置换发送器。
+	PDefH(Sender, ExchangeSender, Sender s) ynothrow
+		ImplRet(ystdex::exchange(sender, s))
+	//!@}
 
 	/*!
 	\brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
@@ -292,7 +300,7 @@ public:
 	\pre 间接断言：字符串参数非空。
 	\since build 888
 	*/
-	//@{
+	//!@{
 	/*!
 	\pre 第一参数不设置在错误时抛出异常。
 	\note Win32 平台：判断 Windows 控制台。
@@ -304,7 +312,7 @@ public:
 	//! \pre 断言：流指针非空。
 	static YB_NONNULL(1, 3) void
 	SendLogToFile(std::FILE*, Level, const char*) ynothrowv;
-	//@}
+	//!@}
 
 	/*!
 	\note 第一参数指定的等级决定过滤条件。	日志内容由第一参数以外的参数调用决定。
@@ -312,7 +320,7 @@ public:
 	\sa LogFailure
 	\since build 894
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 以参数指定的等级和参数指定的函数调用结果记录日志并保证无异常抛出。
 
@@ -339,7 +347,7 @@ public:
 	{
 		Trace(level, Formatter<>(), yforward(args)...);
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 交换：交换所有互斥量以外的数据成员。
@@ -352,6 +360,7 @@ public:
 
 /*!
 \brief 取公共日志记录器。
+\note 结果引用的对象不和其它静态或线程存储期对象共享。
 \since build 960
 */
 YF_API Logger&
@@ -373,7 +382,7 @@ LogWithSource(const char*, int, const char*, ...);
 \note 使用 FetchCommonLogger 保证串行输出。
 \note 无异常抛出。
 */
-//@{
+//!@{
 /*!
 \brief YFramework 直接日志追踪。
 \note 直接按格式字符串的输出追踪，不带源代码信息。
@@ -395,7 +404,7 @@ LogWithSource(const char*, int, const char*, ...);
 #else
 #	define YF_Trace(_lv, ...) YF_TraceRaw(_lv, __VA_ARGS__)
 #endif
-//@}
+//!@}
 
 
 /*!
@@ -460,7 +469,7 @@ Deref(_type&& p) -> decltype(*p)
 \note 使用 ADL to_string 。
 \since build 861
 */
-//@{
+//!@{
 YB_NONNULL(2) YB_PURE inline PDefH(std::string, ComposeMessageWithSignature,
 	const std::string& msg, const char* sig)
 	ImplRet(msg + " @ " + Nonnull(sig))
@@ -474,7 +483,7 @@ ComposeMessageWithSignature(const _type& msg, const char* sig)
 {
 	return to_std_string(msg) + " @ " + Nonnull(sig);
 }
-//@}
+//!@}
 
 } // namespace platform;
 
@@ -577,7 +586,7 @@ public:
 
 	//! \since build 960
 	YB_ATTR_returns_nonnull
-	DefGetter(const ynothrow, const char*, Tag, tag)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const char*, Tag, tag)
 };
 #endif
 

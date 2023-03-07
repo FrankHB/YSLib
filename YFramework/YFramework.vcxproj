@@ -263,6 +263,7 @@
     <ClCompile Include="source\NPL\NPLA1Internals.cpp" />
     <ClCompile Include="source\NPL\NPLAMath.cpp" />
     <ClCompile Include="source\NPL\SXML.cpp" />
+    <ClCompile Include="source\YSLib\Core\YConsole.cpp" />
     <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
       <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>

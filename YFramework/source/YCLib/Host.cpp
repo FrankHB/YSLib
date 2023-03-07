@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1144
+\version r1584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2022-11-28 19:52 +0800
+	2023-03-07 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,64 +29,34 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for make_observer, platform::CallNothrow;
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib, to_std_string,
-//	FetchCachedCommandResult, ystdex::underlying, FilterExceptions;
+#include YFM_YSLib_Core_YException // for YSLib, to_std_string,
+//	FetchCachedCommandResult, FilterExceptions;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
 //	::sem_close, ::sem_unlink, ::pipe, MAX_PATH, ToHandle, YCL_CallGlobal,
-//	isatty, platform_ex::ToHandle, FILE_TYPE_CHAR, FILE_TYPE_PIPE;
+//	isatty, platform_ex::ToHandle, FILE_TYPE_REMOTE, FILE_TYPE_CHAR,
+//	FILE_TYPE_PIPE;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
 //	MakePathString;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
-#include <cstdlib> // for std::getenv;
 #if YCL_Win32
-// XXX: This is not used because currently no '-lntdll' is expected in the
-//	linker command line, and the dynamic loading should be better in
-//	compatibility.
-#	if false && __has_include(<winternl.h>)
-#		include <winternl.h> // for optional ::NtQueryObject;
-#	endif
-#	include YFM_Win32_YCLib_MinGW32 // for YCL_DeclW32Call, YCL_CallF_Win32,
 #	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS, UTF8ToWCS;
+#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallF_Win32, HasPTYName;
 #	include <limits> // for std::numeric_limits;
-#	include <ystdex/type_pun.hpp> // for ystdex::replace_storage_t;
-#	include YFM_Win32_YCLib_Consoles // for WConsole;
-
-//! \since build 921
-//@{
-namespace
-{
-
-#	if !(false && __has_include(<winternl.h>))
-enum OBJECT_INFORMATION_CLASS
-{
-	ObjectBasicInformation,
-	ObjectNameInformation,
-	ObjectTypeInformation,
-	ObjectAllInformation,
-	ObjectDataInformation
-};
-#	endif
-
-namespace YCL_Impl_details
-{
-
-// NOTE: To avoid hiding of the global name, the declarations shall not be in
-//	namespace %platform_ex.
-YCL_DeclW32Call(NtQueryObject, ntdll, long, ::HANDLE, OBJECT_INFORMATION_CLASS,
-	void*, unsigned long, unsigned long*)
-
-} // namespace YCL_Impl_details;
-
-} // unnamed namespace;
-//@}
+#	include YFM_Win32_YCLib_Consoles // for WConsole, COMMON_LVB_UNDERSCORE;
 #endif
-#include <ystdex/cstring.h> // for ystdex::ntctslen;
+#include <cstdlib> // for std::getenv;
+#include <ystdex/cstdio.h> // for ystdex::setnbuf;
+#include <ystdex/cstring.h> // for ystdex::is_nonempty, ystdex::ntctslen;
 #if YF_Hosted
-#	include YFM_YSLib_Core_YConsole
+#	include YFM_YSLib_Core_YConsole // for complete
+//	YSLib::Consoles, IOutputTerminal, GDumbOutputTerminal,
+//	AllowsColorByEnvironment, TPutTerminal, ISO6429Terminal;
 #	if !(YCL_Win32 || YCL_API_Has_semaphore_h)
 #		error "Unsupported platform found."
 #	endif
 #endif
+#include <algorithm> // for std::lower_bound;
+#include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
 
 using namespace YSLib;
 //! \since build 659
@@ -314,240 +284,213 @@ CallTe(_func pmf, _tPointer& p, _tParams&... args)
 
 } // unnamed namespace;
 
-DeclI(, ITerminalData)
-	YB_ATTR_nodiscard DeclIEntry(bool Clear())
-	YB_ATTR_nodiscard DeclIEntry(bool RestoreAttributes())
-	YB_ATTR_nodiscard DeclIEntry(bool UpdateForeColor(std::uint8_t))
-	YB_ATTR_nodiscard
-		DeclIEntry(bool WriteString(const char*, size_t))
-EndDecl
-
-ImplDeDtor(ITerminalData)
-
-
 //! \since build 560
 namespace
 {
 
-// NOTE: This maps the code in the initial values of enumerators in
-//	%YSLib::Consoles::Color to the code conforming to SGR codes defined in
-//	ISO/IEC 6429:1992 8.3.118 minus the initial index value 30.
-yconstexpr const int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
-
-//! \since build 921
-//@{
-#	if YCL_Win32
-struct UNICODE_STRING
-{
-	unsigned short Length;
-	unsigned short MaximumLength;
-	wchar_t* Buffer;
-};
-
-
-struct OBJECT_NAME_INFORMATION
-{
-	UNICODE_STRING Name;
-	wchar_t NameBuffer[1];
-};
-
-
-YB_ATTR_nodiscard bool
-HasPTY(::HANDLE h) ynothrow
-{
-	// NOTE: This try to detect the PTY simulation used by Cygwin/MSYS programs
-	//	like MinTTY. See $2021-06 @ %Documentation::Workflow.
-	using buf_t = byte[sizeof(OBJECT_NAME_INFORMATION)
-		+ MAX_PATH * sizeof(wchar_t)];
-	ystdex::replace_storage_t<buf_t, yalignof(OBJECT_NAME_INFORMATION)> storage;
-	unsigned long res;
-
-	if(YCL_Impl_details::NtQueryObject(h, ObjectNameInformation,
-		storage.access(), sizeof(buf_t) - 2, &res) >= 0)
-	{
-		const auto& n(storage.access<OBJECT_NAME_INFORMATION>().Name);
-		wchar_t* s(n.Buffer);
-
-		s[n.Length / sizeof(*s)] = 0;
-		// XXX: The prefix L"\\Device\\NamedPipe\\", the number of digits and
-		//	the suffix are not checked for simplicity and compatibility in
-		//	future (although the name scheme should not be likely to change
-		//	without sufficient reasons).
-		return (std::wcsstr(s, L"msys-") || std::wcsstr(s, L"cygwin-"))
-			&& std::wcsstr(s, L"-pty");
-	}
-	return {};
-}
-#	endif
-
-
-class ATerminalData : private noncopyable, private nonmovable,
-	implements ITerminalData
-{
-private:
-	//! \invariant \c stream 。
-	std::FILE* stream;
-
-public:
-	YB_NONNULL(2)
-	ATerminalData(std::FILE* fp)
-		: stream(Nonnull(fp))
-	{}
-
-	YB_ATTR_nodiscard YB_ATTR_returns_nonnull
-		DefGetter(const ynothrow, std::FILE*, Stream, Nonnull(stream))
-
-	YB_ATTR_nodiscard YB_NONNULL(2)
-		PDefH(bool, PrintEscape, const char* s) const
-		ImplRet(PrintFormat("\033[%s", s))
-
-	template<typename... _tParams>
-	YB_ATTR_nodiscard YB_NONNULL(2) bool
-	PrintFormat(const char* fmt, _tParams&&... args) const
-	{
-		// XXX: Error from 'std::fprintf' is ignored.
-		std::fprintf(GetStream(), Nonnull(fmt), yforward(args)...);
-		return true;
-	}
-
-	YB_ATTR_nodiscard YB_NONNULL(2)
-		PDefH(bool, PrintString, const char* s) const
-		ImplRet(PrintFormat("%s", s))
-
-	YB_ATTR_nodiscard YB_NONNULL(2) bool
-	WriteString(const char*, size_t) ImplI(ITerminalData);
-};
-
-bool
-ATerminalData::WriteString(const char* s, size_t len)
-{
-	const int n(std::fprintf(GetStream(), "%s", Nonnull(s)));
-
-	return n >= 0 && size_t(n) == len;
-}
-
-
-class TPutTerminalData final : public ATerminalData
-{
-public:
-	TPutTerminalData(std::FILE* fp)
-		: ATerminalData(fp)
-	{}
-
-	/*!
-	\brief 输出缓存的命令结果。
-	\pre 断言：参数的数据指针非空。
-	\since build 839
-	*/
-	YB_ATTR_nodiscard bool
-	ExecuteCachedCommand(string_view) const;
-
-	//! \since build 755
-	YB_ATTR_nodiscard PDefH(bool, Clear, ) ynothrow ImplI(ATerminalData)
-		ImplRet(ExecuteCachedCommand("tput clear"))
-
-	//! \since build 560
-	YB_ATTR_nodiscard PDefH(bool, RestoreAttributes, ) ynothrow
-		ImplI(ATerminalData)
-		ImplRet(ExecuteCachedCommand("tput sgr0"))
-
-	//! \since build 560
-	YB_ATTR_nodiscard PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
-		ImplI(ATerminalData)
-		ImplRet(ExecuteCachedCommand((yimpl(std::)string("tput setaf ")
-			+ char('0' + cmap[c & 7])).data()) && (c < ystdex::underlying(
-			YSLib::Consoles::DarkGray) || ExecuteCachedCommand("tput bold")))
-};
-
-bool
-TPutTerminalData::ExecuteCachedCommand(string_view cmd) const
-{
-	YAssertNonnull(cmd.data());
-	if(!cmd.empty())
-	{
-		const auto& str(FetchCachedCommandResult(cmd));
-
-		if(!str.empty())
-		{
-			// XXX: Error from 'std::fprintf' is ignored.
-			std::fprintf(GetStream(), "%s", str.c_str());
-			return true;
-		}
-	}
-	return {};
-}
-
-
-class ISO6429TerminalData final : public ATerminalData
-{
-public:
-	ISO6429TerminalData(std::FILE* fp)
-		: ATerminalData(fp)
-	{}
-
-	YB_ATTR_nodiscard PDefH(bool, Clear, ) ynothrow ImplI(ATerminalData)
-		ImplRet(PrintEscape("H\033[J"))
-
-	YB_ATTR_nodiscard PDefH(bool, RestoreAttributes, ) ynothrow
-		ImplI(ATerminalData)
-		ImplRet(PrintEscape("0;10m"))
-
-	YB_ATTR_nodiscard PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
-		ImplI(ATerminalData)
-		ImplRet(PrintFormat("\033[%c%cm", c < ystdex::underlying(
-			YSLib::Consoles::DarkGray) ? '3' : '9', '0' + cmap[c & 7]))
-};
-
-
-YB_ATTR_returns_nonnull YB_NONNULL(1) ITerminalData*
-CreateTTYTerminalData(std::FILE* fp)
-{
-	static const bool use_tput(std::getenv("YF_Use_tput"));
-
-	return use_tput ? static_cast<ITerminalData*>(new TPutTerminalData(fp))
-		: new ISO6429TerminalData(fp);
-}
-//@}
-
-} //unnamed namespace
-
+//! \since build 969
+using namespace YSLib::Consoles;
 
 #	if YCL_Win32
-//! \since build 921
-class WConsoleTerminalData final : private WConsole, implements ITerminalData
+//! \since build 969
+class WConsoleTerminal : private WConsole, implements IOutputTerminal
 {
 public:
-	//! \since build 567
-	WConsoleTerminalData(int fd)
+	WConsoleTerminal(int fd)
 		: WConsole(ToHandle(fd))
 	{}
 
 	//! \since build 755
-	YB_ATTR_nodiscard PDefH(bool, Clear, ) ImplI(ITerminalData)
+	YB_ATTR_nodiscard PDefH(bool, Clear, ) ImplI(IOutputTerminal)
 		ImplRet(WConsole::Clear(), true)
 
 	//! \since build 560
-	//@{
-	YB_ATTR_nodiscard PDefH(bool, RestoreAttributes, ) ImplI(ITerminalData)
+	//!@{
+	YB_ATTR_nodiscard PDefH(bool, RestoreAttributes, ) ImplI(IOutputTerminal)
 		ImplRet(WConsole::RestoreAttributes(), true)
 
+	//! \since build 969
+	YB_ATTR_nodiscard PDefH(bool, UpdateBackColor, std::uint8_t c)
+		ImplI(IOutputTerminal)
+		ImplRet(WConsole::UpdateBackColor(c), true)
+
 	YB_ATTR_nodiscard PDefH(bool, UpdateForeColor, std::uint8_t c)
-		ImplI(ITerminalData)
+		ImplI(IOutputTerminal)
 		ImplRet(WConsole::UpdateForeColor(c), true)
 
+	// XXX: This works with DBCS code pages by default. For other codepages,
+	//	%ENABLE_LVB_GRID_WORLDWIDE may be required to specify to the console
+	//	output mode manually.
+	//! \since build 969
+	YB_ATTR_nodiscard PDefH(bool, UpdateUnderline, bool enabled)
+		ImplI(IOutputTerminal)
+		ImplRet(Attributes = enabled ? Attributes
+			| ::WORD(COMMON_LVB_UNDERSCORE) : Attributes
+			& ::WORD(~COMMON_LVB_UNDERSCORE), Update(), true) 
+
 	YB_ATTR_nodiscard bool
-	WriteString(const char*, size_t) ImplI(ITerminalData);
-	//@}
+	WriteString(const char*, size_t) ImplI(IOutputTerminal);
+	//!@}
 };
 
 bool
-WConsoleTerminalData::WriteString(const char* s, size_t len)
+WConsoleTerminal::WriteString(const char* s, size_t len)
 {
 	const auto wstr(UTF8ToWCS(string_view(s, len)));
 
 	return WConsole::WriteString(wstr) == wstr.length();
 }
 #	endif
+
+//! \since build 969
+//!@{
+YB_ATTR_nodiscard bool
+UseTPut() ynothrow
+{
+	static const bool use_tput(ystdex::is_nonempty(std::getenv("YF_Use_tput")));
+
+	return use_tput;
+}
+
+// XXX: For now, use 'new' to create the %IOutputTerminal client directly.
+//! \ingroup traits
+//!@{
+struct DirectTraits
+{
+	template<class _tOutTerm, typename... _tParams>
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull static inline IOutputTerminal*
+	CreateOutput(_tParams&&... args)
+	{
+		return new _tOutTerm(yforward(args)...);
+	}
+
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) static
+		IOutputTerminal*
+	CreateTTY(std::FILE* fp)
+	{
+		return CreateOutput<ISO6429Terminal>(fp);
+	}
+};
+
+struct DumbTraits
+{
+	template<class _tOutTerm, typename... _tParams>
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull static inline IOutputTerminal*
+	CreateOutput(_tParams&&... args)
+	{
+		return new GDumbOutputTerminal<_tOutTerm>(yforward(args)...);
+	}
+
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) static
+		IOutputTerminal*
+	CreateTTY(std::FILE* fp)
+	{
+		return UseTPut() ? CreateOutput<TPutTerminal>(fp)
+			: CreateOutput<ISO6429Terminal>(fp);
+	}
+};
+
+struct AutoTraits
+{
+	template<class _tOutTerm, typename... _tParams>
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull static inline IOutputTerminal*
+	CreateOutput(_tParams&&... args)
+	{
+		return AllowsColorByEnvironment()
+			? DirectTraits::CreateOutput<_tOutTerm>(yforward(args)...)
+			: DumbTraits::CreateOutput<_tOutTerm>(yforward(args)...);
+	}
+
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) static
+		IOutputTerminal*
+	CreateTTY(std::FILE* fp)
+	{
+		return UseTPut() ? CreateOutput<TPutTerminal>(fp)
+			: CreateOutput<ISO6429Terminal>(fp);
+	}
+};
+//!@}
+
+template<typename _func>
+YB_ATTR_nodiscard YB_NONNULL(2) IOutputTerminal*
+WrapInitTerminal(_func f, std::FILE* fp)
+{
+	// NOTE: See $2023-03 @ %Documentation::Workflow.
+	ystdex::setnbuf(fp);
+	// NOTE: For Microsoft Windows and compatible implemenations (Wine,
+	//	ReactOS), the type of the file is required for the detection on
+	//	different cases fit for the terminal I/O. A call to 'isatty' checks
+	//	whether the underlying file is associated to a character device. This is
+	//	merely an optimization and not sufficient. See ($2015-01, $2021-06,
+	//	$2023-03) @ %Documentation::Workflow.
+	TryRet(f(fp, YCL_CallGlobal(fileno, Nonnull(fp))))
+	// XXX: Errors are ignored.
+	CatchIgnore(Exception&)
+	return {};
+}
+
+template<class _tTraits>
+YB_ATTR_nodiscard YB_NONNULL(1) IOutputTerminal*
+InitTerminal(std::FILE* fp, int fd)
+{
+#	if YCL_Win32
+	const auto h(platform_ex::ToHandle(fd));
+
+	if(h != INVALID_HANDLE_VALUE)
+	{
+		switch(::GetFileType(h) & ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
+		{
+		case FILE_TYPE_CHAR:
+			// NOTE: See $2023-03 @ %Documentation::Workflow.
+			return _tTraits::template CreateOutput<WConsoleTerminal>(fd);
+		case FILE_TYPE_PIPE:
+			// NOTE: See $2023-03 @ %Documentation::Workflow.
+			if(HasPTYName(h))
+				return _tTraits::CreateTTY(fp);
+		}
+	}
+	else
+		YCL_Raise_SysE(, "::_get_osfhandle", yfsig);
+#	else
+	if(YCL_CallGlobal(isatty, fd))
+		return _tTraits::CreateTTY(fp);
+#	endif
+	return {};
+}
+template<>
+YB_ATTR_nodiscard YB_NONNULL(1) IOutputTerminal*
+InitTerminal<DirectTraits>(std::FILE* fp, int fd)
+{
+	// XXX: Ditto.
+#	if YCL_Win32
+	const auto h(platform_ex::ToHandle(fd));
+
+	if(h != INVALID_HANDLE_VALUE)
+	{
+		switch(::GetFileType(h) & ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
+		{
+		case FILE_TYPE_CHAR:
+			// NOTE: Ditto.
+			return DirectTraits::template CreateOutput<WConsoleTerminal>(fd);
+		}
+	}
+	else
+		YCL_Raise_SysE(, "::_get_osfhandle", yfsig);
+#	else
+	yunused(fd);
+#	endif
+	return DirectTraits::CreateTTY(fp);
+}
+
+template<class _tTraits>
+YB_ATTR_nodiscard YB_NONNULL(1) IOutputTerminal*
+TryInitTerminal(std::FILE* fp)
+{
+	return WrapInitTerminal(InitTerminal<_tTraits>, fp);
+}
+//!@}
+
+} //unnamed namespace;
 
 
 Terminal::Guard::~Guard()
@@ -558,61 +501,46 @@ Terminal::Guard::~Guard()
 				throw LoggedEvent("Restoring terminal attributes failed.");
 		});
 }
-
-
 Terminal::Terminal(std::FILE* fp)
-	: p_data([fp]()->ITerminalData*{
-#	if !YCL_Win32
-		// XXX: Performance?
-		ystdex::setnbuf(fp);
-#	endif
-		const int fd(YCL_CallGlobal(fileno, Nonnull(fp)));
-
-		// NOTE: For Microsoft Windows, the type of the file is required for the
-		//	detection on different cases fit for the terminal I/O. A call to
-		//	'isatty' checks whether the underlying file is associated to a
-		//	character device. This is merely an optimization and not sufficient.
-		//	See ($2015-01, $2021-06) @ %Documentation::Workflow.
-		try
-		{
-			// XXX: For now, use 'new' to create %ITerminalData client directly.
-#	if YCL_Win32
-
-			const auto h(platform_ex::ToHandle(fd));
-
-			if(h != INVALID_HANDLE_VALUE)
+	: p_data(TryInitTerminal<AutoTraits>(fp))
+{}
+Terminal::Terminal(YSLib::Consoles::ColorOption opt, std::FILE* fp)
+	: p_data([=]() -> IOutputTerminal*{
+		return WrapInitTerminal([opt](std::FILE* p, int fd){
+			switch(opt)
 			{
-				// NOTE: All other files are treated as a non-console.
-				switch(::GetFileType(h))
-				{
-				// NOTE: Non-console character devices (e.g. LPT devices) will
-				//	fail in initialization of %WConsole which throw an exception
-				//	caught later.
-				case FILE_TYPE_CHAR:
-					return new WConsoleTerminalData(fd);
-				case FILE_TYPE_PIPE:
-					if(HasPTY(h))
-						return CreateTTYTerminalData(fp);
-				}
+			case ColorOption::Never:
+				return InitTerminal<DumbTraits>(p, fd);
+			case ColorOption::Auto:
+				return InitTerminal<AutoTraits>(p, fd);
+			case ColorOption::Always:
+				return InitTerminal<DirectTraits>(p, fd);
 			}
-			else
-				YCL_Raise_SysE(, "::_get_osfhandle", yfsig);
-#	else
-			if(YCL_CallGlobal(isatty, fd))
-				return CreateTTYTerminalData(fp);
-#	endif
-		}
-		// XXX: Errors are ignored.
-		CatchIgnore(Exception&)
-		return {};
+			YAssert(false, "Invalid option found.");
+			YB_ASSUME(false);
+		}, fp);
 	}())
+{}
+Terminal::Terminal(YSLib::Consoles::ColorOptionTag<
+	YSLib::Consoles::ColorOption::Never>, std::FILE* fp)
+	: p_data(TryInitTerminal<DumbTraits>(fp))
+{}
+Terminal::Terminal(YSLib::Consoles::ColorOptionTag<
+	YSLib::Consoles::ColorOption::Always>, std::FILE* fp)
+	: p_data(TryInitTerminal<DirectTraits>(fp))
 {}
 ImplDeDtor(Terminal)
 
 bool
 Terminal::Clear()
 {
-	return CallTe(&ITerminalData::Clear, p_data);
+	return CallTe(&IOutputTerminal::Clear, p_data);
+}
+
+Terminal::Guard
+Terminal::LockBackColor(std::uint8_t c)
+{
+	return Guard(*this, &Terminal::UpdateBackColor, c);
 }
 
 Terminal::Guard
@@ -621,16 +549,34 @@ Terminal::LockForeColor(std::uint8_t c)
 	return Guard(*this, &Terminal::UpdateForeColor, c);
 }
 
+Terminal::Guard
+Terminal::LockUnderline(bool enabled)
+{
+	return Guard(*this, &Terminal::UpdateUnderline, enabled);
+}
+
 bool
 Terminal::RestoreAttributes()
 {
-	return CallTe(&ITerminalData::RestoreAttributes, p_data);
+	return CallTe(&IOutputTerminal::RestoreAttributes, p_data);
+}
+
+bool
+Terminal::UpdateBackColor(std::uint8_t c)
+{
+	return CallTe(&IOutputTerminal::UpdateBackColor, p_data, c);
 }
 
 bool
 Terminal::UpdateForeColor(std::uint8_t c)
 {
-	return CallTe(&ITerminalData::UpdateForeColor, p_data, c);
+	return CallTe(&IOutputTerminal::UpdateForeColor, p_data, c);
+}
+
+bool
+Terminal::UpdateUnderline(bool enabled)
+{
+	return CallTe(&IOutputTerminal::UpdateUnderline, p_data, enabled);
 }
 
 bool
@@ -644,28 +590,6 @@ Terminal::WriteString(std::FILE* p_file, const char* s)
 	const int n(std::fprintf(p_file, "%s", s));
 
 	return n >= 0 && size_t(n) == len;
-}
-
-bool
-UpdateForeColorByLevel(Terminal& term, RecordLevel lv)
-{
-	if(term)
-	{
-		using namespace Consoles;
-		static yconstexpr const RecordLevel
-			lvs[]{Err, Warning, Notice, Informative, Debug};
-		static yconstexpr const Color
-			colors[]{Red, Yellow, Cyan, Magenta, DarkGreen};
-		const auto
-			i(std::lower_bound(ystdex::begin(lvs), ystdex::end(lvs), lv));
-
-		if(i == ystdex::end(lvs))
-			term.RestoreAttributes();
-		else
-			term.UpdateForeColor(colors[i - lvs]);
-		return true;
-	}
-	return {};
 }
 
 } // namespace platform_ex;

@@ -21,7 +21,7 @@ SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
 SHBuild_Puts "Configuring ..."
 
-# NOTE: Coordinated at build 966.
+# NOTE: Coordinated at build 969.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
@@ -45,6 +45,7 @@ $YSLib_BaseDir/YFramework/source/YCLib/MemoryMapping.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Core/YException.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Core/YObject.cpp \
+$YSLib_BaseDir/YFramework/source/YSLib/Core/YConsole.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Core/ValueNode.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Service/FileSystem.cpp \
 $YSLib_BaseDir/YFramework/source/YSLib/Service/File.cpp \

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7847
+\version r7899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2023-01-16 18:51 +0800
+	2023-03-05 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency // for set, string, UnescapeContext, string_view,
-//	ystdex::isspace, ystdex::exists, std::istream, unique_ptr,
+#include YFM_NPL_Dependency // for YSLib::value_set, string, UnescapeContext,
+//	string_view, ystdex::isspace, ystdex::exists, ystdex::bind1, unique_ptr,
 //	std::throw_with_nested, std::invalid_argument, ystdex::sfmt,
 //	YSLib::share_move, RelaySwitched, trivial_swap, std::bind, SourceName,
 //	RetainN, NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler,
@@ -38,26 +38,26 @@
 //	EnvironmentParent, shared_ptr, std::piecewise_construct,
 //	NPL::forward_as_tuple, ValueObject, LiftOther,
 //	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
-//	ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm, ystdex::bind1,
-//	std::placeholders, NPL::CollectTokens, Strict, LiftOtherOrCopy,
-//	EnvironmentReference, NPL::ToParent, IsEmpty, ComposeReferencedTermOp,
-//	IsBranch, IsTypedRegular, ReferenceTerm, IsReferenceTerm, IsBoundLValueTerm,
-//	IsUniqueTerm, IsModifiableTerm, IsTemporaryTerm, IsUncollapsedTerm,
-//	LiftTermRef, NPL::SetContentWith, LiftTermValueOrCopy, ResolveName,
-//	ResolveIdentifier, MoveResolved, Environment::EnsureValid, NPLException,
-//	ReduceToReferenceList, MoveCollapsed, NPL::IsMovable, LiftTermOrCopy,
-//	IsBranchedList, AccessFirstSubterm, ThrowInsufficientTermsError, Retain,
-//	NPL::AsTermNode, ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
+//	ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm, std::placeholders,
+//	NPL::CollectTokens, Strict, LiftOtherOrCopy, EnvironmentReference,
+//	NPL::ToParent, IsEmpty, ComposeReferencedTermOp, IsBranch, IsTypedRegular,
+//	ReferenceTerm, IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm,
+//	IsModifiableTerm, IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef,
+//	NPL::SetContentWith, LiftTermValueOrCopy, ResolveName, ResolveIdentifier,
+//	MoveResolved, Environment::EnsureValid, NPLException, ReduceToReferenceList,
+//	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
+//	AccessFirstSubterm, ThrowInsufficientTermsError, Retain, NPL::AsTermNode,
+//	ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
 //	YSLib::to_std_string, AssertValueTags, ClearCombiningTags,
 //	EmplaceCallResultOrReturn, RemoveHead, TryAccessTerm, ystdex::plus,
 //	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
 //	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
 //	YSLib::SetEnvironmentVariable, YSLib::uremove, NPL::allocate_shared,
-//	ystdex::search_map, ystdex::emplace_hint_in_place, tuple,
+//	YSLib::linked_map, ystdex::search_map, ystdex::emplace_hint_in_place, tuple,
 //	YSLib::IO::UniqueFile, AccessPtr, ystdex::begins_with, ystdex::throw_error;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
-#include YFM_NPL_NPLAMath // for NumerLeaf, NumberNode, NPL math functions;
+#include YFM_NPL_NPLAMath // for NumberLeaf, NumberNode, NPL math functions;
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
 //	YSLib::Deployment::InstallHardLink;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
@@ -86,10 +86,10 @@ namespace NPL
 // NOTE: Several derivations are known to result different unspecified values to
 //	the native implementations as the effects of the invocations, which are
 //	conforming to the specifications. Currently such cases include: '$let*' and
-//	'$let*%' move non-empty rvalues bindings differently.
+//	'$let*%' move nonempty rvalues bindings differently.
 
 //! \since build 837
-//@{
+//!@{
 // NOTE: For general native implementations.
 #define NPL_Impl_NPLA1_Native_Forms true
 // NOTE: For environment primitive native implemantations.
@@ -98,17 +98,17 @@ namespace NPL
 #define NPL_Impl_NPLA1_Use_Id_Vau true
 // NOTE: For awareness of strong ownership of environments.
 #define NPL_Impl_NPLA1_Use_LockEnvironment true
-//@}
+//!@}
 
 vector<string>
-DecomposeMakefileDepList(std::streambuf& sb)
+DecomposeMakefileDepList(std::streambuf& sb, default_allocator<string> a)
 {
 	using s_it_t = std::istreambuf_iterator<char>;
 	// NOTE: Escaped spaces would be saved to prevent being used as delimiter.
-	set<size_t> spaces;
-	Session sess{};
+	YSLib::value_set<size_t> spaces(a);
+	Session sess(a);
 	auto& lexer(sess.Lexer);
-	string cbuf{};
+	string cbuf(a);
 
 	yunused(sess.Process(s_it_t(&sb), s_it_t(), [&](char ch){
 		lexer.ParseQuoted(ch, cbuf,
@@ -156,8 +156,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 			{
 				if(buf.back() == '\\' || buf.back() == '$')
 				{
-					yunseq(uctx.Start = buf.length() - 1,
-						uctx.Length = 1);
+					yunseq(uctx.Start = buf.length() - 1, uctx.Length = 1);
 					return true;
 				}
 			}
@@ -165,7 +164,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 		});
 	}));
 
-	vector<string> lst;
+	vector<string> lst(a);
 
 	ystdex::split_if(cbuf.begin(), cbuf.end(), ystdex::isspace,
 		[&](string::const_iterator b, string::const_iterator e){
@@ -176,10 +175,11 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	return lst;
 }
 vector<string>
-DecomposeMakefileDepList(std::istream& is)
+DecomposeMakefileDepList(std::istream& is, default_allocator<string> a)
 {
-	return ystdex::call_value_or(static_cast<vector<string>(&)(
-		std::streambuf&)>(DecomposeMakefileDepList), is.rdbuf());
+	return ystdex::call_value_or(ystdex::bind1(static_cast<vector<string>(&)(
+		std::streambuf&, default_allocator<string>)>(DecomposeMakefileDepList),
+		a), is.rdbuf());
 }
 
 bool
@@ -190,8 +190,8 @@ FilterMakefileDependencies(vector<string>& lst)
 		return !dep.empty() && dep.back() == ':';
 	}));
 
-	return i_c != lst.cend()
-		&& (lst.erase(lst.cbegin(), i_c + 1), !lst.empty());
+	return
+		i_c != lst.cend() && (lst.erase(lst.cbegin(), i_c + 1), !lst.empty());
 }
 
 namespace A1
@@ -320,7 +320,7 @@ Qualify(TermNode& term, TermTags tag_add)
 }
 
 //! \since build 794
-//@{
+//!@{
 void
 CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
@@ -394,7 +394,7 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 	CopyEnvironmentDFS(*p_env, ctx.GetRecordRef());
 	term.SetValue(std::move(p_env));
 }
-//@}
+//!@}
 
 #if NPL_Impl_NPLA1_Native_Forms
 //! \since build 869
@@ -449,7 +449,7 @@ DoResolve(TermNode(&f)(const ContextNode&, string_view), TermNode& term,
 
 #if NPL_Impl_NPLA1_Native_Forms
 //! \since build 921
-//@{
+//!@{
 ReductionStatus
 DefineCombiner(TermNode& term, ContextNode& ctx, size_t n,
 	ReductionStatus(&op)(TermNode&, ContextNode&))
@@ -543,7 +543,7 @@ AddDefineFunction(ContextNode& ctx, const char* fn,
 #	endif
 }
 #endif
-//@}
+//!@}
 
 /*!
 \brief 创建环境弱引用作为单一父环境的新环境。
@@ -564,7 +564,7 @@ CreateEnvironmentWithParent(const Environment::allocator_type& a,
 #endif
 
 //! \since build 834
-//@{
+//!@{
 namespace Ground
 {
 
@@ -578,7 +578,7 @@ namespace Primitive
 {
 
 //! \since build 961
-//@{
+//!@{
 void
 LoadEquals(BindingMap& m)
 {
@@ -766,7 +766,7 @@ Load(BindingMap& m)
 	LoadErrorsAndChecks(m);
 	LoadEncapsulations(m);
 }
-//@}
+//!@}
 
 } // namespace Primitive;
 
@@ -774,7 +774,7 @@ namespace Derived
 {
 
 //! \since build 955
-//@{
+//!@{
 void
 LoadBasicDerived(ContextState& cs)
 {
@@ -1476,7 +1476,7 @@ Load(ContextState& cs)
 	LoadStandardDerived(cs);
 	LoadCore(cs);
 }
-//@}
+//!@}
 
 } // namespace Derived;
 
@@ -1494,7 +1494,7 @@ Load(ContextState& cs)
 }
 
 } // namespace Ground;
-//@}
+//!@}
 
 #if NPL_Impl_NPLA1_Native_Forms
 //! \since build 923
@@ -1525,7 +1525,7 @@ FindValidRequirementIn(const vector<string>& specs, const string& req)
 
 
 //! \since build 926
-//@{
+//!@{
 class Promise final
 {
 private:
@@ -1560,11 +1560,13 @@ public:
 		ImplRet(Encapsulation::Equal(x.GetEnvironment(), y.GetEnvironment())
 			&& Encapsulation::Equal(x.GetObject(), y.GetObject()))
 
-	DefPred(const ynothrow, Ready, IsEmpty(GetEnvironment()))
-	DefPred(const ynothrow, Lifting, !eval_ref)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Ready, IsEmpty(GetEnvironment()))
+	YB_ATTR_nodiscard DefPred(const ynothrow, Lifting, !eval_ref)
 
-	DefGetter(const ynothrow, const TermNode&, Environment, Resolve().tm_env)
-	DefGetter(const ynothrow, const TermNode&, Object, Resolve().tm_obj)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const TermNode&, Environment,
+		Resolve().tm_env)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const TermNode&, Object, Resolve().tm_obj)
 
 	void
 	Iterate(Promise&, ResolvedTermReferencePtr, ContextNode&);
@@ -1740,7 +1742,7 @@ ForcePromise(TermNode& term, ContextNode& ctx, Promise& prom, TermNode& nd,
 		return nprom.ReduceToResult(term, p_ref);
 	}, "promise-handle-result"));
 }
-//@}
+//!@}
 
 
 //! \since build 955
@@ -2224,8 +2226,7 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterUnary<Strict, const string>(m, "system-quote",
-		[](const string& w){
+	RegisterUnary<Strict, const string>(m, "system-quote", [](const string& w){
 		return !w.empty() ? ((CheckLiteral(w) == char() && (w.find(' ')
 			!= string::npos || w.find('\t') != string::npos))
 			|| (w.front() == '\'' || w.front() == '"' || w.back() == '\''
@@ -2245,7 +2246,7 @@ LoadModule_std_modules(ContextState& cs)
 	using YSLib::to_std_string;
 	auto& m(cs.GetRecordRef().GetMapRef());
 	const auto a(NPL::ToBindingsAllocator(m));
-	const auto p_registry(NPL::allocate_shared<YSLib::map<string,
+	const auto p_registry(NPL::allocate_shared<YSLib::linked_map<string,
 		pair<TermNode, shared_ptr<Environment>>>>(a));
 	auto& registry(*p_registry);
 	const auto p_specs([&]{
@@ -2562,7 +2563,7 @@ LoadModule_SHBuild(ContextState& cs)
 		string res(src.get_allocator());
 		const auto a(ctx.get_allocator());
 		Session sess(a);
-		set<size_t> left_qset(a);
+		YSLib::value_set<size_t> left_qset(a);
 		vector<size_t> qlist(a);
 		typename string::size_type l(0);
 		const auto decomp([&](string_view sv){
