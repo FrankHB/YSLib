@@ -11,13 +11,13 @@
 /*!	\file NPLA1Forms.cpp
 \ingroup NPL
 \brief NPLA1 语法形式。
-\version r29423
+\version r29445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2014-02-15 11:19:51 +0800
 \par 修改时间:
-	2023-02-07 21:44 +0800
+	2023-03-08 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	std::placeholders, std::declval, RetainN, ystdex::as_const, ValueObject,
 //	ReferenceLeaf, IsAtom, ReferenceTerm, ystdex::ref_eq, CountPrefix, IsSticky,
 //	RelaySwitched, trivial_swap, shared_ptr, ContextHandler, string_view,
-//	YSLib::unordered_map, Environment, std::throw_with_nested, string, TokenValue,
+//	YSLib::value_map, Environment, std::throw_with_nested, string, TokenValue,
 //	any_ops::use_holder, in_place_type, YSLib::HolderFromPointer,
 //	NPL::allocate_shared, InvalidReference, TypeError, BindParameter, Retain,
 //	MoveFirstSubterm, ResolveEnvironment, BindParameterWellFormed,
@@ -54,7 +54,7 @@
 //	IsLeaf, LiftTerm, ThrowValueCategoryError, ThrowListTypeErrorForAtom,
 //	ThrowInvalidSyntaxError, ShareMoveTerm, ystdex::exchange,
 //	ExtractEnvironmentFormal, LiftTermOrCopy, EnsureValueTags, type_id,
-//	ystdex::update_thunk, AssertCombiningTerm, LiftToReturn,
+//	ystdex::update_thunk, AssertCombiningTerm, LiftToReturn, HasStickySubterm,
 //	ystdex::prefix_eraser, IsTyped, IsBranchedList, EnvironmentGuard,
 //	NPL::MoveParentValue, NPL::AssignWeakParent, NPL::AssignParentH, lref,
 //	A1::AsForm, ystdex::bind1, IsNPLASymbol, ystdex::isdigit, std::strchr,
@@ -383,8 +383,8 @@ class RecursiveThunk final
 private:
 	//! \since build 784
 	using shared_ptr_t = shared_ptr<ContextHandler>;
-	//! \since build 784
-	YSLib::unordered_map<string, shared_ptr_t> store;
+	//! \since build 970
+	YSLib::value_map<string, shared_ptr_t> store;
 public:
 #if NPL_Impl_NPLA1_Enable_Thunked
 	//! \since build 961
@@ -411,7 +411,7 @@ public:
 
 			ExtractSigil(id);
 
-			string k(id, store.get_allocator());
+			string k(id, store.keys().get_allocator());
 
 			// NOTE: The symbol can be bound more than once. Only one
 			//	instance is supported.
@@ -703,12 +703,14 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	RetainN(term, 2);
 
 	auto& expr(*std::next(term.begin()));
-	Session sess(ctx.get_allocator());
+	auto& cs(ContextState::Access(ctx));
+	auto& global(cs.Global.get());
 
-	SContext::Analyze(std::allocator_arg, ctx.get_allocator(), sess,
-		sess.Process(NPL::ResolveRegular<const string>(expr))).SwapContent(
-		expr);
-	return EvalImplUnchecked(term, ctx, no_lift);
+	return RelayWithSavedSourceName(ctx, [&]{
+		expr = global.ReadFrom(NPL::ResolveRegular<const string>(expr), cs);
+		global.Preprocess(expr);
+		return EvalImplUnchecked(term, ctx, no_lift);
+	});
 }
 
 //! \since build 923
@@ -2046,8 +2048,7 @@ LambdaVauWithEnvironment(TermNode& term, ContextNode& ctx, bool no_lift)
 		LiftTermOrCopy(tm, nd, NPL::IsMovable(p_ref));
 	}, tm);
 	EnsureValueTags(tm.Tags);
-	return ReduceSubsequent(tm, ctx,
-		NameTypedReducerHandler([&, i, no_lift]{
+	return ReduceSubsequent(tm, ctx, NameTypedReducerHandler([&, i, no_lift]{
 		return GReduceVau<_vN == 1>()(term, no_lift, i, ResolveParentFrom(tm),
 			ystdex::size_t_<_vWrapping>());
 	}, "eval-vau-parent"));
@@ -2274,12 +2275,13 @@ ListAsteriskHead(TermNode& term)
 ReductionStatus
 ListAsteriskTail(TermNode& term)
 {
-	YAssert(IsList(term), "Invalid representation found.");
+	YAssert(!HasStickySubterm(term) && IsList(term),
+		"Invalid representation found.");
 
 	auto last(term.end());
 
 	--last;
-	term.GetContainerRef().splice(term.end(), last->GetContainerRef());
+	term.GetContainerRef().splice(term.end(), last->GetContainerRef()),
 	term.Value = std::move(NPL::Deref(last).Value);
 	term.Remove(last);
 	return ReductionStatus::Retained;
@@ -3306,7 +3308,7 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		}
 		if(p->IsMovable())
 			con.splice(con.begin(), nd.GetContainerRef(), nd.begin());
-		// NOTE: The variable %binding denotes a reference to a non-empty list,
+		// NOTE: The variable %binding denotes a reference to a nonempty list,
 		//	and it is converted to %TermRange as the internal representation.
 		//	The following code is as %PrepareFoldRList, except that the setting
 		//	of %TermTags::Nonmodifying on %bindings is omitted.
@@ -3324,7 +3326,7 @@ LetAsteriskImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 	else if(const auto p_tr = TryAccessLeaf<TermRange>(bindings))
 	{
 		// XXX: Empty ranges shall not be converted to %TermRange above; they
-		//	are from the handling of other non-empty %TermRange values.
+		//	are from the handling of other nonempty %TermRange values.
 		if(p_tr->empty())
 		{
 			bindings.Clear();
@@ -3772,7 +3774,7 @@ ProvideLetCommon(TermNode& term, ContextNode& ctx)
 			return ReductionStatus::Clean;
 		}, std::move(p_env)), "provide-let-return"));
 	}, std::placeholders::_2, ctx.ShareRecord())));
-	// XXX: As %LetCombinePrepare, except that non-empty 'con.begin()->Value'
+	// XXX: As %LetCombinePrepare, except that nonempty 'con.begin()->Value'
 	//	before the assignment is allowed.
 	NPL::AssignWeakParent(con.begin()->Value, a, ctx);
 	// NOTE: Subterms are extracted arguments to the call plus the parent in
@@ -5294,7 +5296,7 @@ Call1CC(TermNode& term, ContextNode& ctx)
 		//	%TCOAction::GuardFunction). It shall not be saved directly to %term,
 		//	as the existing subnodes in %term are usually also subject to the
 		//	cleanup and shall not be invalidated before the cleanup.
-		// XXX: This is not guarded. If any exception is throw, the values are
+		// XXX: This is not guarded. If any exception is thrown, the values are
 		//	to be discarded.
 		auto con(std::move(t.GetContainerRef()));
 		auto vo(std::move(t.Value));
@@ -5368,7 +5370,7 @@ ApplyContinuation(TermNode& term, ContextNode& ctx)
 
 	AssertValueTags(comb);
 	[&] YB_LAMBDA_ANNOTATE(() , , flatten){
-		// NOTE: As %ContinuationToApplicative and %ApplyImpl.
+		// NOTE: As %ContinuationToApplicative and %Apply.
 		ResolveTerm([&](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			auto& h(AccessRegular<Continuation>(nd, p_ref).Handler);
 

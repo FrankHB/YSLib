@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015, 2017-2018, 2020, 2022 FrankHB.
+	© 2014-2015, 2017-2018, 2020, 2022-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.cpp
 \ingroup Core
 \brief 核心实用模块。
-\version r187
+\version r208
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2014-10-01 08:52:17 +0800
 \par 修改时间:
-	2022-09-05 22:12 +0800
+	2023-03-24 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,11 +36,32 @@
 namespace YSLib
 {
 
+size_t
+FetchBuildNumber() ynothrow
+{
+#ifdef YSL_BuildNumber
+	return size_t(YSL_BuildNumber);
+#else
+	return 900U;
+#endif
+}
+
+const char*
+FetchVCSRevisionString() ynothrow
+{
+#ifdef YSL_VCS_Revision
+	return YSL_VCS_Revision;
+#else
+	return "";
+#endif
+}
+
+
 string
-RandomizeTemplatedString(string str, char mask, string_view tmpl)
+RandomizeTemplateString(string str, char mask, string_view tmpl)
 {
 	YAssert(tmpl.data() && !tmpl.empty(),
-		"The template string argument shall specify valid nonempty string.");
+		"The template string argument shall specify a valid nonempty string.");
 
 	const auto m(tmpl.size() - 1);
 	const auto randomize([&]{

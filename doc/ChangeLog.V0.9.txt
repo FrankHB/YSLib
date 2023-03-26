@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r15471
+\version r16109
 \author FrankHB <frankhb1989@gmail.com>
-\since build 800
+\since build 900
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-03-08 05:39 +0800
+	2023-03-26 13:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,549 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %Documentation.NPL $=
+	(
+		* DD "wrong parameters specification"
+			@ "function %SHBuild_Install_HardLink" $since b792,
+		/ "transferred sections of rules to external YSLib-wiki project"
+			// See also \
+				https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html \
+				for the converted output by mdbook.
+	),
+	/ %YBase.YStandardEx.YStandardIO $=
+	(
+		/ "function %fexists" -> "2 functions with 2nd parameter as the mode"
+			// Only the 1 argument form is compatible.
+		(
+		/ DLDI "all 2 function templates %openmode_conv" ^ "%ystdex::is_null";
+		+ "alias template %fixed_openmode";
+		(
+		+ "function template %fixed_openmode_conv";
+		/ DLI "simplified function template %openmode_conv#1";
+		/ 'inline' @ "function template %openmode_conv#1" -> 'yconstfn_relaxed'
+		),
+		+ "function template %openmode_conv with parameter of %fixed_openmode \
+			instance"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ "basic associative container types optimization" $=
+			// These are for names without dependency on %YCLib.Container, or \
+				using default allocator so not using %YCLib.Container is easier.
+		(
+			/ $re_add(b969) "alias %MemoryList::MapType" @ %YSLib.Adaptor.YNew
+				^ "%ystdex::flat_map" ~ "%std::map",
+			/ DLI %'YCLib_(Win32)'.NLS ^ "%ystdex::unordered_map"
+				~ "%ystdex::map"
+		),
+		/ %'YCLib_(Win32)' $=
+		(
+			/ %NLS $=
+			(
+				/ @ "functions %(MBCSToMBCS, WCSToMBCS, MBCSToWCS, UTF8ToWCS, \
+					WCSToUTF8)" $=
+				(
+					/ DLI "enabled allcoator for empty result strings",
+					/ $revert_ex(b905) "split overloads to return \
+						%std::basic_string instances with default allocator \
+						when no allocator parameter is used"
+						// When the allocator argument is not used in the \
+							call, it is essentially the old case as functions \
+							before b905.
+				),
+				/ $dev $lib "function %FetchDBCSOffset" $=
+				(
+					/ $impl ^ $dep_from $forced "%WCSToMBCS",
+					+ 'YB_PURE'
+				),
+				/ DLI "simplified" ^ "%YSLib::CheckUpperBound"
+					~ "%YSLib::CheckNonnegative" $effective
+					@ "functions %(MBCSToMBCS, MBCSToWCS, WCSToMBCS)"
+					// The argument (size) in these contexts is guaranteed not \
+						equal to 0 because it is already checked.
+			),
+			/ @ "member functions %WConsole::WriteString" @ %Consoles $=
+			(
+				+ "overload with 'const wchar_t*' and 'size_t' pamamter";
+				/ DLI "overload#1" ^ $dep_from $forced ("%UTF8ToWCS" @ %NLS),
+				/ DLI "overload#2" ^ $dep_from $forced ("%MBCSToWCS" @ %NLS),
+				/ DLDI "simplified overload with %wstring_view parameter"
+			),
+			/ DLI %MinGW32 $=
+			(
+				/ "enabled allocator" @ "function %ParseCommandArguments#2"
+					^ $dep_from $forced ("%WCSToUTF8" @ %NLS),
+				/ $design "simplified member function %DirectoryFindData::Read",
+					// Also to eliminate Clang++ warning: \
+						[-Wunused-lambda-capture].
+				/ DLDI "explicitly cast to 'unsigned'" @ "4th argument"
+					@ "call to %NtQueryObject" @ "function %HasPTYName"
+					// To eliminate MinGW64 Clang++ warning: \
+						[-Wshorten-64-to-32].
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ $re_add(b963) DLDI "header inclusion %Functional"
+					-> %(Compose, Functor),
+				/ @ "namespace %platform" $=
+				(
+					+ DD '\ingroup deleters' @ "Doxygen comment"
+						@ "class %FileDescriptor::Deleter",
+					/ "all 2 function %ufexists" -> "4 functions with 2nd \
+						parameter as the mode" ^ $dep_from $forced
+						("%fexists" @ %YBase.YStandardEx.YStandardIO),
+					/ @ "%MakePathString" $=
+					(
+						/ DD "'\pre' command" @ "Doxygen comment" @ "functions \
+							%MakePathString#(3, 4)"-> "'\note' command";
+						/ "4 functions" -> "4 function templates and 2 \
+							function template specializations with or without \
+							allocator parameter to get %(std::string, string) \
+							results" ^ $dep_from
+							("%platform_ex::WCSToUTF8" @ %'YCLib_(Win32)'.NLS)
+							// This enables allocators when %string is used \
+								explicitly, or %std::string when the allocator \
+								argument is not provided. The supports of \
+								%u16string_view and identity conversion are \
+								removed.
+					),
+					(
+					+ "2 functions %MakeFixedMode"
+						^ $dep_from ("%ystdex::fixed_openmode"
+						@ %YBase.YStandardEx.CStandardIO);
+					/ DLI "simplified functions %(ufopen, upopen)#2"
+						@ !"platform %Win32" ^ "%MakeFixedMode"
+					),
+					/ DLI "simplified functions %(ufopen, upopen)#1"
+						@ "platform %Win32"
+						^ $dep_from "%platform_ex::MakeFixedModeW"
+						~ "%platform_ex::MakePathStringW",
+					* "possible ambiguous call to %uopen" @ "function template \
+						%open" @ "class template %basic_filebuf" $since b923
+						^ 'use_openmode_t()' ~ '{}'
+						// This is ambiguous when %std::ios_base::openmode is \
+							a type type not distinguishable with %mode_t for \
+							overload candidates, e.g. Termux and libc++ both \
+							effectively use 'unsigned int' for '::mode_t' and \
+							'std::ios_base::openmode' (while Android NDK uses \
+							'unsigned short' for '__kernel_mode_t').
+				),
+				/ @ "namespace %platform_ex" $=
+				(
+					/ ("4 functions %MakePathStringW" -> "4 function templates \
+						and 2 function template specializations with or \
+						without allocator parameter to get instances of \
+						%(std::wstring, wstring) results") @ "platform %Win32"
+						^ $dep_from
+						("%platform_ex::UTF8ToWCS" @ %'YCLib_(Win32)'.NLS),
+					/ ("4 functions %MakePathStringU" -> "4 function templates \
+						and 2 function template specializations with or \
+						without allocator parameter to get instances of \
+						%(std::u16string, u16string) results")
+						@ !"platform %Win32",
+					+ "2 functions %MakeFixedModeW" @ "platform %Win32"
+						^ $dep_from ("%ystdex::fixed_openmode"
+						@ %YBase.YStandardEx.CStandardIO)
+				),
+				/ DLI @ '__GLIBCXX__' @ "platform %Win32"
+					@ "function %StreamGet" $=
+				(
+					/ "optimized without redundant string copy"
+						^ "%wstring_view",
+					/ "enabled allocator" $dep_from $forced
+						("%platform_ex::WCSToUTF8" @ %'YCLib_(Win32)'.NLS)
+				)
+			),
+			/ %NativeAPI $=
+			(
+				+ $re_add(b752) '#undef CreateDirectory' @ "Doxygen group \
+					%name_collision_workarounds" @ "platform %Win32",
+				* $re_add(b943) DD "missing escaping '\' before '<'"
+					@ "Doxygen comment" $since b720
+			),
+			/ %FileSystem $=
+			(
+				+ DD '\ingroup deleters' @ "Doxygen comment"
+					@ $impl "private deleter" @ "class %DirectorySession",
+				(
+				+ "type %FileTimeDuration";
+				/ DLDI "simplfied alias %FileTime" ^ "%FileTimeDuration"
+				),
+				/ DLI "enabled allocator" @ "function template specialization \
+					%FetchCurrentWorkingDirectory<string>"
+					^ $dep_from ("%MakePathString" @ %FileIO),
+				(
+				+ "allocator parameter with default argument '{}'"
+					@ "all 2 functions %ReadLink" $dep_from
+					^ ("%(MakePathString, MakePathStringU)" @ %FileIO);
+				/ DLI "enabled allocator" @ "all 2 functions %IterateLink"
+					@ !"platform %DS"
+				),
+				/ "function %LFN::ConvertToMBCS" $=
+				(
+					(
+					/ DLI ^ ($dep_from $forced ("%MakePathString" @ %FileIO),
+						"%std::u16string");
+					* $comp "ignored UCS-2 length limitation %MaxLength"
+						$since b658
+						// This was not used since a %u16string_view value was \
+							initialized here instead of the %u16string value.
+					),
+					* $design "wrong use of %ImplRet" $since b637
+				),
+				/ $re_add(b966) DLDI "all 'YB_PURE YB_NONNULL(*)'"
+					-> 'YB_NONNULL(*) YB_PURE',
+				/ DLDI @ "platform %Win32" @ "function template specialization \
+					%FetchCurrentWorkingDirectory<string>"
+					$dep_from $forced ("%MakePathString" @ %FileIO),
+				/ DLDI @ "platform %Win32" @ "constructor %DirectorySession#2"
+					$dep_from $forced ("%MakePathStringW" @ %FileIO),
+				+ $re_add(b969) $dev $lib 'YB_ATTR_nodiscard'
+					@ "all definitions with %DefPred" $effective
+					@ "member functions %EntryData::(IsDirectory, \
+					IsLongFileName, IsVolume, IsWritable)",
+				- 'static' @ "all namespace scope %yconstexpr variables"
+					$effective
+					@ "%FAT::LFN::(Clusters::UnknownFreeCount, MaxFileSize)",
+				/ $re_add(b849) "explicitly cast to 'unsigned'"
+					@ "1st argument" @ "call to %::GetCurrentDirectoryW"
+					@ "platform %Win32" @ "function %ugetcwd#2"
+					// Also to eliminate Clang++ warning: [-Wshorten-64-to-32].
+			),
+			/ DLI @ "platform %Win32"
+				@ "functions %(Echo, Logger::FetchDefaultSender)" @ %Debug $=
+			(
+				/ "enabled allocator";
+				/ $dep_from $forced
+					("%platform_ex::UTF8ToWCS" @ %'YCLib_(Win32)'.NLS)
+			),
+			/ %Host $=
+			(
+				/ @ "platform %Win32" $dep_from $forced
+					("%plattform_ex::MBCSToMBCS" @ %'YCLib_(Win32)'.NLS) $=
+				(
+					/ "return type %string" @ "functions \
+						%(DecodeArg, EncodeArg)"-> "%std::string",
+					/ DLDI "constructor %Terminal using %platform_ex::WConsole",
+				),
+				/ DLDI "constructor %Semaphore" @ "platform %Win32"
+					^ 'CreateSemaphoreW' ~ 'CreateSemaphore'
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor.YNew $=
+			(
+				+ $dev $lib 'YB_ATTR_nodiscard'
+					@ "function %GetDebugMemoryList"
+				+ 'ynothrow' @ ("functions %(Print, PrintAll, \
+					PrintAllDuplicate)", "constructors %(BlockInfo, \
+					NewRecorder)") @ "class %MemoryList"
+			),
+			/ %Core.YCoreUtilities $=
+			(
+				+ "function %FetchVCSRevisionString",
+				/ "function %RandomizeTemplatedString"
+					=> "%RandomizeTemplateString"
+					$= (/ DLI "assertion string"),
+				+ "function %FetchBuildNumber",
+				/ $dev $lib 'YB_PURE YB_NONNULL(2)' @ "function templates \
+					%(SwitchInterval, SwitchAddedInterval)"
+					-> 'YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE'
+			),
+			/ %Service.FileSystem $=
+			(
+				/ $re_add(b969) DLDI "all '::value' not forming an operand to \
+					an operator and not after a qualified type-id" @ "non-type \
+					argument of some metafunctions" -> '{}' $effective
+					("constructor templates", "function template %AsStringArg")
+					@ "class %Path",
+				/ @ "all %(IsAbsolute, IsRelative)" $=
+				(
+					+ $dev $lib 'YB_ATTR_nodiscard YB_PURE',
+					+ 'ynothrow'
+				),
+				+ $dev $lib "all 4 static functions" @ "struct %PathTraits",
+				+ "3 functions %CreateDirectory" $dep_from %YCLib.NativeAPI,
+					// Although 'CreateDirectory' from the Win32 SDK is not \
+						used here, the name collision should be resolved when \
+						the %YCLib.NativeAPI is already included in the user \
+						code.
+				/ "returned %bool value" @ "all 4 functions %EnsureDirectory",
+				/ $re_add(b969) @ "private function" @ "class %Path"
+					^ "%ystdex::enable_if_constructible_r_t"
+					~ "%ystdex::(enable_if_t, is_constructible)"
+			)
+		),
+		/ %NPL $=
+		(
+			/ $re_add(b968) DLI "framework associative container types \
+				optimization" ^ ("type aliases" @ %YCLib.Container) $effective
+				$=
+			(
+				/ $design "alias %BindingsMap" @ %NPLA ^ "%YSLib::linked_map"
+					~ "%YSLib::unordered_map",
+				/ $design @ "class %RecordCompressor" %NPLA1Internals $=
+				(
+					/ "alias %RecordInfo" ^ "%YSLib::linked_map"
+						~ "%YSLib::unordered_map",
+					/ "alias %ReferenceSet" ^ "%YSLib::linked_set"
+						~ "%YSLib::unordered_set"
+				),
+				/ ("name table type" @ %NPLA1, "thunk store type" @ %NPLA1Forms)
+					^ "%YSLib::value_map" ~ "%YSLib::unordered_map"
+			),
+			/ %NPLA $=
+			(
+				* DLDI "missing inclusion %YBase.YStandardEx.Placement"
+					$since b965,
+					// For %ystdex::copy_assign.
+				/ @ "all 2 functions %operator="
+					@ "classes %(SingleWeakParent, SingleStrongParent)" $=
+				(
+					* "missing 'ynothrow'" $since b965,
+					/ DLDI ^ "simplified" ^ "%PDefHOp" ~ "%PDefH"
+				),
+				+ 'ynothrow' @ "copy %operator=" @ "class %EnvironmentParent"
+			),
+			/ %NPLA1 $=
+			(
+				* DLDI "missing 'const'"
+					@ "internal functor for binding element" @ $since b961,
+				/ DLDI "simplified" @ 'NPL_Impl_NPLA1_Enable_TCO'
+					@ "function %TraceBacktrace",
+				* "unexpected copy of %ValueObject initialized on checking the \
+					type of %Reducer for lightweight continuations"
+					@ 'NPL_Impl_NPLA1_Enable_Thunked'
+					@ "function %QueryContinuationName" $since b958,
+					// The check would always fail since the reducer type is \
+						never the continuation. This also prevents \
+						%ystdex::invalid_construction when the reducer \
+						contains some resource not copyable (like a move-only \
+						guard set up by %MoveKeptGuard).
+				+ DLDI 'const' @ "pair local variable"
+					@ "function %EvaluateIdentifier",
+				/ DLI
+					@ "static member function %NoParameterCheck::CheckSuffix" $=
+				(
+					/ $design "simplified" !^ 'yunused',
+					+ 'YB_NORETURN',
+						// Also to eliminate Clang++ warning: \
+							[-Wmissing-noreturn] when %YAssert is expanded to \
+							a call to noreturn function.
+					+ 'YB_ASSUME(false)'
+						// This enables 'noreturn' when %YAssert is expanded \
+							to nothing.
+				)
+			),
+			/ %NPLA1Internals $=
+			(
+				+ "function template %RelayWithSavedSourceName",
+				+ 'ynothrow' @ "constructor#2 %SourceNameRecoverer"
+			),
+			/ @ "namespace %Forms" @ %NPLA1Forms $=
+			(
+				/ @ "functions %Forms::(EvalString, EvalStringRef)" $=
+				(
+					/ $impl "simplified" ^ "%(ContextState::Access, \
+						GlobalState::ReadFrom)"
+						~ "%Session::(Analyze, Process)",
+					* $comp "wrong result due to missing leaf token parsing \
+						and preprocessing before session processing"
+						$since b891,
+					* $comp "missing using source information from the global \
+						state" $since b891
+						$= (/ $impl
+							^ ("%RelayWithSavedSourceName" @ %NPLA1Internals))
+				),
+				/ DLI "adjusted assertion more precisely"
+					@ "functions %(ListAsterisk, ListAsteriskRef)"
+			),
+			/ %Dependency $=
+			(
+				/ "applicative 'writable-file?'" @ "function %LoadModule_std_io"
+				(
+					/ $impl "2nd argument for call to %YSLib::ufexists"
+						-> '"r+b"' ~ 'true' $dep_from $forced
+						("%ufexists" @ %YCLib.FileIO);
+					* $comp "unexpected creation of file" $since b922
+				),
+				/ @ "function %LoadModule_SHBuild" $=
+				(
+					/ @ "applicative %SHBuild_MakeTempFilename"
+						-> "applicative 'make-temporary-filename'"
+						@ "function %LoadModule_std_system" $=
+					(
+						/ DLDI "2nd argument for call to %YSLib::fexists"
+							-> '"w+b"' ~ 'true' $dep_from $forced
+							("%fexists" @ %YBase.YStandardEx.CStandardIO),
+						/ DLDI $dep_from $forced
+							("%YSLib::RandomizeTemplateString"
+							@ %YSLib.Core.YCoreUtilities)
+					),
+					/ "applicative %SHBuild_BuildGCH_existed_"
+						-> "applicative 'readable-nonempty-file?'"
+						@ "function %LoadModule_std_io"
+						$= (* "possible ambiguous call to %uopen" $since b923
+							^ 'IO::use_openmode_t()' ~ '{}'),
+							// As %basic_filebuf in %FileIO.
+					/ "applicatives %(SHBuild_EnsureDirectory_, \
+						SHBuild_BuildGCH_mkpdirp_)" -> "applicatives \
+						('create-directory*', 'create-parent-directory*')"
+						@ "function %LoadModule_std_system" ^ $dep_from
+						("%IO::EnsureDirectory" @ %YSLib.Service.FileSystem),
+						// The specification of the result is changed.
+					/ "applicative 'SHBuild_String_absolute_path?_'"
+						-> "applicative 'absolute-path?'"
+						@ "function %LoadModule_std_system"
+				),
+				/ @ "function %LoadModule_std_system" $=
+				(
+					/ DLDI "simplified namespace %YSLib using",
+					+ "applicative 'make-directory'" ^ $dep_from
+						("%IO::CreateDirectory" @ %YSLib.Service.FileSystem),
+					+ "object 'build-number'" ^ $dep_from ("%FetchBuildNumber"
+						@ %YSLib.Core.YCoreUtilities),
+					+ "objects ('version-string', 'revision-description')"
+						^ $dep_from
+						("%FetchVCSRevisionString" @ %YSLib.Core.YCoreUtilities)
+				),
+				/ DLDI "simplified" @ ("function %ReduceToLoadExternal",
+					$comp "function %RelayToLoadExternal",
+					$comp "native implementation" @ "applicatives (%load, \
+					'get-module')" @ "function %LoadModule_std_io")
+					^ $dep_from ("%RelayWithSavedSourceName" @ %NPLA1Internals)
+			)
+		),
+		/ $re_add(b968) DLDI "all '::value' not forming an operand to an \
+			operator and not after a qualified type-id in class scope"
+			@ "other value contexts" -> '()' @ $impl %(YCLib.(FileIO,
+			FileSystem), NPL.NPLA1),
+		/ DLDI @ "platform %Win32" @ ("function %LoadConfiguration"
+			@ %Helper.Initialization, "function %StreamPut" @ %YCLib.FileIO)
+			$dep_from
+			$forced ("%platform_ex::WCSToUTF8" @ %'YCLib_(Win32)'.NLS),
+		+ $re_add(b969) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions with \
+			one of %(DefCvt, DefGetter)" @ %(%YCLib.FileIO, $impl
+			'YCLib_(Win32)'.NLS, YSLib.(Adaptor.YNew, Service.FileSystem))
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				+ "function 'system-qget'",
+				/ @ "operatives ('$assert-nonempty', '$assert-absolute-path')"
+					$=
+				(
+					/ "support to check string types" ^ 'string?',
+					/ DLI "minor adjust" @ "assertion message"
+				),
+				+ "functions to support getting 'hg' or 'git' revision string \
+					with hints controlled by environment variables \
+					%(SHBuild_VCS_hg, SHBuild_VCS_git)"
+					$dep_to "revision string functions",
+				/ DLDI $dep_from $forced
+					("%(SHBuild_BuildGCH_existed_, SHBuild_BuildGCH_mkpdirp_), \
+					'SHBuild_String_absolute_path?_'" @ "%LoadModule_SHBuild"
+					@ %YFramework.NPL.Dependency)
+			),
+			/ @ "%SHBuild-YSLib-build.txt"
+			(
+				+ ("build number as macro %YSL_BuildNumber",
+					("revision string as macro %YSL_VCS_Revision";
+					"automatic update for %YFramework.YSLib.Core.YCoreUtilites \
+					dependency file for nonempty release string" ^ $dep_from
+					('readable-nonempty-file?' @ "%LoadModule_std_io"
+					@ %YFramework.NPL.Dependency))) @ "building %YFramework"
+					$dep_from "revision string functions",
+				/ DLDI $dep_from $forced
+					("%(SHBuild_EnsureDirectory_)" @ "%LoadModule_SHBuild"
+					@ %YFramework.NPL.Dependency)
+			),
+			/ @ "%PatchRevision.sh" $=
+			(
+				/ "%(PatchHg, PatchGit)" @ "%PatchRevision.sh"
+					-> "%(SHBuild_VCS_hg, SHBuild_VCS_git) with ShellCheck \
+					directive",
+					// To be consistent with %SHBuild-YSLib-common.txt. Also \
+						to eliminate ShellCheck warning: SC2154.
+				* "git always used despite the detection result" $since b957,
+					// Also to eliminate ShellCheck warning: SC2050.
+				/ "quoted output range for %SHBuild_Puts call",
+					// Also to eliminate ShellCheck issue: SC2086.
+				* "explicitly specified git check failed due to redundant \
+					'hg root' check" $since b957,
+				/ "quoted all variable referenced for '!=' check",
+				* "missing skipping git submodules" $since b957
+					$= (+ "check to ensure the regular file existed before \
+						calling to 'sed'")
+			),
+			/ DLDI "simplified indent" @ "default value"
+				@ "variable %CXXFLAGS_WARNING" @ "%SHBuild-common-options.sh",
+			/ @ "platform %Win32" @ ("%SHBuild-common-options.sh",
+				"%SHBuild-YSLib-common.txt") $=
+			(
+				/ $re_ex(b902) "enabled LLD for Clang++",
+					// This allows it link successfully, although still not \
+						run correctly before Clang++ < 15 without \
+						https://reviews.llvm.org/D118328 applied. Moreover, \
+						x86_64 Clang++ 14.0.4 from MSYS2 actually crash \
+						earlier parsing <ystdex/hash_table.h>.
+				/ @ "using G++" $dep_to "script workaround"
+					// Clang++ does not need the workaround.
+					$= (/ $revert_ex(b864) '-Wl,-allow-multiple-definition'
+					@ "default value" @ "variable %LDFLAGS_IMPL_OPT"
+					-> "workaround used in default value" @ "variable %LDFLAGS")
+					// This enables the workaround in case where \
+						%LDFLAGS_IMPL_OPT is not used, e.g. debug \
+						configurations.
+			)
+		),
+		/ "version string" @ "main function" @ %SHBuild.Main $=
+		(
+			/ "used VCS revision string when possible"
+				^ $dep_from ("%YSLib::FetchVCSRevisionString"
+				@ %YFramework.YSLib.Core.YCoreUtilities),
+			/ "adjusted text for other cases"
+		),
+		/ DLDI @ "main function" @ %ProjectGenerator.Main $=
+		(
+			/ "platform string for identification" ^ "%string_view"
+				~ "%string";
+			/ $dep_from $forced ("%DecodeArg" @ %YFramework.YCLib.Host)
+		),
+		/ ("default value" @ "variable %CXXFLAGS_IMPL_COMMON" $effective
+			@ ("%(SHBuild-common-options.sh, SHBuild-YSLib-common.txt, \
+			Toolchain.options.mk)" @ %Tools.Scripts)),
+			"compiler options not using custom makefile"
+			@ "function %MakeCBDocNode#1" @ %Tools.ProjectGenerator.Main) $=
+		(
+			/ $revert_ex(b883) "disabled merged %std::type_info by default"
+				@ "platform %Win32"
+				$= (+ $impl ('-D__GXX_MERGED_TYPEINFO_NAMES=1'
+					-> '-D__GXX_MERGED_TYPEINFO_NAMES=0');
+					// This is required for %MinGW32, otherwise stage 1 \
+						SHBuild fails with the change below.
+			/ $re_add(b883) "enabled inline %std::type_info::merge by default"
+				$= (+ $impl ('-U__GXX_TYPEINFO_EQUALITY_INLINE',
+					'-D__GXX_TYPEINFO_EQUALITY_INLINE=1'),
+					// This is a workaround for platform %MinGW64.
+		)
+	),
+	* $comp "build failure due to multiple definitions of \
+		%ystdex::in_place_type instances" @ "static debug configurations"
+		@ "platform %MinGW64" @ %YSTest $since b963
+		$dep_from "script workaround"
+),
+
+b969
 (
 	/ %YBase $=
 	(
@@ -1047,11 +1590,14 @@ b966
 		),
 		/ %Functor $=
 		(
-			+ "functor template %wrap_call_nothrow" @ %Functor,
+			+ "functor template %wrap_call_nothrow",
 			/ DLDI "type parameter name '_fComp'"
-				@ "metafunction %enable_if_transparent_t" -> '_func'
+				@ "metafunction %enable_if_transparent_t" -> '_func',
 				// This is not only for compartors, but also other functors \
 					like hashers.
+			+ $dev $lib 'YB_ATTR_nodiscard' @ "all member functions"
+				@ "all spacializations"
+				@ "class templates %(id, addressof_op, mem_get, is_equal)"
 		),
 		/ %TypePun $=
 		(
@@ -1066,7 +1612,7 @@ b966
 		),
 		/ %Tree $=
 		(
-			* DLDI "inconsistent header guard name" $since b830
+			* $re_add(b934) DLDI "inconsistent header guard name" $since b830
 				$= (/ "%YB_INC_ystdex_tree_hpp_" => "%YB_INC_ystdex_tree_h_"),
 			* DLDI "wrong comment for namespace" @ %Tree $since b851
 				$dep_to "node_handle move preparing",
@@ -1285,7 +1831,7 @@ b966
 				(
 				+ DLDI 'inline' @ "function template %equal_range";
 					// This was occasionally missing.
-				/ $re_add(b966) DLDI "simplified function all 10 templates \
+				/ $re_add(b679) DLDI "simplified function all 10 templates \
 					with transparent key parameter" ^ "macro"
 				),
 				* "wrong 'YB_ATTR_nodiscard YB_PURE'"
@@ -1311,7 +1857,7 @@ b966
 				)
 			)
 		),
-		+ $comp $dep "static assertions for value type and allocator type"
+		+ $comp $dev "static assertions for value type and allocator type"
 			@ "class template %mapped_set" @ %Set
 			$dep_from ("tree value type check", "lifting map check"),
 		(
@@ -1392,8 +1938,10 @@ b966
 			$effective @ %(Map, Tree),
 		/ DLDI "'::value' not forming an operand to an operator and not after \
 			a qualified type-id" @ "non-type argument of some metafunctions"
-			-> '{}' @ (%Tree $effective @ "all 2 function templates \
-			%(insert_range_unique, insert_range_equal)"
+			-> '{}' @ (%Functor $effective @ ("metafunction \
+			%enable_if_transparent_t", "all 4 function %operator()"
+			@ "functor %is_equal"), %Tree $effective @ "all 2 function \
+			templates %(insert_range_unique, insert_range_equal)"
 			@ "class template %tree", %TypePun $effective @ ("metafunction \
 			%enable_if_replaceable_t", "all 2 function templates \
 			%(aligned_cast, aligned_store_cast, aligned_replace_cast, \
@@ -1453,7 +2001,7 @@ b966
 		),
 		/ $dev %NPL.NPLA $=
 		(
-			/ "%BindingsMap" @  ^ ("%ystdex::string_hash"
+			/ "%BindingsMap" @ ^ ("%ystdex::string_hash"
 				@ %YBase.YStandardEx.String, "%unordered_map" ~ "%map"
 				$dep_from ("%unordered_map" @ %YCLib.Container))
 				// Now it is more efficient. Since features specific to %map \
@@ -2580,7 +3128,7 @@ b960
 			%Container to %Range" $since b942
 			// This caused both unbalanced tokens in %Container and %Range.
 	),
-	* $comp "building failure" @ "platform %Android" $since b948
+	* $comp "build failure" @ "platform %Android" $since b948
 		$dep_any_from ("tuple_size defect 1", "tuple_size defect 2")
 		// '_LIBCPP_VERSION' is assumed for all configurations in platform \
 			%Android since the official NDK is used (which implies at least \
@@ -3553,7 +4101,8 @@ b957
 	(
 		// See $2022-10 @ %Documentation::Workflow.
 		/ $revert_ex(b900) $build "simplified workaround"
-			@ "%YFramework library build" ^ '-Og' ~ 'O1';
+			@ "%YFramework library build" @ "%SHBuild-YSLib-build.txt"
+			@ %Tools.Scripts ^ '-Og' ~ 'O1';
 		* "failed to initializing the framework" @ "static debug configuration"
 			$since b947
 	)
@@ -3894,7 +4443,7 @@ b955
 			)
 		)
 	),
-	* $comp "building failure" @ "platform %Android" $since b942
+	* $comp "build failure" @ "platform %Android" $since b942
 		$dep_from %(YBase.YStandardEx.MemoryResource,
 		"%GKeptGuardAction" @ YFramework.NPL.NPLA1),
 	/ %Tools.SHBuild.Main $=
@@ -4334,7 +4883,7 @@ b953
 					implied it should not only propagate the nonmodifying \
 					property.
 		),
-		/ @ "function %LoadGroundContext" %Dependency $=
+		/ @ "function %LoadGroundContext" @ %Dependency $=
 		(
 			* "missing preserving reference value in the result"
 				@ "alternative derivation" @ "applicative 'list*%'" $since b918
@@ -4577,7 +5126,11 @@ b952
 				),
 				* "unexpectedly moved the 1st argument"
 					@ "alternative derivation" @ "applicative %require"
-					@ "function %LoadModule_std_modules" $since b942,
+					@ "function %LoadModule_std_modules" $=
+				(
+					@ "when unregistered" $since b923,
+					@ "when registered" $since b942
+				),
 				+ "applicative 'apply-continuation'"
 					@ "function %LoadModule_std_continuations"
 					^ $dep_from ("function %ApplyContinuation" @ %NPLA1Forms)
@@ -5004,18 +5557,18 @@ b950
 						top" @ 'NPL_Impl_NPLA1_Native_EnvironmentPrimitives';
 						// This is necessary for the derivation of '$vau' to \
 							use 'forward!'.
-					/ $design "forwarded all paramter trees"
-						$effective @ "operatives ('$vau', '$vau%', \
-						'$deflazy!', '$set!', '$setrec!', '$wvau', '$wvau%', \
-						'$wvau/e', '$wvau/e%, '$lambda', '$lambda%', \
-						'$lambda/e', '$lambda/e%', '$defv!', '$defv%!', \
-						'$defv/e!', '$defv/e%!', '$defw!', '$defw%!', \
-						'$defw/e!', '$defw/e%!', '$defl!', '$defl%!', \
-						'$defl/e!', '$defl/e%!')" ^ 'forward!',
+					/ "forwarded all paramter trees" $effective @ "operatives \
+						('$vau', '$vau%', '$deflazy!', '$set!', '$setrec!', \
+						'$wvau', '$wvau%', '$wvau/e', '$wvau/e%, '$lambda', \
+						'$lambda%', '$lambda/e', '$lambda/e%', '$defv!', \
+						'$defv%!', '$defv/e!', '$defv/e%!', '$defw!', \
+						'$defw%!', '$defw/e!', '$defw/e%!', '$defl!', \
+						'$defl%!', '$defl/e!', '$defl/e%!')" ^ 'forward!',
 						// This is necessary for the following changes without \
 							undefined behavior.
 					),
-					/ $design "alternative derivations" @ "operatives \
+					/ "prevented return value conversion on the forwarded \
+						results" @ "alternative derivations" @ "operatives \
 						('$deflazy!', '$set!', '$setrec!', '$let', '$let%', \
 						'$let/e', '$let/e%', '$as-environment')" ^ 'list%'
 						~ 'list',
@@ -5369,10 +5922,10 @@ b948
 
 b947
 (
+	/ @ "platform %MinGW64" $=
 	(
-	/ DLP "updated platform %MinGW64 toolchain"
-		$dep_to "MinGW64 toolchain update";
-	/ $re_ex(b900) $forced "rebuilt library %FreeImage"
+		/ DLP "updated toolchain" $dep_to "MinGW64 toolchain update";
+		/ $re_ex(b900) $forced "rebuilt library %FreeImage"
 	),
 	/ $build %Tools $=
 	(
@@ -5689,9 +6242,12 @@ b945
 	+ DLI "workaround for GCC 12" $effective @ "functions %Forms::(ProvideLet, \
 		Provide, MakeEncapsulationType)" @ %YFramework.NPL.NPLA1Forms;
 		// See $2022-05 @ %Documentation::Workflow.
-	/ $re_ex(b919) DLP "updated platform %Linux toolchain";
-	/ $re_ex(b919) $forced "rebuilt library %FreeImage" @ "platform %Linux"
-		// This is required because for incompatibility in LTO update.
+	/ $re_ex(b919) @ "platform %Linux" $=
+	(
+		/ DLP "updated toolchain";
+		/ $forced "rebuilt library %FreeImage"
+			// This is required for incompatible LTO update.
+	)
 	),
 	/ $build %Tools $=
 	(
@@ -6062,8 +6618,8 @@ b943
 			/ DLDI "internal calls for iterator arguments with narrow \
 				contracts and no other implied assertions" ^ "%NPL::Deref" ~ '*'
 			),
-			* DD "missing escaping '\' before '<'" @ "Doxygen comment"
-				@ ("functions %(AccL, AccR)" $since b898,
+			* $re_add(b934) DD "missing escaping '\' before '<'"
+				@ "Doxygen comment" @ ("functions %(AccL, AccR)" $since b898,
 				"function %FoldR1" $since b899)
 		),
 		/ %Dependency $=
@@ -6282,8 +6838,9 @@ b942
 					LoadModule_std_system, LoadModule_std_modules)",
 				/ "forwareded function parameter"
 					@ "function templates %(InvokeIn, GetModuleFor)",
-				+ "pamameter pack as invocation arguments" @ "function templates \
-					%(InvokeIn, (GetModuleFor; LoadModule; LoadModuleChecked))",
+				+ "pamameter pack as invocation arguments"
+					@ "function templates %(InvokeIn, (GetModuleFor; \
+					LoadModule; LoadModuleChecked))",
 				/ DLI @ "function %LoadGroundContext" $=
 				(
 					/ $design "parameter name 'wenv'" @ "native implementation"
@@ -6319,8 +6876,6 @@ b942
 					(
 						* "missing parameter arity check"
 							@ "native implementation" $since b923,
-						* "wrongly moved arguments if modifiable when loaded at \
-							1st time" $since b923,
 						* "missing switching to the fresh standard environment \
 							before loading" $since b923
 							$dep_from "appliative 'register-requirement!'",
@@ -7247,7 +7802,7 @@ b938
 	/ $re_add(b937) DLDI "simplified localized URLs" @ "comments" $effective
 		@ %YFramework.(YCLib.(Debug, FileIO, Host, HostedGUI, NativeAPI,
 		YCommon), 'YCLib_(Win32)'.Consoles, Helper.Initialization),
-	* DLDI 'yconstfn static' $mismatch(%Documentation.ProjectRules)
+	* DLDI 'yconstfn static' $mismatch(Documentation.ProjectRules)
 		$effective @ %YBase.YStandardEx.(Examiner $since b895,
 		Function $since b848, Ref $since b870)
 		$= (/ ^ 'static yconstfn' ~ 'yconstfn static'),
@@ -7482,7 +8037,7 @@ b938
 				@ %Dependency ^ $dep_from ("%Math::Inexact" @ %NPLAMath)
 		)
 	),
-	* $comp "building failure" @ "platform %Android" $since b937
+	* $comp "build failure" @ "platform %Android" $since b937
 		$dep_from "base SFINAE fix"
 ),
 
@@ -8114,7 +8669,9 @@ b934
 		+ $dev $lib 'YB_ATTR(alloc_size(1))' and 'YB_ATTR(alloc_size(2))'
 			@ "internal allocations" @ "function template %get_temporary_buffer"
 			@ %Memory,
-		/ $dev $lib "header guard name" @ %Exception,
+		* DLDI "inconsistent header guard name" @ %Exception $since b556
+			$= (/ "%YB_INC_ystdex_exception_hpp_"
+				=> "%YB_INC_ystdex_exception_h_"),
 		/ $dev $lib %BitSegment $=
 		(
 			+ 'YB_ATTR_nodiscard YB_STATELESS' @ "all static member functions",
@@ -8246,7 +8803,7 @@ b934
 				)
 			)
 		),
-		* $comp "building failure" @ "platform %Android" $since b932
+		* $comp "build failure" @ "platform %Android" $since b932
 			$dep_from %Tools.Scripts
 	),
 	/ %YReader $=
@@ -8555,8 +9112,9 @@ b932
 					@ "unary %operator-",
 					// To eliminate Microsoft VC++ warning: C4146. A quick \
 						search show the warning is effective at least in \
-						Microsoft VC++ 6.0: https://forums.codeguru.com/showthread.php?333202, \
-						but there are no clues showing the precise version \
+						Microsoft VC++ 6.0: \
+						https://forums.codeguru.com/showthread.php?333202, but \
+						there are no clues showing the precise version \
 						introducing the warning (plus 1200 is the minimal \
 						value of the officially documented %_MSC_VER currently \
 						found).
@@ -10628,7 +11186,8 @@ b922
 			%std::basic_regex (which uses 'e', so not sufficient to \
 			distinguish with other types like exceptions), but still more \
 			consistent to the abbreviation method of string class, also with \
-			external some sources like https://en.cppreference.com/w/cpp/regex/regex_replace.
+			external some sources like \
+			https://en.cppreference.com/w/cpp/regex/regex_replace.
 ),
 
 b921
@@ -10881,10 +11440,11 @@ b919
 			modules in shared input file streams in %Helper.Initialization. \
 			This also avoids confusion of errors in loading nested source \
 			files in NPLA1.
+	/ $re_ex(b916) @ "platform %Linux" $=
 	(
-	/ $re_ex(b916) DLP "updated platform %Linux toolchain",
-	/ $re_ex(b916) $forced "rebuilt library %FreeImage" @ "platform %Linux"
-		// This is required because for incompatibility in LTO update.
+		/ DLP "updated platform toolchain";
+		/ $forced "rebuilt library %FreeImage"
+			// This is required for incompatible LTO update.
 	),
 	/ %YFramework $=
 	(
@@ -11457,14 +12017,16 @@ b917
 
 b916
 (
+	/ @ "platform %Linux" $=
 	(
-	/ $re_ex(b900) DLP "updated platform %Linux toolchain",
-	/ "supported 'FREEIMAGE_LIBRARY_TYPE=STATIC'"
-		@ "%3rdparty/FreeImage/Makefile.gnu";
-	/ $re_ex(b900) "rebuilt library %FreeImage" @ "platform %Linux"
-		// This eliminates unnecessary FreeImage initialization (by calling \
-			%::FreeImage_SO_Initialise) and finalization (by calling \
-			%::FreeImage_SO_DeInitialise) on loading libYFramework.so.
+		/ $re_ex(b900) DLP "updated toolchain",
+		/ "supported 'FREEIMAGE_LIBRARY_TYPE=STATIC'"
+			@ "%3rdparty/FreeImage/Makefile.gnu";
+		/ $re_ex(b900) "rebuilt library %FreeImage"
+			// This eliminates unnecessary FreeImage initialization (by \
+				calling %::FreeImage_SO_Initialise) and finalization (by \
+				calling %::FreeImage_SO_DeInitialise) on loading \
+				libYFramework.so.
 	),
 	/ %Tools.Scripts $=
 	(
@@ -13202,7 +13764,7 @@ b906
 					+ DLD "ShellCheck directive for default value from %cd \
 						command result",
 						// To eliminate ShellCheck warning: SC2164.
-					* "missing quotes on the argument of \
+					* "missing quotes around the argument of \
 						%SHBuild_GetSystemPrefix" $since b905
 						// Also to eliminate ShellCheck warning: SC2046.
 				),
@@ -13549,7 +14111,7 @@ b905
 		/ DLDI @ "%install-sysroot.sh" $=
 		(
 			- "redundant %SHBuild_PrepareBuild call",
-			/ "quoted all arguments" @ "%SHBuild_Puts calls",
+			/ $re_add(b904) "quoted all arguments" @ "%SHBuild_Puts calls",
 			+ "session setting" @ "2nd stage %SHBuild call" $dep_from
 				("session epoch with %SHBuild_Epoch handling" @ %SHBuild.Main)
 		)
@@ -13990,9 +14552,9 @@ b903
 	(
 		/ DLI "shell subcommand calls" ^ "$(...)" ~ "legacy `...`",
 			// Also to eliminate ShellCheck issue: SC2006.
-		* "missing quotes on default values for assignments" $since b575,
+		* "missing quotes around default values for assignments" $since b575,
 			// Also to eliminate ShellCheck issue: SC2223.
-		* "missing quotes on the result of %dirname command as command or \
+		* "missing quotes around the result of %dirname command as command or \
 			argument" $since b575,
 			// Also to eliminate ShellCheck warning: SC2046.
 		+ DLD "ShellCheck directive for %(CXXFLAGS_OPT_UseAssert, \
@@ -14002,7 +14564,7 @@ b903
 		+ DLD "ShellCheck directive for souce inclusions",
 			// To eliminate ShellCheck warning SC1090. Note this relies on \
 				'shellcheck -x -P SCRIPTDIR', or there is issue SC1091.
-		* "missing quotes on the 'mkdir' and 'SHBuild_Pushd' arguments"
+		* "missing quotes around the 'mkdir' and 'SHBuild_Pushd' arguments"
 			$since b740,
 			// Also to eliminate ShellCheck issue: SC2086.
 		+ DLD "ShellCheck directive on the last command",
@@ -14024,12 +14586,12 @@ b903
 			// This is a bit inefficitent because the configuration is not used.
 		/ DLI "shell subcommand calls" ^ "$(...)" ~ "legacy `...`",
 			// Also to eliminate ShellCheck issue: SC2006.
-		* "missing quotes on default values for assignments" $since b556,
+		* "missing quotes around default values for assignments" $since b556,
 			// Also to eliminate ShellCheck issue: SC2223.
 		+ DLD "ShellCheck directive for souce inclusions",
 			// To eliminate ShellCheck warning SC1091.
 		(
-		* "missing quotes on '$SHBuild_ThisDir' and the 'echo' arguments"
+		* "missing quotes around '$SHBuild_ThisDir' and the 'echo' arguments"
 			$since b556;
 			// Also to eliminate ShellCheck issue: SC2086.
 		/ DLI ^ 'SHBuild_Puts' ~ 'echo'
@@ -14186,7 +14748,7 @@ b902
 			/ "Clang++ detection" @ "%SHBuild-BuildApp.txt"
 				^ "%SHBuild_CheckCXX" ~ 'rmatch?',
 				// This is more accurate, but a bit inefficiet.
-			/ "improved thread detection and distinguished thread flags \
+			/ "improved threading detection and distinguished thread flags \
 				for %CXXFLAGS and %LDFLAGS" $=
 			(
 				// MinGW Clang++ supports '-mthreads' at the linker command, \
@@ -14237,8 +14799,8 @@ b902
 				/ "YSLib libraries building" $=
 				(
 					/ $dev "restored %LIBS only for dynamic libraries",
-					* $re_add(b838) "possibly missing quotes on '-L' argument \
-						of output directory on the %LIBS environment"
+					* $re_add(b838) "possibly missing quotes around '-L' \
+						argument of output directory on the %LIBS environment"
 						$since b796 ^ 'system-quote',
 					+ "import library generation",
 					* "missing compiler check" @ "workaround specific for G++"
@@ -14657,7 +15219,8 @@ b900
 				// Without the workaround, %__deref in libstdc++ <functional> \
 					of G++ 10.2 in debug mode (with %_GLIBCXX_DEBUG defined) \
 					clashes with macro (defined empty) from MinGW-w64's \
-					<sal.h>. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97362.
+					<sal.h>. See \
+					https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97362.
 			* $comp $build "%_POSIX_C_SOURCE check failed" @ %Platform
 				@ "platform %Android" $since b894
 				$dep_from ("%Toolchain.Android.mk" @ %Tools.Scripts)
@@ -14708,7 +15271,7 @@ b900
 				changes on %'YCLib(DS)_DSIO' makes more 1 KiB.
 		),
 		(
-		/ DLP "updated platform %Linux toolchain",
+		/ DLP "updated toolchain" @ "platform %Linux",
 		/ @ "%3rdparty/FreeImage" $=
 		(
 			* "missing local inclusion directory" @ "assembler command"
@@ -14785,8 +15348,8 @@ b900
 		/ @ "%SHBuild-YSLib-common.txt" $=
 		(
 			* "missing import 'string->symbol' from 'std.strings'" $since b840,
-				// %SHBuild-YSLib accidentally works because it imports \
-					'string->symbol'.
+				// %SHBuild-YSLib-build.txt accidentally works because it \
+					imports 'string->symbol'.
 			* "missing import %SHBuild_TrimOptions_ from %env_SHBuild_"
 				$since b838,
 				// Ditto.
@@ -14805,7 +15368,7 @@ b900
 				@ "applicative %InstSHBuild" $since b838
 			)
 		),
-		/ "%MSYSTEM wrongly applied to non-Windows host environments"
+		/ "%MSYSTEM detection wrongly applied to non-Windows host environments"
 			@ "function %SHBuild_Platform_Detect" @ "%(SHBuild-common.sh, \
 			SHBuild-YSLib-common.txt)" $mismath $since b885,
 			// %MSYSTEM can be defined natually in other environments, e.g. WSL.
@@ -14840,14 +15403,14 @@ b900
 			+ $deploy "installing new files" @ !"%SHBuild_NoDev"
 				$dep_from "%(SHBuild-BuildApp.txt, SHBuild-BuildPkg.sh)"
 			),
-			/ $build "worked around" @ "%YFramework library build"
+			/ $build "worked around" @ "%YFramework library building"
 				@ "platform %MinGW64" $=
 			(
 				// See $2020-10 @ %Documentation::Workflow.
 				+ "options '-Og -g -fno-var-tracking-assignments' as \
-					workaround" @ "dynamic library build",
+					workaround" @ "dynamic library builds",
 				+ "options '-O1 -g -fno-var-tracking-assignments' as \
-					workaround" @ "static library build"
+					workaround" @ "static library builds"
 			)
 		)
 	),

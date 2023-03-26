@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2022 FrankHB.
+# (C) 2014-2023 FrankHB.
 # Common options script to build projects in the shell.
 
 # NOTE: This is mainly for stage 1 SHBuild bootstrap and the test. The options
@@ -11,7 +11,7 @@ set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh" # for
-#	SHBuid-common-toolchain.sh, CXX;
+#	SHBuild-common-toolchain.sh, SHBuild_Host_OS, CXX;
 
 # XXX: %SHBuild_Debug is external.
 # shellcheck disable=2154
@@ -108,11 +108,9 @@ if [[ $SHBuild_CXX_Style_ == "Clang++" ]]; then
 -Wno-missing-braces \
 -Wshorten-64-to-32 \
 -Wweak-vtables"}"
-	LDFLAGS_IMPL_USE_LLD_=
 	# XXX: This is the only choice to support LTO on MinGW32 now, but not
 	#	ready to work.
-	# TODO: Expose this option?
-	#	LDFLAGS_IMPL_USE_LLD_=true
+	LDFLAGS_IMPL_USE_LLD_=true
 	#: "${CXXFLAGS_IMPL_OPT:=-flto}"
 	#: "${LDFLAGS_IMPL_OPT:=-flto}"
 	# XXX: LTO is disabled by default for compatibility to the prebuilt
@@ -142,16 +140,17 @@ then
 	: "${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations \
 $LTO_ \
 -fno-enforce-eh-specs"}"
-	# XXX: %SHBuild_Host_OS is external.
-	# shellcheck disable=2154
-	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
-		# XXX: Workarond for LTO bug on MinGW. See
-		#	https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
-		: "${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations $LTO_ \
--Wl,-allow-multiple-definition"}"
-	else
-		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_}"
-	fi
+	: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_}"
+fi
+
+# XXX: %SHBuild_Host_OS is external.
+# shellcheck disable=2154
+if [[ "$SHBuild_Host_OS" == 'Win32' && "$LDFLAGS_IMPL_USE_LLD_" == '' ]]; then
+	# XXX: Workarond for LTO bug on MinGW. See
+	#	https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
+	: "${LDFLAGS_WKRD_:="-Wl,-allow-multiple-definition"}"
+else
+	: "${LDFLAGS_WKRD_:=""}"
 fi
 
 : "${CFLAGS_STD:=-std=c11}"
@@ -159,12 +158,29 @@ fi
 $C_CXXFLAGS_WARNING \
 $C_CXXFLAGS_IMPL_WARNING"}"
 
-: "${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_ \
-	-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1"}"
-
+# XXX: This is an optimization since the dynamic loading is explicitly
+#	unsupported as specified in
+#	https://frankhb.github.io/YSLib-book/Development.zh-CN.html, as well a
+#	workaround for the buggy out-of-line definition of %std::type_info::before
+#	which having the bug in https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103240.
+# XXX: %SHBuild_Host_OS is external.
+# shellcheck disable=2154
+if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
+	# XXX: '-D__GXX_TYPEINFO_EQUALITY_INLINE=1' is required for platform
+	#	%MinGW64. '-D__GXX_MERGED_TYPEINFO_NAMES=1' is also an optimization.
+	: "${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_ \
+		-U__GXX_TYPEINFO_EQUALITY_INLINE -D__GXX_TYPEINFO_EQUALITY_INLINE=1 \
+		-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=1"}"
+else
+	# XXX: This is required for platform %MinGW32. Both '1' would cause stage 1
+	#	SHBuild fail.
+	: "${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_ \
+		-U__GXX_TYPEINFO_EQUALITY_INLINE -D__GXX_TYPEINFO_EQUALITY_INLINE=1 \
+		-U__GXX_MERGED_TYPEINFO_NAMES -D__GXX_MERGED_TYPEINFO_NAMES=0"}"
+fi
 : "${CXXFLAGS_STD:=-std=c++11}"
 : "${CXXFLAGS_WARNING:=" $CFLAGS_WARNING \
-	-Wctor-dtor-privacy \
+-Wctor-dtor-privacy \
 -Wnon-virtual-dtor \
 -Woverloaded-virtual \
 -Wsign-promo \
@@ -195,7 +211,10 @@ CXXFLAGS="${CXXFLAGS//	/ }"
 
 : "${LDFLAGS_OPT_DBG:="$LDFLAGS_STRIP $LDFLAGS_IMPL_OPT $LDFLAGS_GC"}"
 
-: "${LDFLAGS:="$C_CXXFLAGS_PIC $LDFLAGS_IMPL_COMMON_THRD_ $LDFLAGS_OPT_DBG"}"
+: "${LDFLAGS:="$C_CXXFLAGS_PIC \
+$LDFLAGS_IMPL_COMMON_THRD_ \
+$LDFLAGS_OPT_DBG \
+$LDFLAGS_WKRD_"}"
 if [[ "$LDFLAGS_IMPL_USE_LLD_" != '' ]]; then
 	LDFLAGS="-fuse-ld=lld $LDFLAGS"
 fi

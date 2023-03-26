@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2022 FrankHB.",
+﻿"#", "(C) 2014-2023 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -65,16 +65,15 @@ $defv/e! $assert (derive-environment std.strings env_SHBuild_)
 			" shall " (eval msg d) "."));
 $provide! ($assert-nonempty $assert-absolute-path)
 (
-	$def! mods derive-environment std.strings env_SHBuild_;
+	$def! mods derive-environment std.strings std.system;
 	$set! mods $assert $assert;
 
-	"TODO", "Use 'string?'.";
 	$defv/e! &$assert-nonempty mods (&var) d
-		eval (list $assert var ($lambda (str) not? (string-empty? str))
-			"be a string of nonempty value") d,
+		eval (list $assert var ($lambda (&x) $and (string? x)
+			(not? (string-empty? x))) "be of a string of nonempty value") d,
 	$defv/e! &$assert-absolute-path mods (&var) d
-		eval (list $assert var SHBuild_String_absolute_path?_
-			"be a string of absolute path") d
+		eval (list $assert var ($lambda (&x) $and (string? x)
+			(absolute-path? x)) "be of a string of absolute path") d
 );
 
 "NOTE", "Saving environments at first to avoid being overriden unexpectedly.";
@@ -179,6 +178,12 @@ $defl! system-or-puts (cmd str) $let (((rstr code .)
 	system-get (cons-cmd cmd (system-quote str) "2>" nul_dev_)))
 	$if (eqv? code 0) rstr str;
 
+"NOTE", "See https://stackoverflow.com/questions/27975969/27976653#27976653.";
+"XXX", "Assume Win32 always uses cmd, not respecting to COMSPEC.";
+$defl! system-qget (cmd)
+	$if (win32? SHBuild_Env_OS)
+		(system-get (system-quote cmd)) (system-get cmd);
+
 $defl! SHBuild_2m (pth) system-or-puts "cygpath -m" pth;
 $defl! SHBuild_2u (pth) system-or-puts "cygpath -au" pth;
 $defl! SHBuild_2w (pth) system-or-puts "cygpath -w" pth;
@@ -195,14 +200,14 @@ $defl! SHBuild_GetTempDir ()
 );
 
 $import! std.strings ++;
-$import! env_SHBuild_ SHBuild_MakeTempFilename;
+$import! std.system make-temporary-filename;
 
 $def! SHBuild_Env_TempDir () SHBuild_GetTempDir;
-$defl! mktmp_ () SHBuild_MakeTempFilename (++ SHBuild_Env_TempDir "/") "";
+$defl! mktmp_ () make-temporary-filename (++ SHBuild_Env_TempDir "/") "";
 "NOTE", "Suffix is now hard-coded. The suffix makes the output of the compiler",
 	" driver same to the '-o' argument in the command line.";
 $defl! mktmp_exe_ ()
-	SHBuild_MakeTempFilename (++ SHBuild_Env_TempDir "/") ".exe";
+	make-temporary-filename (++ SHBuild_Env_TempDir "/") ".exe";
 "NOTE",
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
 $defl! with-tmp-file_ (tmp-file f)
@@ -461,8 +466,10 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			(
 				"#", "$set-if-empty! LDFLAGS_IMPL_OPT", "-flto";
 				"XXX", "This is the only choice to support LTO on MinGW32 now.",
-					"It is still not ready to link successfully.";
-				"#", "$if (win32? host-os) ($redef! use_lld_ #t)"
+					"It is still not ready to run successfully for MinGW64 for",
+					" Clang++ < 14.",
+					"See https://github.com/msys2/MINGW-packages/issues/10547.";
+				$if (win32? host-os) ($redef! use_lld_ #t)
 			)
 		))
 		((eqv? SHBuild_CXX_Style_ "G++")
@@ -481,22 +488,25 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			$redef! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT"
 				cons-cmd "-fexpensive-optimizations" LTO_
 				"-fno-enforce-eh-specs";
-			$if use-ld
-			(
-				"XXX", "Workaround for LTO bug on MinGW. See",
-					" https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
-				$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
-					(++ "-fexpensive-optimizations " LTO_
-						($if (win32? host-os) " -Wl,-allow-multiple-definition"
-							""))
-			)
+			$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
+				(++ "-fexpensive-optimizations " LTO_)
 		));
+	$if use-ld
+	(
+		"XXX", "Workaround for LTO bug on MinGW. See",
+			" https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
+		$def! prom_LDFLAGS_WKRD_ $lazy-env-val "LDFLAGS_WKRD_"
+			($if ($and (win32? host-os) (not? use_lld_))
+				" -Wl,-allow-multiple-definition" "")
+	);
 	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";
 	$def! prom_CFLAGS_WARNING $lazy-env-val "CFLAGS_WARNING" cons-cmd
 		(force prom_C_CXXFLAGS_WARNING) (force prom_C_CXXFLAGS_IMPL_WARNING);
 	$def! prom_CXXFLAGS_IMPL_COMMON $lazy-env-val "CXXFLAGS_IMPL_COMMON"
 		cons-cmd (first (force prom_thread-options_))
-		"-U__GXX_MERGED_TYPEINFO_NAMES" "-D__GXX_MERGED_TYPEINFO_NAMES=1";
+		"-U__GXX_TYPEINFO_EQUALITY_INLINE" "-D__GXX_TYPEINFO_EQUALITY_INLINE=1"
+		"-U__GXX_MERGED_TYPEINFO_NAMES" ($if (win32? host-os)
+		"-D__GXX_MERGED_TYPEINFO_NAMES=0" "-D__GXX_MERGED_TYPEINFO_NAMES=1");
 	$def! prom_CXXFLAGS_STD $lazy-env-val "CXXFLAGS_STD" "-std=c++11";
 	$def! prom_CXXFLAGS_WARNING $lazy-env-val "CXXFLAGS_WARNING" cons-cmd
 		(force prom_CFLAGS_WARNING) "-Wctor-dtor-privacy" "-Wnon-virtual-dtor"
@@ -555,7 +565,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 		"#", "Forced setting %LDFLAGS for debug configurations?";
 		$env-de! LDFLAGS cons-cmd (force prom_C_CXXFLAGS_PIC)
 			(first (restv (force prom_thread-options_)))
-			(force prom_LDFLAGS_OPT_DBG);
+			(force prom_LDFLAGS_OPT_DBG) (force prom_LDFLAGS_WKRD_);
 		"TODO", "Test and exclude Anrdoid?";
 		$if use_lld_ ($redef! LDFLAGS cons-cmd "-fuse-ld=lld" LDFLAGS);
 		"#", "%LDFLAGS_OPT_DBG is set to ' ' in the caller script.";
@@ -606,6 +616,47 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );
+
+"NOTE", "This requires 'hg' in PATH.";
+$defl! get-hg-rev-info_ ()
+(
+	"XXX", "Do not use HG as it may be set by MSYS2 hg and unavailable in the",
+		" default shell in Win32.";
+	"XXX", "If the command is 'HG' which may contain spaces in its path, use",
+		" 'system-qget' instead of 'system-get'.";
+	$let (((bstr code .) system-get (cons-cmd "hg log -r \"p1()\" -T"
+		(system-quote "{search('\d+', desc)}") "2>" nul_dev_)))
+		$if (eqv? code 0)
+		(
+			$let (((rstr code2 .) system-get (cons-cmd "hg log -r \"p1()\" -T"
+				(system-quote (++ "(hg {rev}:{fill(node, 8) | firstline} "
+				"{date(date, '%Y-%m-%d')})\\n")) "2>" nul_dev_)))
+				$if (eqv? code2 0) (list "hg" bstr (++ "b" bstr " " rstr))
+					(list "" bstr "")
+		) (list "" "" "")
+);
+
+"NOTE", "This requires 'git' in PATH.";
+$defl! get-git-rev-info_ ()
+(
+	"XXX", "Assume 'sed' is always available. This is true in Git for Windows";
+	$let (((bstr code .) system-get (cons-cmd "git log -1 --format=%s" "2>"
+		nul_dev_ " | sed -E \"s/[^0-9]+([0-9]+).*/\1/\"" "2>" nul_dev_)))
+		$if (eqv? code 0)
+		(
+			$let (((rstr code2 .) system-get (cons-cmd
+				"git log -1 --date=short --format=\"(git %h %cd)\"" "2>"
+				nul_dev_)))
+				$if (eqv? code2 0) (list "git" bstr (++ "b" bstr " " rstr))
+					(list "" bstr "")
+		) (list "" "" "")
+);
+
+$defl! get-vcs-rev-info_ () $cond
+	((not? (safeenv-empty? "SHBuild_VCS_hg")) () get-hg-rev-info_)
+	((not? (safeenv-empty? "SHBuild_VCS_git")) () get-git-rev-info_)
+	(#t $let ((info () get-hg-rev-info_))
+		$if (string-empty? (first info)) (() get-git-rev-info_) info);
 
 $defl! get_env_SHB_ (host-os)
 (
@@ -664,15 +715,16 @@ $defl! get_env_SHB_ (host-os)
 		"cmd = options for the tool";
 	$defl! BuildGCH_ (header inc tool tool-opts)
 	(
-		$import! env_SHBuild_ SHBuild_BuildGCH_existed_
-			SHBuild_BuildGCH_mkpdirp_ SHBuild_TrimOptions_;
+		$import! std.io readable-nonempty-file?,
+		$import! std.system create-parent-directory*,
+		$import! env_SHBuild_ SHBuild_TrimOptions_;
 
 		$def! pch ++ inc ".gch";
 		$def! qpch system-quote pch;
-		$if (SHBuild_BuildGCH_existed_ pch)
+		$if (readable-nonempty-file? pch)
 			(putss "PCH file " qpch " exists, skipped building.")
 			(
-				SHBuild_BuildGCH_mkpdirp_ pch;
+				create-parent-directory* pch;
 				putss "Building precompiled file " qpch " ...";
 				InstSHBuild "HardLink" inc header;
 				system-check (cons-cmd (system-quote tool) (SHBuild_TrimOptions_

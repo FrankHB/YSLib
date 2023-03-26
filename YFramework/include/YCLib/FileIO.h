@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2022 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3358
+\version r3572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2022-11-28 19:04 +0800
+	2023-03-26 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,11 @@
 #define YCL_INC_FileIO_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_Debug // for YB_NONNULL, string, Nonnull, u16string_view,
-//	std::uint32_t, std::uint64_t, ynothrow, ystdex::totally_ordered, std::FILE,
-//	ystdex::enable_for_string_class_t, errno, ystdex::throw_error, u16string,
-//	std::system_error, YTraceDe, array, wstring, string_view;
+#include YFM_YCLib_Debug // for YB_NONNULL, YB_PURE, std::string, Nonnull,
+//	string, ynothrow, ystdex::totally_ordered, std::uint64_t, std::FILE,
+//	ystdex::enable_for_string_class_t, errno, u16string,
+//	std::system_error, YTraceDe, array, std::wstring, string_view, wstring;
+#include <ystdex/cstdio.h> // for ystdex::fixed_openmode;
 #include YFM_YCLib_Reference // for unique_ptr_from;
 #include <ios> // for std::ios_base::sync_with_stdio, std::ios_base::openmode;
 #include <fstream> // for std::basic_filebuf, std::filebuf, std::wfilebuf,
@@ -57,42 +58,73 @@ namespace platform
 {
 
 /*!
+\pre 间接断言：第一参数非空。
+\since build 970
+*/
+//!@{
+/*!
+\brief 构造适合表示 \c std::fopen 模式的 \c char 字符串。
+\note 字符类型非 \c char 时转换。
+\note 若字符串不指定模式，转换结果未指定。
+*/
+//!@{
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE ystdex::fixed_openmode<>
+MakeFixedMode(const char*) ynothrowv;
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE ystdex::fixed_openmode<>
+MakeFixedMode(const char16_t*) ynothrowv;
+//!@}
+
+/*!
 \brief 构造适合表示路径的 \c char 字符串。
 \note 字符类型非 \c char 时转换。
-\since build 634
 */
-//@{
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
-	PDefH(string, MakePathString, const char* s)
-	ImplRet(Nonnull(s))
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const string&, MakePathString, const string& str)
-	ImplRet(str)
-//! \pre Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
-//@{
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YF_API YB_PURE YB_NONNULL(1) string
+//!@{
+template<class _tString = std::string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathString(const typename _tString::value_type* s)
+{
+	return _tString(Nonnull(s));
+}
+template<class _tString = string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathString(const typename _tString::value_type* s,
+	typename _tString::allocator_type a)
+{
+	return _tString(Nonnull(s), a);
+}
+// NOTE: Use templates instead of functions allow specialized optimizations and
+//	explicit template arguments, and they are more efficient at least with
+//	x86_64-pc-linux G++ 12.1.
+template<class _tString = std::string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
 MakePathString(const char16_t*);
-//! \since build 658
-YB_ATTR_nodiscard inline YB_PURE
-	PDefH(string, MakePathString, u16string_view sv)
-	ImplRet(MakePathString(sv.data()))
-//@}
-//@}
+template<class _tString = string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+MakePathString(const char16_t*, typename _tString::allocator_type);
+//! \note Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
+//!@{
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE std::string
+MakePathString<std::string>(const char16_t*);
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE string
+MakePathString<string>(const char16_t*, string::allocator_type);
+//!@}
+//!@}
+//!@}
 
 
 /*!
 \brief 文件模式类型。
 \since build 626
 */
-//@{
+//!@{
 #if YCL_Win32
 using mode_t = unsigned short;
 #else
 using mode_t = ::mode_t;
 #endif
-//@}
+//!@}
 
 
 /*!
@@ -126,6 +158,7 @@ class YF_API FileDescriptor : private ystdex::totally_ordered<FileDescriptor>
 {
 public:
 	/*!
+	\ingroup deleters
 	\brief 删除器。
 	\since build 624
 	*/
@@ -174,7 +207,7 @@ public:
 	YB_ATTR_nodiscard PDefHOp(const FileDescriptor*, ->, ) const ynothrow
 		ImplRet(this)
 
-	explicit DefCvt(const ynothrow, bool, desc != -1)
+	YB_ATTR_nodiscard explicit DefCvt(const ynothrow, bool, desc != -1)
 
 	//! \since build 639
 	YB_ATTR_nodiscard YB_PURE friend yconstfn PDefHOp(bool, ==,
@@ -187,7 +220,7 @@ public:
 		ImplRet(x.desc < y.desc)
 
 	//! \exception std::system_error 参数无效或调用失败。
-	//@{
+	//!@{
 	/*!
 	\brief 取节点类别。
 	\return 失败时为 NodeCategory::Invalid ，否则为对应类别。
@@ -196,7 +229,7 @@ public:
 	YB_ATTR_nodiscard NodeCategory
 	GetCategory() const ynothrow;
 	//! \since build 719
-	//@{
+	//!@{
 	/*!
 	\brief 取旗标。
 	\note 非 POSIX 平台：不支持操作。
@@ -210,8 +243,8 @@ public:
 	//! \brief 取模式。
 	YB_ATTR_nodiscard mode_t
 	GetMode() const;
-	//@}
-	//@}
+	//!@}
+	//!@}
 	/*!
 	\brief 取大小。
 	\return 以字节计算的文件大小。
@@ -228,7 +261,7 @@ public:
 	\note 非 POSIX 平台：不支持操作。
 	\since build 719
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 设置阻塞模式。
 	\return 是否需要并改变设置。
@@ -251,7 +284,7 @@ public:
 #endif
 	void
 	SetMode(mode_t) const;
-	//@}
+	//!@}
 	/*!
 	\brief 设置非阻塞模式。
 	\return 是否需要并改变设置。
@@ -267,7 +300,7 @@ public:
 	bool
 	SetNonblocking() const;
 	//! \since build 625
-	//@{
+	//!@{
 	/*!
 	\brief 调整文件至指定长度。
 	\pre 指定文件需已经打开并可写。
@@ -303,11 +336,11 @@ public:
 	\pre 间接断言：指针参数非空。
 	\note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 循环读写文件。
 	*/
-	//@{
+	//!@{
 	/*!
 	\note 每次读 0 字节时设置 errno 为 0 。
 	\sa Read
@@ -321,7 +354,7 @@ public:
 	*/
 	YB_NONNULL(2) size_t
 	FullWrite(const void*, size_t) ynothrowv;
-	//@}
+	//!@}
 
 	/*!
 	\brief 读写文件。
@@ -329,15 +362,15 @@ public:
 	\note Win64 平台：大小截断为 32 位。
 	\return 若发生错误为 size_t(-1) ，否则为读取的字节数。
 	*/
-	//@{
+	//!@{
 	YB_NONNULL(2) size_t
 	Read(void*, size_t) ynothrowv;
 
 	YB_NONNULL(2) size_t
 	Write(const void*, size_t) ynothrowv;
-	//@}
-	//@}
-	//@}
+	//!@}
+	//!@}
+	//!@}
 
 	/*!
 	\brief 第二参数内容写入第一参数指定的文件。
@@ -346,7 +379,7 @@ public:
 	\throw std::system_error 文件读写失败。
 	\since build 634
 	*/
-	//@{
+	//!@{
 	//! \pre 参数指定的缓冲区非空且大小不等于 0 。
 	static YB_NONNULL(3) void
 	WriteContent(FileDescriptor, FileDescriptor, byte*, size_t);
@@ -357,7 +390,7 @@ public:
 	static void
 	WriteContent(FileDescriptor, FileDescriptor,
 		size_t = yimpl(size_t(BUFSIZ << 4)));
-	//@}
+	//!@}
 
 	/*!
 	\pre 间接断言：文件有效。
@@ -366,41 +399,41 @@ public:
 		以避免无法控制的释放导致安全漏洞。
 	\since build 721
 	*/
-	//@{
+	//!@{
 	/*!
 	\note Win32 平台：对内存映射文件为协同锁，其它文件为强制锁。
 	\note 其它平台：协同锁。
 	\warning 网络或分布式文件系统可能不能正确支持独占锁（如 Andrew File System ）。
 	*/
-	//@{
+	//!@{
 	//! \throw std::system_error 文件锁定失败。
-	//@{
+	//!@{
 	void
 	lock();
 
 	void
 	lock_shared();
-	//@}
+	//!@}
 
 	//! \return 是否锁定成功。
-	//@{
+	//!@{
 	bool
 	try_lock() ynothrowv;
 
 	bool
 	try_lock_shared() ynothrowv;
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	//! \pre 进程对文件访问具有所有权。
-	//@{
+	//!@{
 	void
 	unlock() ynothrowv;
 
 	void
 	unlock_shared() ynothrowv;
-	//@}
-	//@}
+	//!@}
+	//!@}
 };
 
 
@@ -420,7 +453,7 @@ DefaultPMode() ynothrow;
 \pre 间接断言：参数非空。
 \since build 669
 */
-//@{
+//!@{
 YF_API void
 SetBinaryIO(std::FILE*) ynothrowv;
 
@@ -434,7 +467,7 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 	std::FILE* out = stdout, bool sync = {}) ynothrowv
 	ImplExpr(SetBinaryIO(in), SetBinaryIO(out),
 		std::ios_base::sync_with_stdio(sync))
-//@}
+//!@}
 
 
 /*!
@@ -469,15 +502,15 @@ using use_openmode_t = yimpl(nullptr_t);
 \pre 断言：第一参数非空。
 \note 若在发生其它错误前存储分配失败，设置 errno 为 \c ENOMEM 。
 */
-//@{
+//!@{
 /*!
 \param filename 文件名，意义同 POSIX \c ::open 。
 \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \since build 720
 */
-//@{
+//!@{
 //! \param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-//@{
+//!@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char* filename, int oflag, mode_t pmode = DefaultPMode())
@@ -486,7 +519,7 @@ uopen(const char* filename, int oflag, mode_t pmode = DefaultPMode())
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
-//@}
+//!@}
 /*!
 \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
 \note 第二参数避免重载歧义。
@@ -498,7 +531,7 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 若转换失败，且 omode_conv 失败时的返回值的不对应实现已定义的值，则行为未定义。
 继续同没有 use_openmode_t 参数的 uopen 重载的方式打开文件。
 */
-//@{
+//!@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char* filename, use_openmode_t, std::ios_base::openmode mode,
@@ -507,68 +540,76 @@ uopen(const char* filename, use_openmode_t, std::ios_base::openmode mode,
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 uopen(const char16_t* filename, use_openmode_t, std::ios_base::openmode mode,
 	mode_t pmode = DefaultPMode()) ynothrowv;
-//@}
-//@}
+//!@}
+//!@}
 
 //! \param filename 文件名，意义同 std::fopen 。
-//@{
+//!@{
 /*!
 \param mode 打开模式，基本语义同 ISO C11 ，具体行为取决于实现。
 \pre 断言：<tt>mode && *mode != 0</tt> 。
 \since build 669
 */
-//@{
+//!@{
 //! \brief 以 UTF-8 文件名打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char* filename, const char* mode) ynothrowv;
 //! \brief 以 UCS-2 文件名打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrowv;
-//@}
+//!@}
 //! \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
-//@{
+//!@{
 //! \brief 以 UTF-8 文件名打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char* filename, std::ios_base::openmode mode) ynothrowv;
 //! \brief 以 UCS-2 文件名打开文件。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv;
-//@}
+//!@}
 
 /*!
-\note 使用 ufopen 二进制模式打开测试实现。
+\note 使用同 ufopen 兼容的方式打开测试实现。
 \note 第二参数含义同 ystdex::fexists 。
 \sa ystdex::fexists
-\since build 904
+\since build 970
 */
-//@{
+//!@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
+//!@{
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
+ufexists(const char*, const char* = "rb") ynothrowv;
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-ufexists(const char*, bool = {}) ynothrowv;
+ufexists(const char*, std::ios_base::openmode) ynothrowv;
+//!@}
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
+//!@{
+YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
+ufexists(const char16_t*, const char16_t* = u"rb") ynothrowv;
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
-ufexists(const char16_t*, bool = {}) ynothrowv;
-//@}
+ufexists(const char16_t*, std::ios_base::openmode) ynothrowv;
+//!@}
+//!@}
 
 /*!
 \param filename 文件名，意义同 POSIX \c ::popen 。
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：\c filename 。
-\pre 间接断言： \c mode 。
+\pre 间接断言：\c mode 。
 \note 不支持的平台操作失败设置 errno 为 ENOSYS 。
 \warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
 \sa upclose
 \since build 566
 */
-//@{
+//!@{
 //! \brief 以 UTF-8 文件名无缓冲打开管道流。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char* filename, const char* mode) ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开管道流。
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 关闭管道流。
@@ -578,20 +619,20 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrowv;
-//@}
+//!@}
 
 
 /*!
 \ingroup workarounds
 \since build 616
 */
-//@{
+//!@{
 #if _LIBCPP_VERSION || __GLIBCXX__ || YB_IMPL_MSCPP
 /*!
 \note 扩展打开模式。
 \since build 721
 */
-//@{
+//!@{
 #	if _LIBCPP_VERSION
 yconstexpr const auto ios_nocreate(yimpl(std::ios::yimpl(trunc << 1)));
 yconstexpr const auto ios_noreplace(yimpl(std::ios::yimpl(trunc << 2)));
@@ -609,7 +650,7 @@ yconstexpr const auto ios_noreplace(
 yconstexpr const auto ios_nocreate(std::ios::_Nocreate);
 yconstexpr const auto ios_noreplace(std::ios::_Noreplace);
 #	endif
-//@}
+//!@}
 
 
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -690,7 +731,7 @@ public:
 			//	avoid redendant overhead of the mode conversion to the C file
 			//	mode in the underlying calls, the result of %uopen is checked at
 			//	first.
-			const int fd(uopen(s, {}, mode));
+			const int fd(uopen(s, use_openmode_t(), mode));
 
 			if(fd != -1)
 			{
@@ -799,7 +840,7 @@ using wfilebuf = basic_filebuf<wchar_t>;
 
 
 //! \since build 619
-//@{
+//!@{
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_ifstream : public std::basic_istream<_tChar, _tTraits>
 {
@@ -984,7 +1025,7 @@ public:
 
 template<typename _tChar, class _tTraits>
 inline DefSwapMem(, basic_ofstream<_tChar YPP_Comma _tTraits>)
-//@}
+//!@}
 
 
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -1084,14 +1125,14 @@ inline DefSwapMem(, basic_fstream<_tChar YPP_Comma _tTraits>)
 //extern template class YF_API basic_fstream<wchar_t>;
 
 //! \since build 619
-//@{
+//!@{
 using ifstream = basic_ifstream<char>;
 using ofstream = basic_ofstream<char>;
 //! \since build 616
 using fstream = basic_fstream<char>;
 using wifstream = basic_ifstream<wchar_t>;
 using wofstream = basic_ofstream<wchar_t>;
-//@}
+//!@}
 using wfstream = basic_fstream<wchar_t>;
 #else
 // TODO: Use VC++ extensions to support %char16_t path initialization.
@@ -1099,7 +1140,7 @@ using std::basic_filebuf;
 using std::filebuf;
 using std::wfilebuf;
 //! \since build 619
-//@{
+//!@{
 using std::basic_ifstream;
 using std::basic_ofstream;
 //! \since build 616
@@ -1110,10 +1151,10 @@ using std::ofstream;
 using std::fstream;
 using std::wifstream;
 using std::wofstream;
-//@}
+//!@}
 using std::wfstream;
 #endif
-//@}
+//!@}
 
 
 /*!
@@ -1133,7 +1174,7 @@ StreamGet(std::istream&, string&);
 \brief 向流中输出字符串。
 \note Win32 平台：检查流是否使用控制台。若使用控制台，刷新流并使用控制台输出。
 */
-//@{
+//!@{
 /*!
 \pre 断言：参数非空。
 \return 是否输出成功。
@@ -1154,7 +1195,7 @@ StreamPut(std::FILE*, const char*);
 */
 YF_API YB_NONNULL(2) void
 StreamPut(std::ostream&, const char*);
-//@}
+//!@}
 
 
 /*!
@@ -1180,15 +1221,15 @@ EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 
 首先比较文件节点，若为相同文件直接相等，否则清除 errno ，打开文件读取内容并比较。
 */
-//@{
+//!@{
 //! \note 间接断言：参数非空。
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char*, const char*, mode_t = DefaultPMode());
 //! \since build 701
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
-//@}
+//!@}
 /*!
 \note 使用表示文件名称的字符串，仅用于在异常消息中显示（若为空则省略）。
 \note 参数表示的文件已以可读形式打开，否则按流打开失败。
@@ -1197,55 +1238,97 @@ HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
 */
 YB_ATTR_nodiscard YF_API bool
 HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
-//@}
+//!@}
 
 } // namespace platform;
 
 namespace platform_ex
 {
 
-//! \since build 706
-//@{
+/*!
+\pre 间接断言：第一参数非空。
+\since build 970
+*/
+//!@{
 #if YCL_Win32
 /*!
-\brief 构造适合表示路径的 \c char16_t 字符串。
-\note 字符类型非 \c char16_t 时转换。
+\brief 构造适合表示 \c std::fopen 模式的 \c char 字符串。
+\note 字符类型非 \c char 时转换。
+\note 若字符串不指定模式，转换结果未指定。
 */
-//@{
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YB_NONNULL(1) inline
-	PDefH(wstring, MakePathStringW, const wchar_t* s)
-	ImplRet(platform::Nonnull(s))
-inline PDefH(const wstring&, MakePathStringW, const wstring& str)
-	ImplRet(str)
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) wstring
-MakePathStringW(const char*);
-inline PDefH(wstring, MakePathStringW, string_view sv)
-	ImplRet(MakePathStringW(sv.data()))
-//@}
-#else
-/*!
-\brief 构造适合表示路径的 \c char16_t 字符串。
-\note 字符类型非 \c char16_t 时转换。
-*/
-//@{
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline
-	PDefH(u16string, MakePathStringU, const char16_t* str)
-	ImplRet(platform::Nonnull(str))
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(const u16string&, MakePathStringU, const u16string& str)
-	ImplRet(str)
-//! \pre 间接断言：参数非空。
-YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE u16string
-MakePathStringU(const char*);
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(u16string, MakePathStringU, string_view sv)
-	ImplRet(MakePathStringU(sv.data()))
-//@}
+//!@{
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE ystdex::fixed_openmode<wchar_t>
+MakeFixedModeW(const wchar_t*) ynothrowv;
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE ystdex::fixed_openmode<wchar_t>
+MakeFixedModeW(const char*) ynothrowv;
+//!@}
 #endif
-//@}
+
+//! \brief 构造适合表示路径的 UCS-2 字符串。
+//!@{
+#if YCL_Win32
+//! \note 字符类型非 \c wchar_t 时转换。
+//!@{
+template<class _tString = std::wstring>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathStringW(const typename _tString::value_type* s)
+{
+	return _tString(Nonnull(s));
+}
+template<class _tString = wstring>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathStringW(const typename _tString::value_type* s,
+	typename _tString::allocator_type a)
+{
+	return _tString(Nonnull(s), a);
+}
+// NOTE: As %MakePathString.
+template<class _tString = std::wstring>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+MakePathStringW(const char*);
+template<class _tString = wstring>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+MakePathStringW(const char*, typename _tString::allocator_type);
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE std::wstring
+MakePathStringW<std::wstring>(const char*);
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE wstring
+MakePathStringW<wstring>(const char*, wstring::allocator_type);
+//!@}
+#else
+//! \note 字符类型非 \c char16_t 时转换。
+//!@{
+template<class _tString = std::u16string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathStringU(const typename _tString::value_type* s)
+{
+	return _tString(Nonnull(s));
+}
+template<class _tString = u16string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE inline _tString
+MakePathStringU(const typename _tString::value_type* s,
+	typename _tString::allocator_type a)
+{
+	return _tString(Nonnull(s), a);
+}
+// NOTE: As %MakePathString.
+template<class _tString = std::u16string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+MakePathStringU(const char*);
+template<class _tString = u16string>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+MakePathStringU(const char*, typename _tString::allocator_type);
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE std::u16string
+MakePathStringU<std::u16string>(const char*);
+template<>
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) YB_PURE u16string
+MakePathStringU<u16string>(const char*, u16string::allocator_type);
+//!@}
+#endif
+//!@}
+//!@}
 
 } // namespace platform_ex;
 

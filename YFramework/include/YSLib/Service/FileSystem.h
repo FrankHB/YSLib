@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2018-2022 FrankHB.
+	© 2010-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3759
+\version r3899
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2022-11-05 21:41 +0800
+	2023-03-11 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,12 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative,
-//	FetchCurrentWorkingDirectory, function, IO::Remove;
-#include YFM_YSLib_Core_YString
+#include YFM_YSLib_Service_File // for basic_string_view, HDirectory, size_t,
+//	string, YSLib::CheckNonnegative, ystdex::enable_if_constructible_r_t,
+//	ystdex::enable_if_t, ystdex::and_, ystdex::not_, std::is_constructible,
+//	u16string_view, std::is_constructible, FetchCurrentWorkingDirectory,
+//	function, FileDescriptor, mode_t, UniqueFile, IO::Remove;
+#include YFM_YSLib_Core_YString // for String;
 #include <ystdex/algorithm.hpp> // for ystdex::split;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
@@ -53,16 +56,17 @@ using NativePathView = basic_string_view<HDirectory::NativeChar>;
 yconstexpr const size_t MaxPathLength(yimpl(1 << 10));
 
 
-/*!
-\brief 判断路径表示绝对路径。
-\since build 410
-*/
-//@{
-inline PDefH(bool, IsAbsolute, const string& path)
+//! \since build 970
+//!@{
+//! \brief 判断路径表示绝对路径。
+//!@{
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsAbsolute, const string& path)
+	ynothrow
 	ImplRet(IsAbsolute(path.c_str()))
-inline PDefH(bool, IsAbsolute, const String& path)
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsAbsolute, const String& path)
+	ynothrow
 	ImplRet(IsAbsolute(path.GetMBCS()))
-//@}
+//!@}
 
 /*!
 \brief 判断路径表示相对路径（包括空路径）。
@@ -70,11 +74,12 @@ inline PDefH(bool, IsAbsolute, const String& path)
 \since build 652
 */
 template<typename _type>
-inline bool
-IsRelative(const _type& arg)
+YB_ATTR_nodiscard YB_PURE inline bool
+IsRelative(const _type& arg) ynothrow
 {
 	return !IsAbsolute(arg);
 }
+//!@}
 
 
 /*!
@@ -94,16 +99,16 @@ struct PathTraits : ystdex::path_traits<void>
 
 	//! \note 要求无异常抛出。
 	template<typename _tChar>
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	IsDelimiter(_tChar c) ynothrow
 	{
 		return IO::IsSeparator(c);
 	}
 
 	//! \since build 836
-	//@{
+	//!@{
 	template<class _tString>
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	is_absolute(const _tString& str) ynothrow
 	{
 		return has_root_path(str) && (ystdex::string_empty(str)
@@ -111,19 +116,19 @@ struct PathTraits : ystdex::path_traits<void>
 	}
 
 	template<class _tString>
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	has_root_path(const _tString& str) ynothrow
 	{
 		return ystdex::string_length(str) == IO::FetchRootPathLength(str);
 	}
 
 	template<class _tString>
-	static yconstfn bool
+	YB_ATTR_nodiscard YB_PURE static yconstfn bool
 	has_root_name(const _tString& str) ynothrow
 	{
 		return !ystdex::string_empty(str) && IO::FetchRootNameLength(str) != 0;
 	}
-	//@}
+	//!@}
 };
 
 
@@ -154,9 +159,9 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 \note 检查根路径。若存在根路径且提供的 Path 参数为空则覆盖。
 \since build 960
 */
-//@{
+//!@{
 //! \pre 断言：路径参数的数据指针非空。
-//@{
+//!@{
 //! \since build 836
 template<class _tPath, typename _func,
 	class _tStringView = string_view_t<typename _tPath::value_type>,
@@ -219,7 +224,7 @@ ParsePathWith(_tStringView sv, _func f,
 {
 	return IO::ParsePathWith(sv, f, a, _tPath(a));
 }
-//@}
+//!@}
 
 //! \since build 708
 template<class _tPath, class _tStringView = string_view_t<typename
@@ -257,7 +262,7 @@ ParsePath(_tStringView sv, typename _tPath::value_type::allocator_type a)
 {
 	return IO::ParsePath(sv, a, _tPath(a));
 }
-//@}
+//!@}
 
 
 //! \since build 409
@@ -290,7 +295,7 @@ public:
 	*/
 	DefDeCtor(Path)
 	//! \since build 957
-	//@{
+	//!@{
 	Path(allocator_type a) ynothrow
 		: ypath(a)
 	{}
@@ -307,7 +312,7 @@ public:
 	*/
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
 		ystdex::or_<std::is_constructible<u16string_view, _type>,
-		std::is_constructible<String, _type>>::value>,
+		std::is_constructible<String, _type>>{}>,
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg, allocator_type a = {})
@@ -331,7 +336,7 @@ public:
 	Path(std::initializer_list<_tElem> il, allocator_type a = {})
 		: Path(il.begin(), il.end(), a)
 	{}
-	//@}
+	//!@}
 	//! \brief 复制构造：使用参数和参数的分配器。
 	Path(const Path& pth)
 		: Path(pth, pth.get_allocator())
@@ -364,7 +369,7 @@ public:
 	DefDeMoveAssignment(Path)
 
 	//! \brief 追加路径。
-	//@{
+	//!@{
 	PDefHOp(Path&, /=, const Path& pth)
 		ImplRet(GetBaseRef() /= pth, *this)
 	//! \since build 838
@@ -373,7 +378,7 @@ public:
 	//! \since build 838
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
 		ystdex::or_<std::is_constructible<u16string_view, _type>,
-		std::is_constructible<String, _type>>::value>,
+		std::is_constructible<String, _type>>{}>,
 		typename = ystdex::exclude_self_t<Path, _type>,
 		typename = ystdex::exclude_self_t<ypath, _type>)>
 	Path&
@@ -385,7 +390,7 @@ public:
 		return GetBaseRef() /= String(AsStringArg(yforward(arg),
 			get_allocator())), *this;
 	}
-	//@}
+	//!@}
 
 	YB_ATTR_nodiscard YB_PURE friend
 		PDefHOp(bool, ==, const Path& x, const Path& y)
@@ -400,21 +405,19 @@ public:
 	\sa Verify
 	\since build 409
 	*/
-	explicit
-	DefCvt(const, String, GetLeafString())
+	YB_ATTR_nodiscard explicit DefCvt(const, String, GetLeafString())
 	/*!
 	\brief 转换为窄字符串。
 	\since build 411
 	*/
-	explicit
-	DefCvt(const, string, String(*this).GetMBCS())
+	YB_ATTR_nodiscard explicit DefCvt(const, string, String(*this).GetMBCS())
 
 	//! \since build 600
-	DefGetter(const ynothrow, const ypath&, Base, *this)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const ypath&, Base, *this)
 	//! \since build 600
-	DefGetter(ynothrow, ypath&, BaseRef, *this)
+	YB_ATTR_nodiscard DefGetter(ynothrow, ypath&, BaseRef, *this)
 	//! \since build 641
-	//@{
+	//!@{
 	//! \brief 取不带分隔符结束的字符串。
 	PDefH(String, GetLeafString,
 		char16_t delimiter = FetchSeparator<char16_t>()) const
@@ -425,22 +428,22 @@ public:
 	*/
 	String
 	GetString(char16_t = FetchSeparator<char16_t>()) const;
-	//@}
+	//!@}
 
 private:
 	//! \since build 960
 	template<typename _tParam>
 	YB_ATTR_nodiscard static YB_PURE auto
 	AsStringArg(_tParam&& arg, allocator_type = {})
-		-> yimpl(ystdex::enable_if_t)<std::is_constructible<u16string_view,
-		_tParam>::value, u16string_view>
+		-> yimpl(ystdex::enable_if_constructible_r_t)<u16string_view,
+		u16string_view, _tParam>
 	{
 		return u16string_view(yforward(arg));
 	}
 	//! \since build 960
 	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
 		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
-		_tParam>>, std::is_constructible<String, _tParam>>::value>)>
+		_tParam>>, std::is_constructible<String, _tParam>>{}>)>
 	YB_ATTR_nodiscard static YB_PURE String
 	AsStringArg(_tParam&& arg, allocator_type a = {})
 	{
@@ -474,7 +477,7 @@ public:
 		ImplRet(Verify(delimiter).GetMBCS(enc))
 
 	//! \since build 409
-	//@{
+	//!@{
 	using ypath::back;
 
 	using ypath::begin;
@@ -507,7 +510,7 @@ public:
 	using ypath::is_absolute;
 
 	using ypath::is_relative;
-	//@}
+	//!@}
 
 	//! \since build 599
 	using ypath::max_size;
@@ -531,14 +534,14 @@ public:
 	using ypath::size;
 
 	//! \since build 710
-	//@{
+	//!@{
 	friend PDefH(void, swap, Path& x, ypath& y)
 		ImplExpr(y.swap(x));
 	friend PDefH(void, swap, ypath& x, Path& y)
 		ImplExpr(x.swap(y));
 	friend PDefH(void, swap, Path& x, Path& y)
 		ImplExpr(y.GetBaseRef().swap(x))
-	//@}
+	//!@}
 
 	//! \since build 957
 	YB_ATTR_nodiscard YB_PURE
@@ -556,7 +559,7 @@ public:
 \note 非贪婪匹配。
 \since build 410
 */
-//@{
+//!@{
 //! \since build 599
 template<class _tString>
 _tString
@@ -567,11 +570,11 @@ GetExtensionOf(const _tString& fname)
 //! \relates Path
 inline PDefH(String, GetExtensionOf, const Path& pth)
 	ImplRet(pth.empty() ? String() : GetExtensionOf(pth.back()))
-//@}
+//!@}
 
 
 //! \relates Path
-//@{
+//!@{
 /*!
 \brief 判断路径表示绝对路径。
 \since build 410
@@ -591,7 +594,7 @@ inline PDefH(bool, IsAbsolute, const Path& pth)
 */
 YF_API Path
 MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
-//@}
+//!@}
 
 
 /*!
@@ -599,7 +602,7 @@ MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
 \note 受权限限制。
 \since build 410
 */
-//@{
+//!@{
 YF_API YB_NONNULL(1) bool
 VerifyDirectory(const char*);
 //! \since build 699
@@ -614,7 +617,7 @@ inline PDefH(bool, VerifyDirectory, const String& path)
 	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
-//@}
+//!@}
 
 /*!
 \brief 验证目录路径结尾：确保当且仅当验证成功时保留结尾字符。
@@ -630,23 +633,39 @@ VerifyDirectoryPathTail(_tString&& str)
 	return yforward(str);
 }
 
+/*!
+\return 操作是否成功。
+\throw std::system_error 失败时根据 \c errno 抛出的异常。
+\note 若目录已存在，视为操作失败，但不抛出异常。
+\since build 970
+\sa umkdir
+*/
+//!@{
+//! \brief 创建参数指定名称的目录。
+//!@{
+YF_API YB_NONNULL(1) bool
+CreateDirectory(const char*);
+inline PDefH(bool, CreateDirectory, const string& path)
+	ImplRet(CreateDirectory(path.c_str()))
+inline PDefH(bool, CreateDirectory, const String& path)
+	ImplRet(CreateDirectory(path.GetMBCS()))
+//!@}
 
 /*!
-\brief 验证路径表示的目录是否存在，若不存在则逐级创建。
-\throw std::system_error 失败时根据 errno 抛出的异常。
-\note 使用 umkdir 实现。
-\since build 563
+\brief 验证路径表示的目录是否存在，若不存在则逐级创建所在的父目录和目录。
+\sa VerifyDirectory
 */
-//@{
-YF_API void
+//!@{
+YF_API bool
 EnsureDirectory(const Path&);
-inline PDefH(void, EnsureDirectory, const char* path)
-	ImplExpr(EnsureDirectory(Path(path)))
-inline PDefH(void, EnsureDirectory, const string& path)
-	ImplExpr(EnsureDirectory(path.c_str()))
-inline PDefH(void, EnsureDirectory, const String& path)
-	ImplExpr(EnsureDirectory(path.GetMBCS()))
-//@}
+inline PDefH(bool, EnsureDirectory, const char* path)
+	ImplRet(EnsureDirectory(Path(path)))
+inline PDefH(bool, EnsureDirectory, const string& path)
+	ImplRet(EnsureDirectory(path.c_str()))
+inline PDefH(bool, EnsureDirectory, const String& path)
+	ImplRet(EnsureDirectory(path.GetMBCS()))
+//!@}
+//!@}
 
 
 /*!
@@ -658,13 +677,13 @@ inline PDefH(void, EnsureDirectory, const String& path)
 \note 使用 ADL cbegin 和 cend 。
 \since build 708
 */
-//@{
+//!@{
 /*!
 \note 第二参数指定起始路径。
 \note 第三参数指定解析链接的次数上限。
 \since build 836
 */
-//@{
+//!@{
 template<class _tPath = Path, class _tStringView = string_view_t<typename
 	_tPath::value_type>, class _tTraits = typename _tPath::traits_type>
 YB_ATTR_nodiscard _tPath
@@ -717,13 +736,13 @@ ResolvePathWithBase(_tStringView sv, _tPath base,
 			pth.redirect(IO::ParsePath<_tPath>(std::move(str), a));
 	}, a, std::move(base));
 }
-//@}
+//!@}
 
 /*!
 \note 第二参数指定解析链接的次数上限。
 \note 第三参数指定起始路径使用的初始缓冲区大小。
 */
-//@{
+//!@{
 template<class _tPath = Path, class _tString = typename _tPath::value_type,
 	class _tTraits = typename _tPath::traits_type>
 YB_ATTR_nodiscard _tPath
@@ -746,15 +765,15 @@ ResolvePath(const _tString& str, typename _tPath::value_type::allocator_type a,
 		: IO::ParsePath<_tPath>(FetchCurrentWorkingDirectory<typename
 		_tString::value_type>(init_len, a), a), a, n);
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
 \brief 目录遍历操作。
 \since build 538
 */
-//@{
+//!@{
 template<typename _func>
 void
 Traverse(HDirectory& dir, _func f)
@@ -768,9 +787,9 @@ Traverse(HDirectory& dir, _func f)
 	}
 }
 //! \exception std::system_error 目录打开失败。
-//@{
+//!@{
 //! \note 允许目录路径以分隔符结束。
-//@{
+//!@{
 //! \pre 间接断言：指针参数非空。
 template<typename _func>
 YB_NONNULL(1) inline void
@@ -788,17 +807,17 @@ Traverse(const string& path, _func f)
 {
 	IO::Traverse(path.c_str(), f);
 }
-//@}
+//!@}
 template<typename _func>
 inline void
 Traverse(const Path& pth, _func f)
 {
 	IO::Traverse(string(pth), f);
 }
-//@}
+//!@}
 
 //! \note 允许目录路径以分隔符结束。
-//@{
+//!@{
 /*!
 \pre 间接断言：指针参数非空。
 \since build 654
@@ -820,7 +839,7 @@ TraverseChildren(const string& path, _func f)
 {
 	IO::TraverseChildren(path.c_str(), f);
 }
-//@}
+//!@}
 //! \since build 654
 template<typename _func>
 inline void
@@ -828,7 +847,7 @@ TraverseChildren(const Path& pth, _func f)
 {
 	IO::TraverseChildren(string(pth), f);
 }
-//@}
+//!@}
 
 /*!
 \brief 递归遍历目录树。
@@ -859,7 +878,7 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 
 
 //! \since build 651
-//@{
+//!@{
 /*!
 \brief 复制文件处理器：通知文件复制事件。
 \note 函数参数分别对应目标和源。
@@ -867,7 +886,7 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 using CopyFileHandler = function<void(FileDescriptor, FileDescriptor)>;
 
 //! \sa CopyFileHandler
-//@{
+//!@{
 //! \brief 保持修改时间。
 const auto PreserveModificationTime(
 	ystdex::bind_forward(SetFileModificationTimeOf,
@@ -878,19 +897,19 @@ const auto PreserveModificationAndAccessTime(
 	ystdex::bind_forward(SetFileModificationAndAccessTimeOf,
 	static_cast<array<FileTime,
 	2>(&)(const FileDescriptor&)>(GetFileModificationAndAccessTimeOf)));
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 复制文件。
 \pre 间接断言：表示目标和源的参数非空。
 \note mode_t 参数依次表示打开目标和源的权限模式。
-\see $2015-09 @ %Documentation::Workflow.
+\see $2015-09 @ %Documentation::Workflow 。
 
 以第一参数表示目标，第二参数表示源，复制文件内容。
 不复制文件元数据。
 */
-//@{
+//!@{
 /*!
 \note 不清空目标。
 \since build 637
@@ -898,7 +917,7 @@ const auto PreserveModificationAndAccessTime(
 YF_API void
 CopyFile(UniqueFile, FileDescriptor);
 //! \exception std::system_error 打开文件失败。
-//@{
+//!@{
 /*!
 \note 不清空目标。
 \since build 648
@@ -906,9 +925,9 @@ CopyFile(UniqueFile, FileDescriptor);
 YF_API YB_NONNULL(2) void
 CopyFile(UniqueFile, const char*);
 //! \sa EnsureUniqueFile
-//@{
+//!@{
 //! \note 除第二参数外含义和 EnsureUniqueFile 的参数依次相同。
-//@{
+//!@{
 //! \since build 639
 YF_API YB_NONNULL(1) void
 CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
@@ -917,27 +936,27 @@ CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
 YF_API YB_NONNULL(1, 2) void
 CopyFile(const char*, const char*, mode_t = DefaultPMode(), size_t = 1,
 	bool = {});
-//@}
+//!@}
 /*!
 \exception std::bad_function_call 第三参数为空。
 \note 第三参数指定成功复制内容后关闭目标文件前的操作。
 \note 除第二和第三参数外含义和 EnsureUniqueFile 的参数依次相同。
 \since build 651
 */
-//@{
+//!@{
 YF_API YB_NONNULL(1) void
 CopyFile(const char*, FileDescriptor, CopyFileHandler, mode_t = DefaultPMode(),
 	size_t = 1, bool = {});
 YF_API YB_NONNULL(1, 2) void
 CopyFile(const char*, const char*, CopyFileHandler, mode_t = DefaultPMode(),
 	size_t = 1, bool = {});
-//@}
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
+//!@}
 
 //! \note 失败时立刻终止操作。
-//@{
+//!@{
 /*!
 \brief 复制目录树。
 \warning 不检查无限递归调用。
@@ -957,27 +976,27 @@ CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 }
 
 //! \exception std::system_error 路径指向的不是一个目录或删除失败。
-//@{
+//!@{
 /*!
 \brief 清空参数指定路径的目录树内容。
 \since build 639
 */
-//@{
+//!@{
 YF_API void
 ClearTree(const Path&);
 inline PDefH(void, ClearTree, const string& pth)
 	ImplRet(ClearTree(Path(pth)))
-//@}
+//!@}
 
 //! \brief 删除参数指定路径的目录树。
-//@{
+//!@{
 inline PDefH(void, DeleteTree, const Path& pth)
 	ImplExpr(ClearTree(pth), IO::Remove(string(pth).c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
 	ImplExpr(DeleteTree(Path(pth)))
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 遍历目录中的项目，更新至列表。
@@ -986,7 +1005,7 @@ inline PDefH(void, DeleteTree, const string& pth)
 */
 YF_API void
 ListFiles(const Path&, vector<String>&);
-//@}
+//!@}
 
 
 /*!
@@ -1009,30 +1028,30 @@ namespace Deployment
 \since build 651
 \todo 检查可能存在于目标路径的旧项的权限；设置权限。
 */
-//@{
-//@{
+//!@{
+//!@{
 /*!
 \brief 安装文件：复制单个文件。
 \note 复制前检查内容，若相同则不进行冗余复制（类似 rsync -a ）。
 */
-//@{
+//!@{
 //! \since build 659
 YF_API YB_NONNULL(1, 2) void
 InstallFile(const char*, const char*);
 inline PDefH(void, InstallFile, const string& dst, const string& src)
 	ImplExpr(InstallFile(dst.c_str(), src.c_str()))
-//@}
+//!@}
 
 //! \brief 安装目录：复制目录树。
-//@{
+//!@{
 //! \since build 659
 YF_API void
 InstallDirectory(const string&, const string&);
 YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
 	const char* src)
 	ImplExpr(InstallDirectory(string(dst), string(src)))
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \note 在创建链接前首先删除文件。
@@ -1040,41 +1059,41 @@ YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
 \note 非强异常安全：删除文件成功但创建链接失败时，不重新创建原有的链接。
 \see IO::Remove
 */
-//@{
+//!@{
 /*!
 \brief 安装硬链接：创建硬链接，失败则安装文件。
 \throw std::invalid_argument 安装前发现源是有效的目录。
 */
-//@{
+//!@{
 //! \since build 659
 YF_API YB_NONNULL(1, 2) void
 InstallHardLink(const char*, const char*);
 inline PDefH(void, InstallHardLink, const string& dst, const string& src)
 	ImplExpr(InstallHardLink(dst.c_str(), src.c_str()))
-//@}
+//!@}
 
 //! \brief 安装符号链接：创建文件符号链接，失败则安装文件。
-//@{
+//!@{
 //! \since build 659
 YF_API YB_NONNULL(1, 2) void
 InstallSymbolicLink(const char*, const char*);
 inline PDefH(void, InstallSymbolicLink, const string& dst, const string& src)
 	ImplExpr(InstallSymbolicLink(dst.c_str(), src.c_str()))
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 安装可执行文件：安装文件并按需设置可执行权限。
 \since build 659
 \todo 设置 chmod +x 或 NTFS 可执行权限。
 */
-//@{
+//!@{
 YF_API YB_NONNULL(1, 2) void
 InstallExecutable(const char*, const char*);
 inline PDefH(void, InstallExecutable, const string& dst, const string& src)
 	ImplExpr(InstallExecutable(dst.c_str(), src.c_str()))
-//@}
-//@}
+//!@}
+//!@}
 
 } // namespace Deployment;
 

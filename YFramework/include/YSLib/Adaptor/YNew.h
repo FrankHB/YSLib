@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2017-2021 FrankHB.
+	© 2010-2015, 2017-2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file YNew.h
 \ingroup Adaptor
-\brief 存储调试设施。
-\version r1219
+\brief 动态存储和调试设施。
+\version r1245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2021-12-21 20:01 +0800
+	2023-03-26 06:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@
 #include <new> // for std::nothrow_t;
 #include <string>
 #include <list>
-#include <map>
+#include <ystdex/flat_map.hpp> // for ystdex::flat_map, std::vector;
 #include <cstdio>
 #if defined(__GLIBCXX__)
 #	include <ext/malloc_allocator.h> // for libstdc++ malloc allocator;
@@ -52,7 +52,7 @@
 #include <ystdex/base.h> // for ystdex::noncopyable;
 
 #if false
-//@{
+//!@{
 /*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173
@@ -73,7 +73,7 @@ YF_API void
 operator delete(void*, const std::nothrow_t&, const char*, int) ynothrow;
 YF_API void
 operator delete[](void*, const std::nothrow_t&, const char*, int) ynothrow;
-//@}
+//!@}
 #endif
 
 
@@ -86,7 +86,7 @@ class MemoryList;
 \brief 取调试用内存块列表。
 \since build 203
 */
-YF_API MemoryList&
+YB_ATTR_nodiscard YF_API MemoryList&
 GetDebugMemoryList();
 
 
@@ -115,13 +115,14 @@ public:
 		std::string file;
 		int line;
 
+		//! \since build 970
 		explicit
-		BlockInfo(std::size_t s, const char* f, int l)
+		BlockInfo(std::size_t s, const char* f, int l) ynothrow
 			: size(s), file(f), line(l)
 		{}
 	};
 
-	//! \brief new 表达式分配记录器。
+	//! \brief \c new 表达式分配记录器。
 	class NewRecorder final : private ystdex::noncopyable
 	{
 	private:
@@ -130,16 +131,18 @@ public:
 		const int line;
 
 	public:
+		//! \since build 970
 		explicit yconstfn
 		NewRecorder(const char* f, int l, MemoryList& b = GetDebugMemoryList())
+			ynothrow
 			: blocks(b), file(f), line(l)
 		{}
 
 	public:
 		/*!
-		\brief 接受 new 表达式返回的指针并注册内存分配记录。
+		\brief 接受 \c new 表达式返回的指针并注册内存分配记录。
 
-		\note 此用法参考 nvwa 0.8.2 ：
+		此用法参考 nvwa 0.8.2 ：
 		http://sourceforge.net/projects/nvwa/files/nvwa/ 。
 		*/
 		template<typename _type>
@@ -151,8 +154,11 @@ public:
 		}
 	};
 
-	using MapType = std::map<const void*, BlockInfo, std::less<const void*>,
-		MemoryListAllocator<std::pair<const void* const, BlockInfo>>>;
+	// XXX: This should be %YSLib::value_map with custom allocator. However, the
+	//	header %YCLib.Container is not included here.
+	using MapType = ystdex::flat_map<const void*, BlockInfo,
+		std::less<const void*>, std::vector<const void*, MemoryListAllocator<
+		const void*>>, std::vector<BlockInfo, MemoryListAllocator<BlockInfo>>>;
 	using ListType = std::list<std::pair<const void*, BlockInfo>,
 		MemoryListAllocator<std::pair<const void*, BlockInfo>>>;
 
@@ -162,7 +168,8 @@ public:
 	explicit
 	MemoryList(void(*)());
 
-	DefGetter(const ynothrow, MapType::size_type, Size, Blocks.size())
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, MapType::size_type, Size, Blocks.size())
 
 	void
 	Register(const void*, std::size_t, const char*, int);
@@ -170,15 +177,17 @@ public:
 	void
 	Unregister(const void*, const char*, int);
 
-	//! \since build 317
+	//! \since build 970
+	//!@{
 	static void
-	Print(const MapType::value_type&, std::FILE*);
+	Print(const MapType::value_type&, std::FILE*) ynothrow;
 
 	void
-	PrintAll(std::FILE*);
+	PrintAll(std::FILE*) ynothrow;
 
 	void
-	PrintAllDuplicate(std::FILE*);
+	PrintAllDuplicate(std::FILE*) ynothrow;
+	//!@}
 };
 
 } // namespace YSLib;

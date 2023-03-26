@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2022 FrankHB.
+	© 2015-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r866
+\version r891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2022-05-17 12:04 +0800
+	2023-03-26 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@ See readme file for details.
 
 
 #include <YSBuild.h>
-#include YFM_NPL_SXML // for NPL, SXML, MakeAttributeLiteral,
-//	InsertAttributeNode, InsertChildSyntaxNode, ystdex::seq_apply;
+#include YFM_NPL_SXML // for NPL, SXML, string_view, MakeAttributeLiteral,
+//	InsertAttributeNode, InsertChildSyntaxNode, ystdex::seq_apply, std::string,
+//	YSLib::make_string_view;
 #include YFM_YCLib_Host // for platform_ex::DecodeArg, platform_ex::EncodeArg;
 #include <iostream>
 
@@ -46,7 +47,7 @@ const string C_CONF(" -f $makefile -r CONF=$target");
 const string C_CMD("CMD /C ");
 
 //! \since build 600
-//@{
+//!@{
 using spath = ystdex::path<vector<string>>;
 
 YB_ATTR_nodiscard yconstfn YB_STATELESS
@@ -69,7 +70,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(spath, GetLibPath, const string& name,
 YB_ATTR_nodiscard YB_PURE inline PDefH(string, QuoteCommandPath,
 	const spath& pth, const string& separator = "\\")
 	ImplRet(ystdex::quote(to_string(pth, separator), " &quot;", "&quot;"))
-//@}
+//!@}
 
 YB_ATTR_nodiscard NodeLiteral
 MakeCommandLiteral(const string& jstr = "-j8")
@@ -115,18 +116,21 @@ MakeExtraCommandLiteral(bool debug, const string& proj, const spath& prefix)
 		{make(del("YFramework"))}, {make(create("YFramework"))}}};
 }
 
-//! \since build 850
-//@{
+/*!
+\pre 参数的数据指针非空。
+\since build 970
+*/
+//!@{
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(bool, IsDSARM, const string& platform) ynothrow
+	PDefH(bool, IsDSARM, string_view platform) ynothrow
 	ImplRet(platform == "DS_ARM7" || platform == "DS_ARM9")
 
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(bool, IsDS, const string& platform) ynothrow
+	PDefH(bool, IsDS, string_view platform) ynothrow
 	ImplRet(platform == "DS" || IsDSARM(platform))
 
 YB_ATTR_nodiscard YB_PURE string
-LookupCompilerName(const string& platform) ynothrow
+LookupCompilerName(string_view platform) ynothrow
 {
 	if(platform.empty())
 		return "null";
@@ -138,9 +142,9 @@ LookupCompilerName(const string& platform) ynothrow
 }
 
 YB_ATTR_nodiscard YB_PURE inline
-	PDefH(bool, CheckIfCustomMakefile, const string& platform)
+	PDefH(bool, CheckIfCustomMakefile, string_view platform)
 	ImplRet(LookupCompilerName(platform) != "gcc")
-//@}
+//!@}
 
 
 enum class BuildType : yimpl(size_t)
@@ -344,7 +348,7 @@ SearchUnits(set<string>& res, const Path& pth, const Path& opth,
 }
 
 //! \since build 852
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE TermNode
 MakeCBDocNode(const string& project, const string& platform, bool exe,
 	const set<string>& units, bool custom_makefile)
@@ -488,8 +492,9 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			"-Wfloat-equal", "-Wlogical-op", "-Wsign-conversion",
 			"-Wtrampolines", "-Wconditionally-supported", "-Wno-noexcept-type",
 			"-Wstrict-null-sentinel", "-fdata-sections", "-ffunction-sections",
-			"-mthreads", "-pipe", "-U__GXX_MERGED_TYPEINFO_NAMES",
-			"-D__GXX_MERGED_TYPEINFO_NAMES=1");
+			"-mthreads", "-pipe",  "-U__GXX_TYPEINFO_EQUALITY_INLINE",
+			"-D__GXX_TYPEINFO_EQUALITY_INLINE=1",
+			"-U__GXX_MERGED_TYPEINFO_NAMES", "-D__GXX_MERGED_TYPEINFO_NAMES=0");
 		if(project == "YFramework")
 			opt_add("-DFREEIMAGE_LIB");
 		dir_add("../include");
@@ -560,7 +565,7 @@ MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 	}
 	return MakeCBDocNode(project, platform, exe, units, custom_makefile);
 }
-//@}
+//!@}
 
 } // unnamed namespace;
 
@@ -597,7 +602,7 @@ main(int argc, char* argv[])
 			}
 
 			const auto ipath(MakeNormalizedAbsolute(Path(in)));
-			string platform;
+			std::string platform;
 
 			YAssert(!ipath.empty(), "Empty path found.");
 			if(argc > 3)
@@ -610,8 +615,9 @@ main(int argc, char* argv[])
 				<< "' recognized." << endl;
 			return FilterExceptions([&]{
 				SXML::PrintSyntaxNode(cout, {YSLib::ListContainer,
-					{{MakeCBDocNode(ipath, platform.empty() || IsDSARM(platform)
-					? Path() : Path(u".."), platform, ptype == "c")}}});
+					{{MakeCBDocNode(ipath, platform.empty()
+					|| IsDSARM(YSLib::make_string_view(platform))
+					? Path() : Path(u".."), platform.c_str(), ptype == "c")}}});
 				cout << endl;
 				clog << "Conversion finished." << endl;
 			}, yfsig) ? EXIT_FAILURE : EXIT_SUCCESS;

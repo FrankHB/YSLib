@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018, 2020-2022 FrankHB.
+	© 2009-2016, 2018, 2020-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r340
+\version r352
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2022-11-28 19:55 +0800
+	2023-03-09 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,11 +57,20 @@ vfmtlen(const wchar_t* fmt, std::va_list args) ynothrowv
 
 
 bool
-fexists(const char* path, bool create) ynothrowv
+fexists(const char* path, const char* mode) ynothrowv
 {
-	yconstraint(path);
+	yconstraint(path),
+	yconstraint(mode);
 	return ystdex::call_value_or(ystdex::compose(std::fclose, addrof<>()),
-		std::fopen(path, create ? "w+b" : "rb"), yimpl(1)) == 0;
+		std::fopen(path, mode), yimpl(1)) == 0;
+}
+bool
+fexists(const char* path, std::ios_base::openmode mode) ynothrowv
+{
+	const auto mode_str(ystdex::openmode_conv(mode));
+
+	yverify(mode_str);
+	return fexists(path, mode_str);
 }
 
 

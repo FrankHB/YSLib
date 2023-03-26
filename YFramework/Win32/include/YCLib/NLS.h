@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018, 2020 FrankHB.
+	© 2014-2016, 2018, 2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r193
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-25 17:30:48 +0800
 \par 修改时间:
-	2020-12-12 10:15 +0800
+	2023-03-26 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,89 +42,108 @@ inline namespace Windows
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
 \exception YSLib::LoggedEvent 长度为负数或溢出 int 。
-\since build 644
 
 转换第一个 \c unsigned 参数指定编码的字符串为第二个 \c unsigned 参数指定的编码。
+对 string_view 参数，当且仅当长度等于 0 时结果是空串；
+否则忽略长度，参数的数据指针视为 NTBS 。
 */
-//@{
+//!@{
 //! \pre 间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::string
+MBCSToMBCS(const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API YB_NONNULL(2) string
 MBCSToMBCS(const string::allocator_type&, const char*, unsigned = CP_UTF8,
 	unsigned = CP_ACP);
-YB_NONNULL(1) inline PDefH(string, MBCSToMBCS, const char* str,
-	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS({}, str, cp_src, cp_dst))
-//@}
+//!@}
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API std::string
+MBCSToMBCS(string_view, unsigned = CP_UTF8, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API string
 MBCSToMBCS(const string::allocator_type&, string_view, unsigned = CP_UTF8,
 	unsigned = CP_ACP);
-inline PDefH(string, MBCSToMBCS, string_view sv, unsigned cp_src = CP_UTF8,
-	unsigned cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS({}, sv, cp_src, cp_dst))
-//@}
+//!@}
 
 //! \pre 间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::wstring
+MBCSToWCS(const char*, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API YB_NONNULL(2) wstring
 MBCSToWCS(const wstring::allocator_type&, const char*, unsigned = CP_ACP);
-YB_NONNULL(1) inline
-	PDefH(wstring, MBCSToWCS, const char* str, unsigned cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS({}, str, cp))
-//@}
+//!@}
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API std::wstring
+MBCSToWCS(string_view, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API wstring
 MBCSToWCS(const wstring::allocator_type&, string_view, unsigned = CP_ACP);
-inline PDefH(wstring, MBCSToWCS, string_view sv, unsigned cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS({}, sv, cp))
-//@}
+//!@}
 
 //! \pre 间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API YB_NONNULL(1) std::string
+WCSToMBCS(const wchar_t*, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API YB_NONNULL(2) string
 WCSToMBCS(const string::allocator_type&, const wchar_t*, unsigned = CP_ACP);
-YB_NONNULL(1) inline
-	PDefH(string, WCSToMBCS, const wchar_t* s, unsigned cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS({}, s, cp))
-//@}
+//!@}
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-//@{
+//!@{
+//! \since build 970
+YB_ATTR_nodiscard YF_API std::string
+WCSToMBCS(wstring_view, unsigned = CP_ACP);
 //! \since build 905
 YB_ATTR_nodiscard YF_API string
 WCSToMBCS(const string::allocator_type&, wstring_view, unsigned = CP_ACP);
-inline PDefH(string, WCSToMBCS, wstring_view s, unsigned cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS({}, s, cp))
-//@}
+//!@}
 
-//! \since build 905
-//@{
+//! \since build 970
+//!@{
 //! \pre 间接断言：字符串指针参数非空。
+//!@{
+YB_NONNULL(1) inline PDefH(std::wstring, UTF8ToWCS, const char* str)
+	ImplRet(MBCSToWCS(str, CP_UTF8))
 YB_NONNULL(1) inline PDefH(wstring, UTF8ToWCS, const char* str,
-	const wstring::allocator_type& a = {})
+	const wstring::allocator_type& a)
 	ImplRet(MBCSToWCS(a, str, CP_UTF8))
+//!@}
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
+//!@{
+inline PDefH(std::wstring, UTF8ToWCS, string_view sv)
+	ImplRet(MBCSToWCS(sv, CP_UTF8))
 inline PDefH(wstring, UTF8ToWCS, string_view sv,
-	const wstring::allocator_type& a = {})
+	const wstring::allocator_type& a)
 	ImplRet(MBCSToWCS(a, sv, CP_UTF8))
+//!@}
 
 //! \pre 间接断言：字符串指针参数非空。
+//!@{
+YB_NONNULL(1) inline PDefH(std::string, WCSToUTF8, const wchar_t* str)
+	ImplRet(WCSToMBCS(str, CP_UTF8))
 YB_NONNULL(1) inline PDefH(string, WCSToUTF8, const wchar_t* str,
-	const string::allocator_type& a = {})
+	const string::allocator_type& a)
 	ImplRet(WCSToMBCS(a, str, CP_UTF8))
+//!@}
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-inline PDefH(string, WCSToUTF8, wstring_view sv,
-	const string::allocator_type& a = {})
+//!@{
+inline PDefH(std::string, WCSToUTF8, wstring_view sv)
+	ImplRet(WCSToMBCS(sv, CP_UTF8))
+inline
+	PDefH(string, WCSToUTF8, wstring_view sv, const string::allocator_type& a)
 	ImplRet(WCSToMBCS(a, sv, CP_UTF8))
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 /*!
@@ -148,7 +167,7 @@ inline PDefH(wstring, FetchCPFileNameFromRegistry, int cp)
 \note 非双字节字符集视为失败。
 \since build 552
 */
-YB_ATTR_nodiscard YF_API const unsigned short*
+YB_ATTR_nodiscard YF_API YB_PURE const unsigned short*
 FetchDBCSOffset(int) ynothrow;
 
 } // inline namespace Windows;

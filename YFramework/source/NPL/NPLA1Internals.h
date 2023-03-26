@@ -11,13 +11,13 @@
 /*!	\file NPLA1Internals.h
 \ingroup NPL
 \brief NPLA1 内部接口。
-\version r22930
+\version r22970
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-15 13:20:08 +0800
 \par 修改时间:
-	2023-02-08 12:05 +0800
+	2023-03-08 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,17 +31,17 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA1 // for shared_ptr, ContextNode, NPL::allocate_shared,
 //	NPL::Deref, NPLException, TermNode, ReductionStatus, Reducer,
-//	YSLib::unordered_map, lref, Environment, size_t, YSLib::unordered_set,
+//	YSLib::linked_map, lref, Environment, size_t, YSLib::linked_set,
 //	NPL::ToBindingsAllocator, EnvironmentParent, IParent, SingleWeakParent,
 //	SingleStrongParent, ParentList, EnvironmentList, pair, ValueObject,
 //	YSLib::forward_list, tuple, ystdex::optional, std::declval,
 //	EnvironmentGuard, NPL::get, A1::NameTypedContextHandler, MoveKeptGuard,
 //	TermReference, TermTags, TryAccessLeafAtom, std::allocator_arg,
 //	in_place_type, EnvironmentReference, ThrowTypeErrorForInvalidType, type_id,
-//	TermToNamePtr, IsIgnore, ParameterMismatch, IsPair, IsEmpty, IsList,
-//	NPL::AsTermNode, NPL::AsTermNodeTagged, ystdex::is_bitwise_swappable;
-#include <ystdex/compose.hpp> // for ystdex::get_hash, ystdex::get_equal_to,
-//	ystdex::get_less;
+//	TermToNamePtr, IsIgnore, ParameterMismatch, TNCIter, IsPair, IsEmpty,
+//	IsList, NPL::AsTermNode, NPL::AsTermNodeTagged,
+//	ystdex::is_bitwise_swappable;
+#include <ystdex/compose.hpp> // for ystdex::get_hash, ystdex::get_equal_to;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
 //	ystdex::make_unique_guard;
 #include <ystdex/utility.hpp> // for ystdex::exchange;
@@ -116,7 +116,8 @@ private:
 
 public:
 	DefDeCtor(SourceNameRecoverer)
-	SourceNameRecoverer(SourceName& cur, SourceName name)
+	//! \since build 970
+	SourceNameRecoverer(SourceName& cur, SourceName name) ynothrow
 		: p_current(&cur), Saved(name)
 	{}
 	DefDeCopyMoveCtorAssignment(SourceNameRecoverer)
@@ -198,9 +199,14 @@ SetupTailAction(ContextNode& ctx, _func&& act)
 //! \since build 827
 struct RecordCompressor final
 {
-	using RecordInfo = YSLib::unordered_map<lref<Environment>, size_t,
+	// XXX: This can be %value_map, but keeping it %linked_map seems more
+	//	efficient, and it does not require to change 'auto&' for range-based for
+	//	loop.
+	using RecordInfo = YSLib::linked_map<lref<Environment>, size_t,
 		ystdex::get_hash<>, ystdex::get_equal_to<>>;
-	using ReferenceSet = YSLib::unordered_set<lref<Environment>,
+	// XXX: This can be %value_set, except that it should also support %merge in
+	//	the implementation.
+	using ReferenceSet = YSLib::linked_set<lref<Environment>,
 		ystdex::get_hash<>, ystdex::get_equal_to<>>;
 
 	//! \since build 894
@@ -737,7 +743,7 @@ inline
 
 // XXX: It is accidentally close to ECMAScript 6's %PrepareForTailCall in both
 //	name and semantics, but actually independent. In particular, ES6's "pop"
-//	wording indicates it only operate on one side of the activation records in
+//	wording indicates it only operates on one side of the activation records in
 //	relavant contexts, which differs than the %TCOAction here.
 /*!
 \brief 准备 TCO 求值。
@@ -1670,6 +1676,37 @@ ReduceAsSubobjectReference(TermNode&, shared_ptr<TermNode>,
 ReductionStatus
 ReduceForCombinerRef(TermNode&, const TermReference&, const ContextHandler&,
 	size_t);
+
+
+//! \since build 970
+template<typename _func>
+ReductionStatus
+RelayWithSavedSourceName(ContextNode& ctx, _func f)
+{
+	auto& cs(ContextState::Access(ctx));
+
+#if NPL_Impl_NPLA1_Enable_Thunked
+#	if NPL_Impl_NPLA1_Enable_TCO
+	RefTCOAction(ctx).SaveTailSourceName(cs.CurrentSource,
+		std::move(cs.CurrentSource));
+#	else
+	RelaySwitched(ctx, trivial_swap,
+		A1::NameTypedReducerHandler(std::bind([&](SourceName& saved_src){
+		cs.CurrentSource = std::move(saved_src);
+		return ctx.LastStatus;
+	}, std::move(cs.CurrentSource)), "restore-source-name"));
+#	endif
+
+	return f();
+#else
+	auto saved_src(std::move(cs.CurrentSource));
+
+	const auto res(f());
+
+	cs.CurrentSource = std::move(saved_src);
+	return res;
+#endif
+}
 
 } // inline namespace Internals;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2022 FrankHB.
+	© 2014-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24687
+\version r24724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2022-12-10 02:09 +0800
+	2023-03-24 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,8 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1Forms // for EvaluationPasses, lref, ContextHandler,
-//	RelaySwitched, trivial_swap, type_index, string_view, std::hash,
-//	ystdex::equal_to, YSLib::unordered_map, YSLib::lock_guard, YSLib::mutex,
-//	std::declval, std::ref, ListReductionFailure, ystdex::sfmt,
+//	RelaySwitched, trivial_swap, type_index, string_view,  YSLib::lock_guard,
+//	YSLib::mutex, std::declval, std::ref, ListReductionFailure, ystdex::sfmt,
 //	TermToStringWithReferenceMark, std::next, IsBranch, TermReference,
 //	std::allocator_arg, in_place_type, CheckReducible,
 //	IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme, AllocatorHolder,
@@ -48,9 +47,10 @@
 //	ystdex::make_transform, IsCombiningTerm, NPL::IsMovable, std::placeholders,
 //	NoContainer, ystdex::try_emplace, Access, YSLib::Informative,
 //	ystdex::make_unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
-//	Deliteralize, IsLeaf, TryAccessTerm, YSLib::share_move,
+//	any_ops::use_holder, Deliteralize, IsLeaf, TryAccessTerm, YSLib::share_move,
 //	ystdex::call_value_or, std::piecewise_construct, type_id, make_observer,
 //	YSLib::Notice, YSLib::FilterException, Session;
+#include <ystdex/flat_map.hpp> // for ystdex::flat_map;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_NPLAMath // for ReadDecimal;
 #include <limits> // for std::numeric_limits;
@@ -61,15 +61,15 @@ namespace NPL
 {
 
 //! \since build 863
-//@{
+//!@{
 #ifndef NDEBUG
 #	define NPL_Impl_NPLA1_AssertParameterMatch true
 #else
 #	define NPL_Impl_NPLA1_AssertParameterMatch false
 #endif
-//@}
+//!@}
 //! \since build 948
-//@{
+//!@{
 // XXX: Different 'optimize' attributes of the caller and callees in GCC
 //	prevents IPA inlining unconditionally (see %can_inline_edge_by_limits_p in
 //	ipa-inline.cc) unless the caller has 'flatten' attribute or the callee has
@@ -117,7 +117,7 @@ namespace NPL
 #else
 #	define NPL_Impl_NPLA1_BindParameter_Inline
 #endif
-//@}
+//!@}
 
 namespace A1
 {
@@ -224,10 +224,8 @@ using YSLib::mutex;
 mutex NameTableMutex;
 
 //! \since build 892
-//@{
-using NameTable = YSLib::unordered_map<type_index, string_view,
-	std::hash<type_index>, ystdex::equal_to<type_index>,
-	std::allocator<std::pair<const type_index, string_view>>>;
+//!@{
+using NameTable = ystdex::flat_map<type_index, string_view>;
 
 template<class _tKey>
 YB_ATTR_nodiscard inline NameTable&
@@ -235,7 +233,7 @@ FetchNameTableRef()
 {
 	return ystdex::parameterize_static_object<NameTable, _tKey>();
 }
-//@}
+//!@}
 
 #if NPL_Impl_NPLA1_Enable_Thunked
 //! \since build 810
@@ -445,7 +443,7 @@ ParseSymbol(TermNode& term, string_view id)
 
 
 //! \since build 891
-//@{
+//!@{
 using SourcedByteAllocator = YSLib::default_allocator<yimpl(byte)>;
 
 using SourceInfoMetadata = lref<const SourceInformation>;
@@ -495,7 +493,7 @@ public:
 
 	using base::get_allocator;
 };
-//@}
+//!@}
 
 
 //! \since build 881
@@ -607,8 +605,9 @@ struct BindAdd final
 	{
 		CopyTermTags(Environment::Bind(m, id, tm), tm);
 	}
+	//! \since build 970
 	TermNode&
-	operator()(TermNode::Container&& c, ValueObject&& vo)
+	operator()(TermNode::Container&& c, ValueObject&& vo) const
 	{
 		// XXX: Allocators are not used here for performance.
 		return Environment::Bind(m, id, TermNode(std::move(c), std::move(vo)));
@@ -645,7 +644,7 @@ public:
 
 private:
 	//! \since build 961
-	//@{
+	//!@{
 	char sigil;
 
 public:
@@ -995,7 +994,7 @@ private:
 			//	rvalue references in the host language.
 			term.Tags |= TermTags::Temporary;
 	}
-	//@}
+	//!@}
 
 	//! \since build 951
 	YB_ATTR_nodiscard static TermNode::Container
@@ -1065,11 +1064,11 @@ struct NoParameterCheck final
 	}
 
 	//! \since build 951
-	static void
-	CheckSuffix(const TermNode& t, bool)
+	YB_NORETURN static void
+	CheckSuffix(const TermNode&, bool)
 	{
-		yunused(t);
 		YAssert(false, "Invalid parameter tree found.");
+		YB_ASSUME(false);
 	}
 
 	template<typename _func>
@@ -1095,7 +1094,7 @@ struct NoParameterCheck final
 
 
 //! \since build 882
-//@{
+//!@{
 #if false
 // NOTE: Examples of types for %GParameterMatcher for exposition only,
 //	equivalent to the instance used in %MatchParameter.
@@ -1106,7 +1105,7 @@ using _fBindTrailing
 	= GParameterBinder<TermNode::Container&, TNIter, string_view>;
 using _fBindValue = GParameterBinder<const TokenValue&, TermNode&>;
 #endif
-//@}
+//!@}
 
 //! \since build 949
 template<typename _fBindTrailing, typename _fBindValue>
@@ -1138,7 +1137,7 @@ struct GBinder final
 
 
 //! \since build 949
-//@{
+//!@{
 // NOTE: Entry components are: ptree subterms iterator, ptree boundary iterator,
 //	reference to the operand, operand subterms iterator, operand term tags,
 //	reference to the weak environment, ellipsis mark,
@@ -1236,7 +1235,7 @@ private:
 	inline void
 	Dispatch(_tEnableIndirect, ystdex::true_, _tArg, _tParams&&... args) const
 	{
-		Match(_tEnableIndirect(), yforward(args)..., _tArg::value);
+		Match(_tEnableIndirect(), yforward(args)..., _tArg());
 	}
 	template<class _tEnableIndirect, class _tArg, typename... _tParams>
 	inline void
@@ -1486,7 +1485,7 @@ MakeParameterMatcher(TermNode::allocator_type a,
 	return GParameterMatcher<_tTraits, GBinder<_fBindTrailing, _fBindValue>>(a,
 		std::move(bind_trailing_seq), std::move(bind_value));
 }
-//@}
+//!@}
 
 
 //! \since build 949
@@ -1533,7 +1532,7 @@ struct DefaultBinder final
 		const EnvironmentReference& r_env) const
 	{
 		// XXX: The call to %ExtractSigil shall be sequenced before the
-		//	following call since %id can be modified.
+		//	call to %Bind since %id can be modified.
 		Bind(r_env, ExtractSigil(id), id, o_tags, o);
 	}
 
@@ -2323,7 +2322,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	//	It would be safe if not passed directly and without rebinding. Note the
 	//	access of objects denoted by invalid references after rebinding would
 	//	cause undefined behavior in the object language.
-	auto pr(ResolveName(ctx, id));
+	const auto pr(ResolveName(ctx, id));
 
 	if(pr.first)
 	{
@@ -2459,8 +2458,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	else
 		term.Tags |= TermTags::Temporary;
 	// NOTE: The combiner object is in a prvalue. It will be moved away from
-	//	the combining term (i.e. %term) by the call to %CombinerReturnThunk.
-	//	The implementation varies on different configurations.
+	//	the combining term (i.e. %term) by the call to %CombinerReturnThunk. The
+	//	implementation varies on different configurations.
 	// XXX: Converted terms (if used, see above) are also handled here as in
 	//	prvalues.
 #if NPL_Impl_NPLA1_Enable_TCO
@@ -2730,7 +2729,7 @@ QueryContinuationName(const Reducer& act)
 #if NPL_Impl_NPLA1_Enable_Thunked
 	// XXX: %GLContinuation<> is normally not visible to the user program, 
 	//	just keep it here.
-	if(IsTyped<GLContinuation<>>(act))
+	if(IsTyped<GLContinuation<>>(act.target_type()))
 		return QueryTypeName(type_id<ContextHandler>());
 	// XXX: Other instances of %GLContinuation with template argument as a
 	//	non-closure type should normally never used, at least when
@@ -2822,9 +2821,7 @@ TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
 							// XXX: No %NPL::TryAccessValue is needed, since %op
 							//	comes from operators from the record list of
 							//	%TCOAction, which is not a term value.
-							const auto p_opn_t(op.AccessPtr<TokenValue>());
-
-							if(p_opn_t)
+							if(const auto p_opn_t = op.AccessPtr<TokenValue>())
 							{
 								const auto p_o(p_opn_t->data());
 								// XXX: This clause relies on the source

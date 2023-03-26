@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r831
+\version r841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2023-03-08 01:04 +0800
+	2023-03-26 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,7 +185,7 @@ public:
 
 	若指定名称的信号量已存在，则打开此信号量，忽略名称以外的参数。
 	名称长度和受到平台限制。
-	Win32 平台：使用 \c ::CreateSemaphore 创建。
+	Win32 平台：使用 \c ::CreateSemaphoreW 创建。
 	非 Win32 平台：使用 POSIX \c ::sem_open 创建。
 	若需可移植性，名称不应包含文件分隔符。
 	*/
@@ -244,16 +244,18 @@ Win32 平台：调用当前代码页的 platform::MBCSToMBCS 编解码字符串�
 和 platform::MBCSToMBCS 不同，参数可转换为 \c string_view 时，
 	作为 NTBS 计算字符串长度。
 用于传递可能不统一编码的文本参数时统一调用形式，避免过多的根据平台的条件编译判断。
-若参数可能是 string 或 <tt>const char*</tt> 类型时，
+若参数可能是 std::string 或 <tt>const char*</tt> 类型时，
 	可直接使用 \c &arg[0] 的形式。
 因为参数总是 NTBS ，使用 string_view 参数时直接忽略长度；
 	不需要转换为 tstring_view 。
 */
 //!@{
 #	if YCL_Win32
-YF_API YB_NONNULL(1) string
+//! \since build 970
+YF_API YB_NONNULL(1) std::string
 DecodeArg(const char*);
-inline PDefH(string, DecodeArg, string_view arg)
+//! \since build 970
+inline PDefH(std::string, DecodeArg, string_view arg)
 	ImplRet(DecodeArg(&arg[0]))
 #	endif
 template<typename _type
@@ -268,10 +270,11 @@ DecodeArg(_type&& arg) -> decltype(yforward(arg))
 }
 
 #	if YCL_Win32
-YF_API YB_NONNULL(1) string
+//! \since build 970
+YF_API YB_NONNULL(1) std::string
 EncodeArg(const char*);
-//! \since build 742
-inline PDefH(string, EncodeArg, string_view arg)
+//! \since build 970
+inline PDefH(std::string, EncodeArg, string_view arg)
 	ImplRet(EncodeArg(arg.data()))
 #	endif
 template<typename _type

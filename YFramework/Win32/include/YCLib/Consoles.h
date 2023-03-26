@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r413
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2023-03-04 08:16 +0800
+	2023-03-26 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,8 +231,11 @@ public:
 	WriteString(string_view, unsigned);
 	//! \note 使用 UTF-16LE 字符串。
 	//!@{
-	size_t
-	WriteString(wstring_view);
+	//! \since build 970
+	YB_NONNULL(2) size_t
+	WriteString(const wchar_t*, size_t);
+	PDefH(size_t, WriteString, wstring_view sv)
+		ImplRet(WriteString(sv.data(), sv.length()))
 	PDefH(size_t, WriteString, u16string_view sv)
 		ImplRet(WriteString(wstring(sv.cbegin(), sv.cend())))
 	//!@}

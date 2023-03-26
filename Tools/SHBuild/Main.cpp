@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r4906
+\version r4911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2023-03-08 05:26 +0800
+	2023-03-09 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1222,7 +1222,7 @@ DoMain(int argc, char* argv[])
 			//	of the object referenced by %YSLib::LockCommandArguments
 			//	accessing the invalid resource.
 			vector<string> args;
-			bool opt_trans = true, help = {}, version = {};
+			bool opt_trans(true), help = {}, version = {};
 
 			for(size_t i(1); i < xargc; ++i)
 			{
@@ -1259,8 +1259,11 @@ DoMain(int argc, char* argv[])
 				goto print_help;
 			if(version)
 			{
-				std::puts("SHBuild " YSL_SemVerStr_Short
-					" (" __DATE__ ", YSLib " YSL_SemVerStr_Short ")");
+				const auto p(YSLib::FetchVCSRevisionString());
+
+				std::printf("SHBuild " YSL_SemVerStr_Short " %s\n",
+					ystdex::is_nonempty(p) ? p
+					: " (YSLib " YSL_SemVerStr_Short ", " __DATE__ ")");
 				goto print_end;
 			}
 

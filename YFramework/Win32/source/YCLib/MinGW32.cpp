@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2580
+\version r2583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2023-03-04 02:59 +0800
+	2023-03-26 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -517,7 +517,7 @@ HasPTYName(::HANDLE h) ynothrow
 	unsigned long res;
 
 	if(YCL_Impl_details::NtQueryObject(h, ObjectNameInformation,
-		storage.access(), sizeof(buf_t) - 2, &res) >= 0)
+		storage.access(), unsigned(sizeof(buf_t)) - 2, &res) >= 0)
 	{
 		const auto& n(storage.access<OBJECT_NAME_INFORMATION>().Name);
 		wchar_t* s(n.Buffer);
@@ -595,7 +595,7 @@ bool
 DirectoryFindData::Read()
 {
 	const auto chk_err(
-		[this] YB_LAMBDA_ANNOTATE((const char* fn, ErrorCode ec), , nonnull(2)){
+		[] YB_LAMBDA_ANNOTATE((const char* fn, ErrorCode ec), , nonnull(2)){
 		const auto err(::GetLastError());
 
 		if(err != ec)
@@ -750,7 +750,7 @@ ParseCommandArguments(const wchar_t* p, vector<string>::allocator_type a)
 	wstring cbuf(a);
 	bool quoted = {};
 	const auto add([&]{
-		args.push_back(WCSToUTF8(std::move(cbuf)));
+		args.push_back(WCSToUTF8(std::move(cbuf), a));
 	});
 
 	while(quoted || (*p != L' ' && *p != L'\t'))

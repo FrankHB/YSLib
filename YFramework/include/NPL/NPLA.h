@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r11332
+\version r11350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2023-01-27 13:28 +0800
+	2023-03-24 02:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,12 +46,13 @@
 //	ystdex::compose_n, ystdex::expand_proxy, ystdex::ref_eq, ValueObject,
 //	NPL::SetContentWith, std::for_each, TNIter, AccessFirstSubterm,
 //	AssertBranch, NPL::Deref, ystdex::retry_on_cond, YSLib::EmplaceCallResult,
-//	ystdex::exclude_self_t, vector, YSLib::unordered_map, ystdex::string_hash,
+//	ystdex::exclude_self_t, vector, YSLib::linked_map, ystdex::string_hash,
 //	ystdex::equal_to, make_observer, ystdex::call_value_or, ystdex::compose,
-//	ystdex::unchecked_function, default_allocator,
-//	ystdex::enable_if_constructible_t, std::allocator_arg_t, pmr, type_info,
-//	std::swap, ystdex::expanded_function, ystdex::enable_if_same_param_t,
-//	std::allocator_arg, ystdex::make_obj_using_allocator, YSLib::forward_list,
+//	ystdex::addrof, ystdex::second_of, ystdex::unchecked_function,
+//	default_allocator, ystdex::enable_if_constructible_t, std::allocator_arg_t,
+//	pmr, type_info, std::swap, ystdex::expanded_function,
+//	ystdex::enable_if_same_param_t, std::allocator_arg,
+//	ystdex::make_obj_using_allocator, YSLib::forward_list,
 //	ystdex::swap_dependent, YSLib::Logger, trivial_swap, ystdex::exchange, byte,
 //	NPL::AssertMatchedAllocators, NPL::AsTermNode, ystdex::enable_if_t,
 //	ystdex::is_same_param, ystdex::enable_if_inconvertible_t,
@@ -60,6 +61,7 @@
 #include <ystdex/type_op.hpp> // for ystdex::exclude_self_params_t;
 #include <ystdex/memory.hpp> // for ystdex::destroy_delete,
 //	ystdex::make_unique_with, ystdex::clone_polymorphic_ptr;
+#include <ystdex/placement.hpp> // for ystdex::copy_assign;
 #include <ystdex/container.hpp> // for ystdex::insert_or_assign,
 //	ystdex::erase_first;
 #include <libdefect/exception.h> // for std::exception_ptr;
@@ -2185,7 +2187,7 @@ using EnvironmentList = vector<EnvironmentParent>;
 被映射的对象的引用在对象被移除前保持稳定。
 不保证迭代访问其中的元素的顺序。
 */
-using BindingMap = YSLib::unordered_map<string, TermNode,
+using BindingMap = YSLib::linked_map<string, TermNode,
 	ystdex::string_hash<char>, ystdex::equal_to<>>;
 
 /*!
@@ -2374,12 +2376,12 @@ public:
 	//!@}
 	DefDeCopyMoveCtor(SingleWeakParent)
 
-	//! \since build 965
-	PDefH(SingleWeakParent&, operator=, const SingleWeakParent& parent)
+	//! \since build 970
+	PDefHOp(SingleWeakParent&, =, const SingleWeakParent& parent) ynothrow
 		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
 			env_ref = parent.env_ref, *this)
-	//! \since build 965
-	PDefH(SingleWeakParent&, operator=, SingleWeakParent&& parent)
+	//! \since build 970
+	PDefHOp(SingleWeakParent&, =, SingleWeakParent&& parent) ynothrow
 		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
 			env_ref = std::move(parent.env_ref), *this)
 
@@ -2461,12 +2463,12 @@ public:
 	//!@}
 	DefDeCopyMoveCtor(SingleStrongParent)
 
-	//! \since build 965
-	PDefH(SingleStrongParent&, operator=, const SingleStrongParent& parent)
+	//! \since build 970
+	PDefHOp(SingleStrongParent&, =, const SingleStrongParent& parent) ynothrow
 		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
 			env_ptr = parent.env_ptr, *this)
-	//! \since build 965
-	PDefH(SingleStrongParent&, operator=, SingleStrongParent&& parent)
+	//! \since build 970
+	PDefHOp(SingleStrongParent&, =, SingleStrongParent&& parent) ynothrow
 		ImplRet(ystdex::copy_assign(alloc, parent.alloc),
 			env_ptr = std::move(parent.env_ptr), *this)
 
@@ -2560,7 +2562,8 @@ public:
 		parent_ptr.swap(ep.parent_ptr);
 	}
 
-	PDefHOp(EnvironmentParent&, =, const EnvironmentParent& ep)
+	//! \since build 970
+	PDefHOp(EnvironmentParent&, =, const EnvironmentParent& ep) ynothrow
 		ImplRet(ystdex::copy_and_swap(*this, ep))
 	PDefHOp(const EnvironmentParent&, =, EnvironmentParent&& ep) ynothrow
 		ImplRet(parent_ptr.swap(ep.parent_ptr), *this)

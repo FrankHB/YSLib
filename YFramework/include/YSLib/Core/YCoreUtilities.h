@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2680
+\version r2719
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2023-02-20 17:39 +0800
+	2023-03-26 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,41 @@ namespace YSLib
 {
 
 /*!
+\note 对确定的构建版本，结果是确定不变的。
+\since build 970
+*/
+//!@{
+/*!
+\brief 取库构建时确定的构建版本号。
+\return 表示构建版本的整数。
+\see Documentation::Projects @2.2.1.2 。
+\see Documentation::Projects @2.2.4.4 。
+\see Documentation::Projects @2.2.4.5 。
+
+若构建时宏 \c YSL_BuildNumber 被定义，宏替换的值应是一个整数表达式，
+	这个表达式的值是一个表示构建版本号的正整数。
+构建版本号应表示主分支版本。
+若构建时无法通过宏确定构建版本号，则默认指定最近的发布版本对应的构建版本号。
+*/
+YB_ATTR_nodiscard YF_API YB_STATELESS size_t
+FetchBuildNumber() ynothrow;
+
+/*!
+\brief 取库构建时确定的版本字符串。
+\return 具有静态存储期的字符串指针。
+
+若构建时宏 \c YSL_VCS_Revision 被定义，宏替换的值应满足：
+	求值为一个具有存储期的 \c char 字符串字面量的左值或 <tt>const char*</tt> 指针。
+	求值时无异常抛出。
+此时，结果等于这个宏指定的值。
+否则，结果是空串。
+*/
+YB_ATTR_nodiscard YF_API YB_ATTR_returns_nonnull YB_STATELESS const char*
+FetchVCSRevisionString() ynothrow;
+//!@}
+
+
+/*!
 \brief 符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 633
@@ -50,10 +85,10 @@ FetchSign(_type a, _type b = _type(0)) ynothrow
 }
 
 /*!
-\brief 判断 d 和以 [a, b](a ≤ b) 或 [b, a](a > b) 区间的关系。
-\return < 0 ：d 在区间外；
-\return = 0 ：d 在区间端点上；
-\return > 0 ：d 在区间内。
+\brief 判断 \c d 和以 \c a 和 \b 构成的闭区间的关系。
+\return <tt>< 0</tt> ：\c d 在区间外；
+\return <tt>= 0</tt> ：\c d 在区间端点上；
+\return <tt>> 0</tt> ：\c d 在区间内。
 \note 无精度修正。
 \note 使用 ADL FetchSign 。
 \since build 633
@@ -165,7 +200,7 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 \brief 计算满足指定的值 v 在区间 [\c a[i], <tt>a[i + 1]</tt>) 内最小的 i 。
 */
 template<typename _type>
-YB_PURE YB_NONNULL(2) size_t
+YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE size_t
 SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 {
 	YAssert(n != 0, "Zero length of array found.");
@@ -183,7 +218,7 @@ SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 	其中 s(i) 是 \c a[i] 前 i 项的和。
 */
 template<typename _type>
-YB_PURE YB_NONNULL(2) size_t
+YB_ATTR_nodiscard YB_NONNULL(2) YB_PURE size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 {
 	YAssert(n != 0, "Zero length of array found.");
@@ -350,7 +385,7 @@ CheckPositive(_type val, const string& name = {}, RecordLevel lv = Err)
 
 /*!
 \brief 清除指定的连续对象。
-\pre 设类型 T 为 <tt>ystdex::decay_t<decltype(*dst)></tt>， 则应满足
+\pre 设类型 \c T 为 ystdex::decay_t<decltype(*dst)>，则应满足
 	<tt>std::is_trivial\<T>() || (std::is_nothrow_default_constructible\<T>()
 		&& std::is_nothrow_assignable\<T, T>())</tt> 。
 \since build 624
@@ -398,10 +433,10 @@ PerformKeyAction(_func f, const char* sig, const char* t, string_view sv)
 \brief 替换第一参数中和第二参数相等的字符为第三参数指定的随机字符。
 \pre 断言：第三参数是非空字符串。
 \return 从第一参数转移的替换的字符后的结果。
-\since build 904
+\since build 970
 */
 YF_API string
-RandomizeTemplatedString(string, char, string_view);
+RandomizeTemplateString(string, char, string_view);
 
 
 /*!

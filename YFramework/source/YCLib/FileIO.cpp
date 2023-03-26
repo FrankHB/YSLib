@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2022 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3918
+\version r4029
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2022-01-31 20:02 +0800
+	2023-03-26 11:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #endif
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
-//	ystdex::invoke_result_t, ystdex::invoke, RetryOnInterrupted, Deref,
+//	ystdex::invoke, RetryOnInterrupted, Deref, wstring_view,
 //	std::errc::function_not_supported, YCL_CallF_CAPI, ystdex::invoke, Nonnull,
-//	ystdex::temporary_buffer;
+//	std::allocator_arg, ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, ReadConsoleW, struct ::stat,
 //	platform_ex::cstat, platform_ex::estat ::GetConsoleMode, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
@@ -42,7 +42,8 @@
 #include <ystdex/string.hpp> // for std::char_traits, std::getline,
 //	ystdex::write_ntcts;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
-#include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
+#include <ystdex/compose.hpp> // for ystdex::compose;
+#include <ystdex/functor.hpp> // for ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::flush_input,
 //	ystdex::streambuf_equal;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
@@ -59,6 +60,7 @@
 #		undef _fileno
 #	endif
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole;
+#	include <ystdex/cstring.h> // for ystdex::is_null;
 #	if __GLIBCXX__
 #		include <ystdex/ios.hpp> // for ystdex::rethrow_badstate;
 #		include <ext/stdio_sync_filebuf.h> // for __gnu_cxx::stdio_sync_filebuf;
@@ -72,6 +74,8 @@
 
 //! \since build 540
 using platform_ex::UTF8ToWCS;
+//! \since build 970
+using platform_ex::MakeFixedModeW;
 //! \since build 706
 using platform_ex::MakePathStringW;
 #elif YCL_API_POSIXFileSystem
@@ -90,7 +94,7 @@ namespace platform
 {
 
 //! \since build 627
-static_assert(std::is_same<mode_t, ystdex::underlying_type_t<Mode>>::value,
+static_assert(std::is_same<mode_t, ystdex::underlying_type_t<Mode>>(),
 	"Mismatched mode types found.");
 
 namespace
@@ -129,7 +133,7 @@ FullReadWrite(_fCallable f, _tObj&& obj, _tByteBuf ptr, size_t nbyte,
 }
 
 //! \since build 709
-//@{
+//!@{
 #if YCL_Win64
 using rwsize_t = unsigned;
 #else
@@ -145,7 +149,7 @@ SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
 		return f(fd, Nonnull(buf), nbyte);
 	}));
 }
-//@}
+//!@}
 
 #if !YCL_DS
 //! \since build 721
@@ -226,7 +230,8 @@ StreamGetFromFileDescriptor(std::istream& is, int fd, string& str)
 								changed = true;
 								break;
 							}
-							str += platform_ex::WCSToUTF8(wstring{c});
+							str += platform_ex::WCSToUTF8(wstring_view(&c, 1),
+								str.get_allocator());
 							changed = true;
 						}
 					}
@@ -253,8 +258,10 @@ WriteStringToWConsole(::HANDLE h, const char* s)
 	const auto wstr(platform_ex::UTF8ToWCS(s));
 	const auto n(wstr.length());
 
-	return platform_ex::WConsole(h).WriteString(wstr) == n;
+	return platform_ex::WConsole(h).WriteString(wstring_view(wstr.c_str(), n))
+		== n;
 }
+
 //! since build 905
 YB_NONNULL(1, 3) bool
 StreamPutToFileDescriptor(std::FILE* os, int fd, const char* s, bool& st)
@@ -337,16 +344,65 @@ HaveSameContents_Impl(const _tChar* path_a, const _tChar* path_b, mode_t mode)
 	return {};
 }
 
+#if YCL_Win32
+//! \since build 970
+template<class _tString, typename _tChar>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE _tString
+ConvertModeString(const _tChar* s)
+{
+	_tString res;
+
+	for(res.reserve(3); !ystdex::is_null(*s); ++s)
+		res += typename _tString::value_type(Deref(s));
+	return res;
+}
+#endif
+
+template<typename _tOutChar, typename _tChar>
+YB_ATTR_nodiscard YB_NONNULL(1) YB_PURE ystdex::fixed_openmode<_tOutChar>
+ConvertFixedMode(const _tChar* s) ynothrowv
+{
+	ystdex::fixed_openmode<_tOutChar> res = {{}};
+
+	for(size_t i(0); !ystdex::is_null(*s) && i < res.size(); yunseq(++i, ++s))
+		res[i] = _tOutChar(Deref(s));
+	return res;
+}
+
 } // unnamed namespace;
 
+ystdex::fixed_openmode<>
+MakeFixedMode(const char* s) ynothrowv
+{
+	return ConvertFixedMode<char>(s);
+}
+ystdex::fixed_openmode<>
+MakeFixedMode(const char16_t* s) ynothrowv
+{
+	return ConvertFixedMode<char>(s);
+}
 
-string
-MakePathString(const char16_t* s)
+// XXX: 'YB_NONNULL(1)' is needed here to eliminate G++ 12.1 warning:
+//	[-Wmissing-attributes], although it is already avoided for some others, see:
+//	https://gcc.gnu.org/legacy-ml/gcc-patches/2018-02/msg00154.html.
+template<>
+YB_NONNULL(1) std::string
+MakePathString<std::string>(const char16_t* s)
 {
 #if YCL_Win32
 	return platform_ex::WCSToUTF8(wcast(s));
 #else
-	return CHRLib::MakeMBCS<string>(s);
+	return CHRLib::MakeMBCS<std::string>(s);
+#endif
+}
+template<>
+YB_NONNULL(1) string
+MakePathString<string>(const char16_t* s, string::allocator_type a)
+{
+#if YCL_Win32
+	return platform_ex::WCSToUTF8(wcast(s), a);
+#else
+	return CHRLib::MakeMBCS<string>(std::allocator_arg, a, s);
 #endif
 }
 
@@ -436,7 +492,7 @@ FileDescriptor::GetSize() const
 	YCL_CallF_CAPI(, ::fstat, desc, &st);
 
 	// XXX: No negative file size should be found. See also:
-	//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
+	//	https://stackoverflow.com/questions/12275831.
 	if(st.st_size >= 0)
 		return std::uint64_t(st.st_size);
 	throw std::invalid_argument("Negative file size found.");
@@ -780,7 +836,7 @@ ufopen(const char* filename, const char* mode) ynothrowv
 #if YCL_Win32
 	return CallNothrow({}, [=]{
 		return ::_wfopen(MakePathStringW(filename).c_str(),
-			MakePathStringW(mode).c_str());
+			&MakeFixedModeW(mode)[0]);
 	});
 #else
 	return std::fopen(filename, mode);
@@ -796,7 +852,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #else
 	return CallNothrow({}, [=]{
 		return std::fopen(MakePathString(filename).c_str(),
-			MakePathString(mode).c_str());
+			&MakeFixedMode(mode)[0]);
 	});
 #endif
 }
@@ -823,24 +879,33 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
 }
 
 bool
-ufexists(const char* filename, bool create) ynothrowv
+ufexists(const char* filename, const char* mode) ynothrowv
 {
 #if YCL_Win32
 	return ystdex::call_value_or(ystdex::compose(std::fclose,
 		ystdex::addrof<>()), CallNothrow({}, [=]{
 		return ::_wfopen(MakePathStringW(filename).c_str(),
-			create ? L"w+b" : L"rb");
+			&MakeFixedModeW(mode)[0]);
 	}), yimpl(1)) == 0;
 #else
-	return ystdex::fexists(filename, create);
+	return ystdex::fexists(filename, mode);
 #endif
 }
 bool
-ufexists(const char16_t* filename, bool create) ynothrowv
+ufexists(const char* filename, std::ios_base::openmode mode) ynothrowv
+{
+	return ufexists(filename, ystdex::openmode_conv(mode));
+}
+bool
+ufexists(const char16_t* filename, const char16_t* mode) ynothrowv
 {
 	return ystdex::call_value_or(ystdex::compose(std::fclose,
-		ystdex::addrof<>()), ufopen(filename, create ? u"w+b" : u"rb"),
-		yimpl(1)) == 0;
+		ystdex::addrof<>()), ufopen(filename, mode), yimpl(1)) == 0;
+}
+bool
+ufexists(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
+{
+	return ufexists(filename, ystdex::openmode_conv<char16_t>(mode));
 }
 
 std::FILE*
@@ -877,7 +942,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #else
 	return CallNothrow({}, [=]{
 		return ::popen(MakePathString(filename).c_str(),
-			MakePathString(mode).c_str());
+			&MakeFixedMode(mode)[0]);
 	});
 #endif
 }
@@ -1038,16 +1103,41 @@ namespace platform_ex
 {
 
 #if YCL_Win32
-wstring
-MakePathStringW(const char* s)
+ystdex::fixed_openmode<wchar_t>
+MakeFixedModeW(const wchar_t* s) ynothrowv
+{
+	return platform::ConvertFixedMode<wchar_t>(s);
+}
+ystdex::fixed_openmode<wchar_t>
+MakeFixedModeW(const char* s) ynothrowv
+{
+	return platform::ConvertFixedMode<wchar_t>(s);
+}
+
+template<>
+YB_NONNULL(1) std::wstring
+MakePathStringW<std::wstring>(const char* s)
 {
 	return platform_ex::UTF8ToWCS(s);
 }
-#else
-u16string
-MakePathStringU(const char* s)
+template<>
+YB_NONNULL(1) wstring
+MakePathStringW<wstring>(const char* s, wstring::allocator_type a)
 {
-	return CHRLib::MakeUCS2LE<u16string>(s);
+	return platform_ex::UTF8ToWCS(s, a);
+}
+#else
+template<>
+YB_NONNULL(1) std::u16string
+MakePathStringU<std::u16string>(const char* s)
+{
+	return CHRLib::MakeUCS2LE<std::u16string>(s);
+}
+template<>
+YB_NONNULL(1) u16string
+MakePathStringU<u16string>(const char* s, u16string::allocator_type a)
+{
+	return CHRLib::MakeUCS2LE<u16string>(std::allocator_arg, a, s);
 }
 #endif
 

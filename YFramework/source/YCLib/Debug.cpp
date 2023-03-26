@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1000
+\version r1003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2023-03-07 12:17 +0800
+	2023-03-26 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,10 +76,8 @@ FetchCurrentThreadID() ynothrow
 YB_NONNULL(3) size_t
 WConsoleOutput(wstring& wstr, unsigned long h, const char* str)
 {
-	using namespace platform_ex;
-
-	wstr = UTF8ToWCS(str) + L'\n';
-	return WConsole(h).WriteString(wstr);
+	wstr = platform_ex::UTF8ToWCS(str, wstr.get_allocator()) + L'\n';
+	return platform_ex::WConsole(h).WriteString(wstr);
 }
 
 //! \since build 930

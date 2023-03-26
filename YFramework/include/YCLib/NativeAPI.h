@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017, 2019, 2021-2022 FrankHB.
+	© 2011-2017, 2019, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台本机应用程序接口描述。
-\version r1697
+\version r1744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2022-01-31 20:02 +0800
+	2023-03-11 08:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform // for yconstfn, YF_API;
-#include <ystdex/type_op.hpp> // for ystdex::make_signed_t, std::is_signed;
+#include <ystdex/meta.hpp> // for ystdex::make_signed_t, std::is_signed;
 #include YFM_YBaseMacro // for DefBitmaskEnum, PDefH, ImplRet;
 
 #ifndef YF_Platform
@@ -50,13 +50,13 @@
 
 
 //! \since build 709
-//@{
+//!@{
 /*!
 \def YCL_ReservedGlobal
 \brief 按实现修饰全局保留名称。
 \see ISO C11 7.1.3 和 WG21 N4594 17.6.4.3 。
 \see https://msdn.microsoft.com/library/ttcz0bys.aspx 。
-\see https://msdn.microsoft.com/library/ms235384(v=vs.100).aspx#Anchor_0 。
+\see https://msdn.microsoft.com/library/ms235384.aspx#Anchor_0 。
 */
 #if YCL_Win32
 #	define YCL_ReservedGlobal(_n) _##_n
@@ -65,7 +65,7 @@
 #endif
 //! \brief 调用按实现修饰的具有全局保留名称的函数。
 #define YCL_CallGlobal(_n, ...) ::YCL_ReservedGlobal(_n)(__VA_ARGS__)
-//@}
+//!@}
 
 
 #include <stdio.h>
@@ -80,7 +80,7 @@
 #if YCL_API_Has_unistd_h
 #	include <unistd.h>
 //! \since build 625
-//@{
+//!@{
 namespace platform
 {
 	using ssize_t = ::ssize_t;
@@ -97,7 +97,7 @@ namespace platform
 
 static_assert(std::is_signed<platform::ssize_t>(),
 	"Invalid signed size type found.");
-//@}
+//!@}
 #endif
 
 
@@ -166,7 +166,7 @@ enum class Mode
 	ReadWrite = Read | Write,
 	Access = ReadWrite | Execute,
 	//! \since build 627
-	//@{
+	//!@{
 #	if !YCL_Win32
 	SetUserID = S_ISUID,
 	SetGroupID = S_ISGID,
@@ -181,22 +181,22 @@ enum class Mode
 #	endif
 	PMode = SetUserID | SetGroupID | VTX | Access,
 	All = PMode | FileType
-	//@}
+	//!@}
 };
 
 //! \relates Mode
-//@{
+//!@{
 //! \since build 626
 DefBitmaskEnum(Mode)
 
 //! \since build 627
 yconstfn PDefH(bool, HasExtraMode, Mode m)
 	ImplRet(bool(m & ~(Mode::Access | Mode::FileType)))
-//@}
+//!@}
 
 
 //! \since build 722
-//@{
+//!@{
 //! \brief 打开模式。
 enum class OpenMode : int
 {
@@ -280,7 +280,7 @@ enum class OpenMode : int
 	YCL_Impl_OMode(NoDelay, NDELAY),
 #endif
 	//! \warning 库实现内部使用，需要特定的二进制支持。
-	//@{
+	//!@{
 #if O_LARGEFILE
 	//! \note 指定 64 位文件大小。
 	YCL_Impl_OMode(LargeFile, LARGEFILE),
@@ -293,7 +293,7 @@ enum class OpenMode : int
 	//! \note 设置 FILE_FLAG_BACKUP_SEMANTICS 。
 	ObtainDirectory = Directory,
 #endif
-	//@}
+	//!@}
 	None = 0
 #undef YCL_Impl_OMode_POSIX
 #undef YCL_Impl_OMode_Win32
@@ -302,7 +302,7 @@ enum class OpenMode : int
 
 //! \relates OpenMode
 DefBitmaskEnum(OpenMode)
-//@}
+//!@}
 
 } // namespace platform;
 
@@ -315,26 +315,26 @@ namespace platform_ex
 \pre 间接断言：指针参数非空。
 \note DS 和 Win32 平台：忽略第三参数，始终不跟随链接。
 */
-//@{
+//!@{
 /*!
 \brief 带检查的可跟随链接的 \c stat 调用。
 \throw std::system_error 检查失败。
 \note 最后一个参数表示调用签名。
 \since build 719
 */
-//@{
+//!@{
 YF_API YB_NONNULL(2, 4) void
 cstat(struct ::stat&, const char*, bool, const char*);
 YF_API YB_NONNULL(3) void
 cstat(struct ::stat&, int, const char*);
-//@}
+//!@}
 
 //! \brief 可跟随链接的 \c stat 调用。
 YF_API YB_NONNULL(2) int
 estat(struct ::stat&, const char*, bool) ynothrowv;
 inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 	ImplRet(::fstat(fd, &st))
-//@}
+//!@}
 
 } // namespace platform_ex;
 #endif
@@ -345,9 +345,9 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 \see http://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_01 。
 \since build 720
 */
-//@{
-//! \note 定义在 <stdio.h> 。
-//@{
+//!@{
+//! \note 定义在 \<stdio.h> 。
+//!@{
 #undef ctermid
 #undef dprintf
 #undef fdopen
@@ -371,9 +371,9 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef renameat
 #undef tempnam
 #undef vdprintf
-//@}
-//! \note 定义在 <dirent.h> 。
-//@{
+//!@}
+//! \note 定义在 \<dirent.h> 。
+//!@{
 #undef alphasort
 #undef closedir
 #undef dirfd
@@ -385,17 +385,17 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef scandir
 #undef seekdir
 #undef telldir
-//@}
-//! \note 定义在 <fcntl.h> 。
-//@{
+//!@}
+//! \note 定义在 \<fcntl.h> 。
+//!@{
 #undef creat
 #undef fcntl
 #undef open
 #undef openat
 #undef posix_fadvise
 #undef posix_fallocate
-//@}
-//! \note 定义在 <semaphore.h> 。
+//!@}
+//! \note 定义在 \<semaphore.h> 。
 #undef sem_close
 #undef sem_destroy
 #undef sem_getvalue
@@ -406,8 +406,8 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef sem_trywait
 #undef sem_unlink
 #undef sem_wait
-//! \note 定义在 <unistd.h> 。
-//@{
+//! \note 定义在 \<unistd.h> 。
+//!@{
 #undef _exit
 #undef access
 #undef alarm
@@ -490,9 +490,9 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef unlink
 #undef unlinkat
 #undef write
-//@}
-//! \note 定义在 <sys/mman.h> 。
-//@{
+//!@}
+//! \note 定义在 \<sys/mman.h> 。
+//!@{
 #undef mlock
 #undef mlockall
 #undef mmap
@@ -507,9 +507,9 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef posix_typed_mem_open
 #undef shm_open
 #undef shm_unlink
-//@}
-//! \note 定义在 <sys/stat.h> 。
-//@{
+//!@}
+//! \note 定义在 \<sys/stat.h> 。
+//!@{
 #undef chmod
 #undef fchmod
 #undef fchmodat
@@ -526,8 +526,8 @@ inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 #undef stat
 #undef umask
 #undef utimensat
-//@}
-//@}
+//!@}
+//!@}
 
 
 #if YCL_DS
@@ -588,7 +588,7 @@ public:
 	FileSystem(size_t = 16);
 	/*!
 	\brief 析构：反初始化文件系统。
-	\pre 间接断言： \c init_dev 。
+	\pre 间接断言：\c init_dev 。
 	*/
 	~FileSystem();
 };
@@ -639,9 +639,11 @@ YB_Diag_Push
 #	include <io.h> // for ::_get_osfhandle;
 
 //! \ingroup name_collision_workarounds
-//@{
+//!@{
 //! \since build 637
 #	undef CopyFile
+//! \since build 970
+#	undef CreateDirectory
 //! \since build 633
 #	undef CreateHardLink
 //! \since build 651
@@ -664,7 +666,7 @@ YB_Diag_Push
 #	undef PostMessage
 //! \since build 762
 #	undef SetEnvironmentVariable
-//@}
+//!@}
 
 extern "C"
 {
@@ -724,7 +726,7 @@ linkat(int, const char*, int, const char*, int) yimpl(ynothrow);
 #	endif
 
 //! \see http://pubs.opengroup.org/onlinepubs/9699919799/functions/utimensat.html 。
-//@{
+//!@{
 #	if !(__ANDROID_API__ >= 19)
 int
 futimens(int, const ::timespec times[2]) yimpl(ynothrow);
@@ -734,7 +736,7 @@ futimens(int, const ::timespec times[2]) yimpl(ynothrow);
 int
 utimensat(int, const char*, const ::timespec[2], int) yimpl(ynothrow);
 #	endif
-//@}
+//!@}
 
 } // extern "C";
 #endif

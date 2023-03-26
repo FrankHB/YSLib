@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2021-2022 FrankHB.
+	© 2009-2016, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file YNew.cpp
 \ingroup Adaptor
-\brief 存储调试设施。
-\version r1013
+\brief 动态存储和调试设施。
+\version r1018
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2022-11-28 18:58 +0800
+	2023-03-26 06:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,7 +157,7 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 }
 
 void
-MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
+MemoryList::Print(const MapType::value_type& val, std::FILE* stream) ynothrow
 {
 	// XXX: Error from 'std::fprintf' is ignored.
 	std::fprintf(stream, "@%p, [%zu] @ %s: %d;\n", ystdex::pvoid(val.first),
@@ -165,14 +165,14 @@ MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 }
 
 void
-MemoryList::PrintAll(std::FILE* stream)
+MemoryList::PrintAll(std::FILE* stream) ynothrow
 {
 	std::for_each(Blocks.cbegin(), Blocks.cend(),
 		ystdex::bind1(MemoryList::Print, stream));
 }
 
 void
-MemoryList::PrintAllDuplicate(std::FILE* stream)
+MemoryList::PrintAllDuplicate(std::FILE* stream) ynothrow
 {
 	std::for_each(DuplicateDeletedBlocks.cbegin(),
 		DuplicateDeletedBlocks.cend(),

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r7899
+\version r8092
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2023-03-05 23:04 +0800
+	2023-03-11 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,35 +31,38 @@
 //	std::throw_with_nested, std::invalid_argument, ystdex::sfmt,
 //	YSLib::share_move, RelaySwitched, trivial_swap, std::bind, SourceName,
 //	RetainN, NPL::ResolveRegular, NPL::Deref, A1::NameTypedReducerHandler,
-//	std::ref, Forms::CallResolvedUnary, EnsureValueTags,
-//	ResolvedTermReferencePtr, TryAccessLeafAtom, TermReference, LiftTerm,
-//	Environment, NPL::ToBindingsAllocator, NPL::AllocateEnvironment,
-//	NPL::AssignParentH, SingleStrongParent, function, SingleWeakParent,
-//	EnvironmentParent, shared_ptr, std::piecewise_construct,
-//	NPL::forward_as_tuple, ValueObject, LiftOther,
-//	ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError, ValueToken,
-//	ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm, std::placeholders,
-//	NPL::CollectTokens, Strict, LiftOtherOrCopy, EnvironmentReference,
-//	NPL::ToParent, IsEmpty, ComposeReferencedTermOp, IsBranch, IsTypedRegular,
-//	ReferenceTerm, IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm,
-//	IsModifiableTerm, IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef,
-//	NPL::SetContentWith, LiftTermValueOrCopy, ResolveName, ResolveIdentifier,
-//	MoveResolved, Environment::EnsureValid, NPLException, ReduceToReferenceList,
-//	MoveCollapsed, NPL::IsMovable, LiftTermOrCopy, IsBranchedList,
-//	AccessFirstSubterm, ThrowInsufficientTermsError, Retain, NPL::AsTermNode,
-//	ystdex::fast_any_of, A1::Perform, Ensigil, YSLib::ufexists,
-//	YSLib::to_std_string, AssertValueTags, ClearCombiningTags,
-//	EmplaceCallResultOrReturn, RemoveHead, TryAccessTerm, ystdex::plus,
-//	ystdex::tolower, ReduceReturnUnspecified, YSLib::IO::StreamPut,
-//	YSLib::OwnershipTag, YSLib::FetchEnvironmentVariable,
-//	YSLib::SetEnvironmentVariable, YSLib::uremove, NPL::allocate_shared,
-//	YSLib::linked_map, ystdex::search_map, ystdex::emplace_hint_in_place, tuple,
-//	YSLib::IO::UniqueFile, AccessPtr, ystdex::begins_with, ystdex::throw_error;
+//	std::ref, ResolvedTermReferencePtr, EnsureValueTags, TermTags,
+//	TryAccessLeafAtom, TermReference, LiftTerm, Environment,
+//	NPL::ToBindingsAllocator, NPL::AllocateEnvironment, NPL::AssignParentH,
+//	SingleStrongParent, function, SingleWeakParent, EnvironmentParent,
+//	shared_ptr, std::piecewise_construct, NPL::forward_as_tuple, ValueObject,
+//	LiftOther, ThrowNonmodifiableErrorForAssignee, ThrowValueCategoryError,
+//	ValueToken, ResolveTerm, TokenValue, CheckVariadicArity, A1::AsForm,
+//	std::placeholders, NPL::CollectTokens, Strict, LiftOtherOrCopy,
+//	EnvironmentReference, Environment::EnsureValid, NPL::ToParent, IsEmpty,
+//	ComposeReferencedTermOp, IsBranch, IsTypedRegular, ReferenceTerm,
+//	IsReferenceTerm, IsBoundLValueTerm, IsUniqueTerm, IsModifiableTerm,
+//	IsTemporaryTerm, IsUncollapsedTerm, LiftTermRef, NPL::SetContentWith,
+//	LiftTermValueOrCopy, LiftToReference, ResolveName, ResolveIdentifier,
+//	MoveResolved, ResolveEnvironment, NPLException, ThrowInvalidSyntaxError,
+//	TypeError, ReduceBranchToListValue, BadIdentifier, ReduceBranchToList,
+//	ReduceToReferenceList, MoveCollapsed, LiftTermOrCopy, NPL::IsMovable,
+//	ResolvedArg, IsBranchedList, AccessFirstSubterm,
+//	ThrowInsufficientTermsError, Retain, NPL::AsTermNode, ystdex::fast_any_of,
+//	A1::Perform, Ensigil, YSLib::ufexists, YSLib::to_std_string,
+//	AssertValueTags, in_place_type, RemoveHead, ClearCombiningTags,
+//	EmplaceCallResultOrReturn, AccessRegular, TryAccessTerm, IsLeaf,
+//	ystdex::plus, ystdex::tolower, IO::UniqueFile, uopen, IO::use_openmode_t,
+//	ReduceReturnUnspecified, IO::StreamPut, YSLib::OwnershipTag,
+//	YSLib::FetchEnvironmentVariable, YSLib::SetEnvironmentVariable,
+//	YSLib::uremove, ystdex::throw_error, NPL::allocate_shared,
+//	YSLib::linked_map, pair, ystdex::search_map, ystdex::emplace_hint_in_place,
+//	tuple, GetValuePtrOf, LookupName, AccessPtr, ystdex::begins_with;
 #include YFM_NPL_NPLA1Forms // for EncapsulateValue, Encapsulate, Encapsulated,
 //	Decapsulate, NPL::Forms functions, StringToSymbol, SymbolToString;
 #include YFM_NPL_NPLAMath // for NumberLeaf, NumberNode, NPL math functions;
-#include YFM_YSLib_Service_FileSystem // for YSLib::IO::Path,
-//	YSLib::Deployment::InstallHardLink;
+#include YFM_YSLib_Service_FileSystem // for sfmt, IO::CreateDirectory,
+//	IO::EnsureDirectory, IO::Path, IO::IsAbsolute, Deployment::InstallHardLink;
 #include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
 //	ystdex::make_transform;
 #include YFM_YSLib_Service_TextFile // for
@@ -68,8 +71,9 @@
 #include <ostream> // for std::endl;
 #include "NPLA1Internals.h" // for NPL_Impl_NPLA1_Enable_Thunked,
 //	ReduceSubsequent, A1::RelayCurrentNext, MoveKeptGuard;
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib::LockCommandArguments,
-//	YSLib::FetchCommandOutput, YSLib::RandomizeTemplatedString;
+#include YFM_YSLib_Core_YCoreUtilities // for FetchBuildNumber,
+//	FetchVCSRevisionString, LockCommandArguments, FetchCommandOutput,
+//	RandomizeTemplateString;
 #include <ystdex/cstdio.h> // for ystdex::fexists;
 #include <cerrno> // for errno, EEXIST, EPERM;
 
@@ -241,31 +245,11 @@ ReduceToLoadFile(TermNode& term, ContextNode& ctx, string filename)
 
 	// NOTE: This is explicitly not same to klisp. This is also friendly to PTC.
 	// XXX: Same to %A1::ReduceOnce, without setup the next term.
-#if NPL_Impl_NPLA1_Enable_Thunked
-#	if NPL_Impl_NPLA1_Enable_TCO
-	RefTCOAction(ctx).SaveTailSourceName(cs.CurrentSource,
-		std::move(cs.CurrentSource));
-#	else
-	RelaySwitched(ctx, trivial_swap,
-		A1::NameTypedReducerHandler(std::bind([&](SourceName& saved_src){
-		cs.CurrentSource = std::move(saved_src);
-		return ctx.LastStatus;
-	}, std::move(cs.CurrentSource)), "restore-source-name"));
-#	endif
-	term = global.Load(cs, std::move(filename));
-	global.Preprocess(term);
-	return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
-#else
-	auto saved_src(std::move(cs.CurrentSource));
-
-	term = global.Load(cs, std::move(filename));
-	global.Preprocess(term);
-
-	const auto res(ContextState::Access(ctx).ReduceOnce.Handler(term, ctx));
-
-	cs.CurrentSource = std::move(saved_src);
-	return res;
-#endif
+	return RelayWithSavedSourceName(ctx, [&]{
+		term = global.Load(cs, std::move(filename));
+		global.Preprocess(term);
+		return ContextState::Access(ctx).ReduceOnce.Handler(term, ctx);
+	});
 }
 
 } // unnamed namespace;
@@ -558,8 +542,8 @@ CreateEnvironmentWithParent(const Environment::allocator_type& a,
 	// XXX: Simlar to %MakeEnvironment, specialized for 1 %EnvironmentReference
 	//	value.
 	Environment::EnsureValid(r_env.Lock());
-	return NPL::AllocateEnvironment(a,
-		NPL::ToParent<SingleWeakParent>(a, r_env));
+	return
+		NPL::AllocateEnvironment(a, NPL::ToParent<SingleWeakParent>(a, r_env));
 }
 #endif
 
@@ -2067,15 +2051,23 @@ LoadModule_std_strings(ContextState& cs)
 void
 LoadModule_std_io(ContextState& cs)
 {
+	using namespace YSLib;
 	auto& m(cs.GetRecordRef().GetMapRef());
 
 	RegisterUnary<Strict, const string>(m, "readable-file?",
 		[](const string& str) ynothrow{
 		return YSLib::ufexists(str.c_str());
 	});
+	RegisterUnary<Strict, const string>(m, "readable-nonempty-file?",
+		[](const string& str) -> bool{
+		if(IO::UniqueFile file{uopen(str.c_str(), IO::use_openmode_t(),
+			std::ios_base::in)})
+			return file->GetSize() > 0;
+		return {};
+	});
 	RegisterUnary<Strict, const string>(m, "writable-file?",
 		[](const string& str) ynothrow{
-		return YSLib::ufexists(str.c_str(), true);
+		return YSLib::ufexists(str.c_str(), "r+b");
 	});
 	RegisterStrict(m, "newline", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
@@ -2087,8 +2079,8 @@ LoadModule_std_io(ContextState& cs)
 	});
 	RegisterUnary<Strict, const string>(m, "put", trivial_swap,
 		[&](const string& str, ContextNode& ctx){
-		YSLib::IO::StreamPut(ContextState::Access(ctx).Global.get()
-			.GetOutputStreamRef(), str.c_str());
+		IO::StreamPut(ContextState::Access(
+			ctx).Global.get().GetOutputStreamRef(), str.c_str());
 		return ValueToken::Unspecified;
 	});
 #if NPL_Impl_NPLA1_Native_Forms
@@ -2096,7 +2088,7 @@ LoadModule_std_io(ContextState& cs)
 		[&](const string& str, ContextNode& ctx){
 		auto& os(ContextState::Access(ctx).Global.get().GetOutputStreamRef());
 
-		YSLib::IO::StreamPut(os, str.c_str());
+		IO::StreamPut(os, str.c_str());
 		if(os)
 			os << std::endl;
 		return ValueToken::Unspecified;
@@ -2176,13 +2168,20 @@ $defl! get-module (&filename .&opt)
 void
 LoadModule_std_system(ContextState& cs)
 {
+	using namespace YSLib;
 	auto& m(cs.GetRecordRef().GetMapRef());
 
+	// XXX: Not using allocator.
+	Environment::DefineChecked(m, "version-string", sfmt<string>("0.%zu.%zu",
+		size_t(FetchBuildNumber() / 100U), size_t(FetchBuildNumber() % 100U)));
+	Environment::DefineChecked(m, "build-number", FetchBuildNumber());
+	Environment::DefineChecked(m, "revision-description",
+		string(FetchVCSRevisionString(), m.get_allocator()));
 	RegisterStrict(m, "get-current-repl", trivial_swap,
 		[&](TermNode& term, ContextNode& ctx){
 		RetainN(term, 0);
 		term.Value.assign(ContextState::Access(ctx).Global.get(),
-			YSLib::OwnershipTag<>());
+			OwnershipTag<>());
 	});
 	RegisterStrict(m, "eval-string", EvalString);
 	RegisterStrict(m, "eval-string%", EvalStringRef);
@@ -2190,7 +2189,7 @@ LoadModule_std_system(ContextState& cs)
 	RegisterStrict(m, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
 		{
-			const auto p_cmd_args(YSLib::LockCommandArguments());
+			const auto p_cmd_args(LockCommandArguments());
 			TermNode::Container con(term.get_allocator());
 
 			for(const auto& arg : p_cmd_args->Arguments)
@@ -2202,12 +2201,12 @@ LoadModule_std_system(ContextState& cs)
 	RegisterUnary<Strict, const string>(m, "env-get", [](const string& var){
 		string res(var.get_allocator());
 
-		YSLib::FetchEnvironmentVariable(res, var.c_str());
+		FetchEnvironmentVariable(res, var.c_str());
 		return res;
 	});
 	RegisterBinary<Strict, const string, const string>(m, "env-set",
 		[](const string& var, const string& val){
-		YSLib::SetEnvironmentVariable(var.c_str(), val.c_str());
+		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
 	cs.ShareCurrentSource("<lib:std.system>");
 	A1::Perform(cs, R"NPL(
@@ -2218,7 +2217,7 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 	RegisterStrict(m, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
 			TermNode::Container con(term.get_allocator());
-			auto res(YSLib::FetchCommandOutput(cmd.c_str()));
+			auto res(FetchCommandOutput(cmd.c_str()));
 
 			NPL::AddValueTo(con, ystdex::trim(std::move(res.first)));
 			NPL::AddValueTo(con, res.second);
@@ -2234,7 +2233,91 @@ $defl/e! env-empty? (derive-current-environment std.strings) (&n)
 	});
 	RegisterUnary<Strict, const string>(m, "remove-file",
 		[](const string& filename){
-		return YSLib::uremove(filename.c_str());
+		return uremove(filename.c_str());
+	});
+	RegisterUnary<Strict, const string>(m, "create-directory",
+		[](const string& path){
+		return IO::CreateDirectory(path);
+	});
+	RegisterUnary<Strict, const string>(m, "create-directory*",
+		[](const string& path){
+		return EnsureDirectory(IO::Path(path));
+	});
+	RegisterUnary<Strict, const string>(m, "create-parent-directory*",
+		[](const string& path) -> bool{
+		IO::Path pth(path);
+
+		if(!pth.empty())
+		{
+			pth.pop_back();
+			return EnsureDirectory(pth);
+		}
+		return {};
+	});
+	RegisterUnary<Strict, const string>(m, "absolute-path?",
+		[](const string& path){
+		return IO::IsAbsolute(path);
+	});
+	RegisterBinary<Strict, const string, const string>(m,
+		"make-temporary-filename", [](const string& pfx, const string& sfx){
+		// NOTE: POSIX functions are not used for compatibility and for retrying
+		//	issues (see below). On the other hand, Win32's %::GetTempPathW is
+		//	not reliable across different Windows versions. See
+		//	https://reviews.llvm.org/D14231.
+		// XXX: This mask length of 6 is same to %::mkstemps used by
+		//	%make_temp_file_with_prefix in libiberty, which in turns used by
+		//	GCC driver. The mask '%' and the template string below are similar
+		//	to the implementation in the LLVM support library used by Clang
+		//	driver.
+		const string_view tmpl("0123456789abcdef");
+
+#if YF_Hosted
+		// NOTE: Value of %TMP_MAX varies, so it is not used. It is also
+		//	obsolescent in POSIX. See
+		//	https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdio.h.html.
+		// NOTE: Common implementation may try too many times, e.g. currently
+		//	glibc's implementation retries 62^3 times (see https://sourceware.org/git/?p=glibc.git;a=blob;f=sysdeps/posix/tempname.c;h=cd48385a40f2400d1d8c3169c45d63c6faf8c0ee;hb=refs/tags/glibc-2.32#l199);
+		//	and LLVM tries 128 times (see https://llvm.org/doxygen/Path_8cpp_source.html#l00180).
+		//	Here it is more conservative (even less than the least required
+		//	value of %TMP_MAX which is 25), and the number is documented
+		//	explicitly.
+		for(size_t n(16); n != 0; --n)
+#endif
+		{
+			string str("%%%%%%", pfx.get_allocator());
+
+#if YF_Hosted
+			str = RandomizeTemplateString(str, '%', tmpl);
+#else
+			str = RandomizeTemplateString(std::move(str), '%', tmpl);
+#endif
+
+			str = pfx + std::move(str) + sfx;
+			// TODO: Check file access with read-write permissions using
+			//	%YSLib::uopen. This requires the exposure of the open flags in
+			//	YSLib since NPL does not use %YCLib::NativeAPI.
+			// XXX: This is like %YSLib::ufexists, but the UTF-8 support is not
+			//	needed.
+			if(ystdex::fexists(str.c_str(), "w+b"))
+				return str;
+#if YF_Hosted
+
+			const int err(errno);
+
+			// NOTE: On Windows %EPERM can occur on trying to open a file marked
+			//	for deletion.
+			if(err != EEXIST && err != EPERM)
+				continue;
+#endif
+		}
+
+		// NOTE: This is nearly fatal. It is not intended to be handled in
+		//	the object language in general. Thus, currently it is not
+		//	wrapped in %NPLException.
+		int err(errno);
+
+		ystdex::throw_error(err, "Failed opening temporary file with the"
+			" prefix '" + to_std_string(pfx) + '\'');
 	});
 }
 
@@ -2484,23 +2567,6 @@ LoadModule_SHBuild(ContextState& cs)
 		if(os)
 			os << std::endl;
 	})));
-	RegisterUnary<Strict, const string>(m, "SHBuild_BuildGCH_existed_",
-		[](const string& str) -> bool{
-		if(IO::UniqueFile file{uopen(str.c_str(), {}, std::ios_base::in)})
-			return file->GetSize() > 0;
-		return {};
-	});
-	RegisterUnary<Strict, const string>(m, "SHBuild_BuildGCH_mkpdirp_",
-		[](const string& str){
-		IO::Path pth(str);
-
-		if(!pth.empty())
-		{
-			pth.pop_back();
-			EnsureDirectory(pth);
-		}
-		return ValueToken::Unspecified;
-	});
 	RegisterUnary<Strict, const string>(m, "SHBuild_DirectoryOf_",
 		[](const string& str){
 		IO::Path pth(str);
@@ -2508,11 +2574,6 @@ LoadModule_SHBuild(ContextState& cs)
 		if(!pth.empty())
 			pth.pop_back();
 		return string(pth);
-	});
-	RegisterUnary<Strict, const string>(m, "SHBuild_EnsureDirectory_",
-		[](const string& str){
-		EnsureDirectory(IO::Path(str));
-		return ValueToken::Unspecified;
 	});
 	RegisterStrict(m, "SHBuild_EchoVar", trivial_swap, [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
@@ -2541,8 +2602,7 @@ LoadModule_SHBuild(ContextState& cs)
 		throw NPLException("Error in quoted string.");
 	});
 	RegisterBinary<Strict, const string, const string>(m,
-		"SHBuild_RemovePrefix_",
-		[](const string& str, const string& pfx){
+		"SHBuild_RemovePrefix_", [](const string& str, const string& pfx){
 		return ystdex::begins_with(str, pfx) ? str.substr(pfx.length()) : str;
 	});
 	RegisterUnary<Strict, const string>(m, "SHBuild_SDot_",
@@ -2553,10 +2613,6 @@ LoadModule_SHBuild(ContextState& cs)
 			if(c == '.')
 				c = '_';
 		return res;
-	});
-	RegisterUnary<Strict, const string>(m, "SHBuild_String_absolute_path?_",
-		[](const string& str){
-		return IO::IsAbsolute(str);
 	});
 	RegisterUnary<Strict, const string>(m, "SHBuild_TrimOptions_",
 		[](const string& src, const ContextNode& ctx){
@@ -2621,64 +2677,6 @@ LoadModule_SHBuild(ContextState& cs)
 		if(!res.empty())
 			res.pop_back();
 		return res;
-	});
-	RegisterBinary<Strict, const string, const string>(m,
-		"SHBuild_MakeTempFilename", [](const string& pfx, const string& sfx){
-		// NOTE: POSIX functions are not used for compatibility and for retrying
-		//	issues (see below). On the other hand, Win32's %::GetTempPathW is
-		//	not reliable across different Windows versions. See
-		//	https://reviews.llvm.org/D14231.
-		// XXX: This mask length of 6 is same to %::mkstemps used by
-		//	%make_temp_file_with_prefix in libiberty, which in turns used by
-		//	GCC driver. The mask '%' and the template string below are similar
-		//	to the implementation in the LLVM support library used by Clang
-		//	driver.
-		const string_view tmpl("0123456789abcdef");
-
-#if YF_Hosted
-		// NOTE: Value of %TMP_MAX varies. It is also obsolescent in POSIX. See
-		//	https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stdio.h.html.
-		// NOTE: Common implementation may try too many times, e.g. glibc's
-		//	implementation retry 26^3 times. LLVM tries 128 times. Here it is
-		//	more conservative, and the number is documented explicitly.
-		for(size_t n(16); n != 0; --n)
-#endif
-		{
-			string str("%%%%%%", pfx.get_allocator());
-
-#if YF_Hosted
-			str = YSLib::RandomizeTemplatedString(str, '%', tmpl);
-#else
-			str = YSLib::RandomizeTemplatedString(std::move(str), '%',
-				tmpl);
-#endif
-
-			str = pfx + std::move(str) + sfx;
-			// TODO: Check file access with read-write permissions using
-			//	%YSLib::uopen. This requires the exposure of the open flags in
-			//	YSLib since NPL does not use %YCLib::NativeAPI.
-			// XXX: This is like %YSLib::ufexists, but the UTF-8 support is not
-			//	needed.
-			if(ystdex::fexists(str.c_str(), true))
-				return str;
-#if YF_Hosted
-
-			const int err(errno);
-
-			// NOTE: On Windows %EPERM can occur on trying to open a file marked
-			//	for deletion.
-			if(err != EEXIST && err != EPERM)
-				continue;
-#endif
-		}
-
-		// NOTE: This is nearly fatal. It is not intended to be handled in
-		//	the object language in general. Thus, currently it is not
-		//	wrapped in %NPLException.
-		int err(errno);
-
-		ystdex::throw_error(err, "Failed opening temporary file with the"
-			" prefix '" + to_std_string(pfx) + '\'');
 	});
 }
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r373
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2023-03-04 16:05 +0800
+	2023-03-26 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,23 +183,29 @@ size_t
 WConsole::WriteString(string_view sv)
 {
 	YAssertNonnull(sv.data());
-	return WriteString(UTF8ToWCS(sv));
+
+	const auto wstr(UTF8ToWCS(sv));
+
+	return WriteString({wstr.c_str(), wstr.length()});
 }
 size_t
 WConsole::WriteString(string_view sv, unsigned cp)
 {
 	YAssertNonnull(sv.data());
-	return WriteString(MBCSToWCS(sv, cp));
+
+	const auto wstr(MBCSToWCS(sv, cp));
+
+	return WriteString({wstr.c_str(), wstr.length()});
 }
 size_t
-WConsole::WriteString(wstring_view sv)
+WConsole::WriteString(const wchar_t* s, size_t l)
 {
-	YAssertNonnull(sv.data());
+	YAssertNonnull(s);
 
 	unsigned long n;
 
-	YCL_CallF_Win32(WriteConsoleW, h_out, sv.data(),
-		static_cast<unsigned long>(sv.length()), &n, yimpl({}));
+	YCL_CallF_Win32(WriteConsoleW, h_out, s, static_cast<unsigned long>(l), &n,
+		yimpl({}));
 	return size_t(n);
 }
 

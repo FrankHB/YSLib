@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016, 2019-2022 FrankHB.
+	© 2010-2016, 2019-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2315
+\version r2351
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2022-11-05 21:47 +0800
+	2023-03-11 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,12 @@
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_FileSystem // for ystdex::to_string_d;
-#include <ystdex/cstring.h>
-#include <ystdex/exception.h> // for ystdex::throw_error, system_error;
+#include YFM_YSLib_Service_FileSystem // for ystdex::to_string_d,
+//	FetchCurrentWorkingDirectory, IsAbsolute, DirectorySession, umkdir,
+//	MakeMBCS, FetchSeparator, use_openmode_t;
+#include <ios> // for std::ios_base::in, std::ios_base::binary;
+#include <cerrno> // for errno, EEXIST;
+#include <ystdex/exception.h> // for std::system_error, ystdex::throw_error;
 #include YFM_YSLib_Service_File // for OpenFile;
 
 namespace YSLib
@@ -90,6 +93,17 @@ VerifyDirectoryImpl(const _tChar* path)
 	return {};
 }
 
+//! \since build 970
+YB_NONNULL(2, 3) void
+CheckCreateDiretoryError(int err, const char* path, const char* sig)
+{
+	if(err != EEXIST)
+	{
+		YTraceDe(Err, "Failed making directory path '%s'", path);
+		ystdex::throw_error(err, sig);
+	}
+}
+
 } // unnamed namespace;
 
 bool
@@ -103,26 +117,31 @@ VerifyDirectory(const char16_t* path)
 	return VerifyDirectoryImpl(path);
 }
 
-void
+bool
+CreateDirectory(const char* path)
+{
+	const bool success(umkdir(path));
+
+	if(YB_UNLIKELY(!success))
+		CheckCreateDiretoryError(errno, path, yfsig);
+	return success;
+}
+
+bool
 EnsureDirectory(const Path& pth)
 {
 	// NOTE: Similar to %ystdex::to_string_d for %ystdex::path.
 	if(!pth.empty())
 	{
+		bool success(true);
 		auto i(pth.begin());
 		string res(MakeMBCS<string>(*i));
 		const auto delimiter(FetchSeparator<char>());
 		const auto ensure([&]{
 			if(!VerifyDirectory(res) && !umkdir(res.c_str()))
 			{
-				const int err(errno);
-
-				if(err != EEXIST)
-				{
-					YTraceDe(Err, "Failed making directory path '%s'",
-						res.c_str());
-					ystdex::throw_error(err, yfsig);
-				}
+				CheckCreateDiretoryError(errno, res.c_str(), yfsig);
+				success = {};
 			}
 		});
 
@@ -137,7 +156,9 @@ EnsureDirectory(const Path& pth)
 			res += delimiter;
 			ensure();
 		}
+		return success;
 	}
+	return {};
 }
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2022 FrankHB.
+	© 2011-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4997
+\version r5032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2022-11-05 21:26 +0800
+	2023-03-26 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,8 +59,7 @@ namespace
 namespace YCL_Impl_details
 {
 
-// NOTE: To avoid hiding of the global name, the declarations shall not be in
-//	namespace %platform.
+// NOTE: See $2023-03 @ %Documentation::Workflow.
 YCL_DeclW32Call(CreateSymbolicLinkW, kernel32, unsigned char, const wchar_t*, \
 	const wchar_t*, unsigned long)
 using platform::wcast;
@@ -115,7 +114,7 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 		{
 			// TODO: Throw with context information about failed path?
 			// TODO: Use preallocted object to improve performance?
-			path = ReadLink(path.c_str());
+			path = ReadLink(path.c_str(), path.get_allocator());
 			if(n != 0)
 				--n;
 			else
@@ -143,7 +142,7 @@ CreateDirectoryDataPtr(_tParam&& arg)
 
 #if YCL_Win32
 //! \since build 639
-//@{
+//!@{
 using platform_ex::FileAttributes;
 using platform_ex::GetErrnoFromWin32;
 
@@ -166,7 +165,7 @@ CallFuncWithAttr(_func f, const char* path)
 	return attr != platform_ex::Invalid ? f(wstr, attr)
 		: (errno = GetErrnoFromWin32(), false);
 }
-//@}
+//!@}
 #endif
 
 #if YCL_Win32
@@ -190,7 +189,7 @@ QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 		follow_reparse_point);
 }
 //! \since build 632
-//@{
+//!@{
 void
 QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
@@ -235,7 +234,7 @@ yconstexpr const struct
 		return array<FileTime, 2>{ConvertTime(mtime), ConvertTime(atime)};
 	}
 } get_st_matime{};
-//@}
+//!@}
 #else
 //! \since build 901
 using platform_ex::cstat;
@@ -248,7 +247,7 @@ YB_NONNULL(2, 4) inline PDefH(void, cstat, struct ::stat& st,
 using platform_ex::estat;
 
 //! \since build 638
-//@{
+//!@{
 static_assert(std::is_integral<::dev_t>(),
 	"Nonconforming '::dev_t' type found.");
 static_assert(std::is_unsigned<::ino_t>(),
@@ -256,7 +255,7 @@ static_assert(std::is_unsigned<::ino_t>(),
 
 inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
-//@}
+//!@}
 
 inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
 	ImplRet({std::time_t(ft.count() / 1000000000LL),
@@ -294,7 +293,7 @@ ToFileTime(std::time_t t) ynothrow
 }
 
 //! \since build 631
-//@{
+//!@{
 const auto get_st_atime([](struct ::stat& st){
 	return ToFileTime(st.st_atime);
 });
@@ -304,7 +303,7 @@ const auto get_st_mtime([](struct ::stat& st){
 const auto get_st_matime([](struct ::stat& st){
 	return array<FileTime, 2>{ToFileTime(st.st_mtime), ToFileTime(st.st_atime)};
 });
-//@}
+//!@}
 #endif
 
 //! \since build 660
@@ -501,16 +500,16 @@ CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 }
 
 string
-ReadLink(const char* path)
+ReadLink(const char* path, string::allocator_type a)
 {
 #if YCL_DS
 	YAssertNonnull(path);
-	yunused(path);
+	yunused(path), yunused(a);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	// TODO: Simplify?
-	return
-		MakePathString(ReadLink(ucast(MakePathStringW(path).c_str())).c_str());
+	return MakePathString(
+		ReadLink(ucast(MakePathStringW(path, a).c_str())).c_str(), a);
 #else
 	struct ::stat st;
 
@@ -535,7 +534,7 @@ ReadLink(const char* path)
 				// TODO: Use %::pathconf to determine initial length instead of
 				//	a magic number.
 				n = yimpl(1024);
-			return ystdex::retry_for_vector<string>(size_t(n),
+			return ystdex::retry_for_vector<string>(size_t(n), a,
 				[&](string& res, size_t s) -> bool{
 				errno_guard gd(errno, 0);
 				const auto r(::readlink(path, &res[0], size_t(n)));
@@ -565,18 +564,22 @@ ReadLink(const char* path)
 #endif
 }
 u16string
-ReadLink(const char16_t* path)
+ReadLink(const char16_t* path, u16string::allocator_type a)
 {
 #if YCL_DS
 	YAssertNonnull(path);
+	yunused(path), yunused(a);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	using namespace platform_ex;
 	const auto sv(ResolveReparsePoint(wcast(path), ReparsePointData().Get()));
 
-	return {sv.cbegin(), sv.cend()};
+	return u16string(sv.cbegin(), sv.cend(), a);
 #else
-	return MakePathStringU(ReadLink(MakePathString(path).c_str()));
+	// XXX: Not using allocator for the temporary string creation for
+	//	efficiency.
+	return
+		MakePathStringU(ReadLink(MakePathString(path).c_str(), a).c_str(), a);
 #endif
 }
 
@@ -633,7 +636,7 @@ DirectorySession::DirectorySession()
 {}
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
+	: dir(CreateDirectoryDataPtr<Data>(wstring(MakePathStringW(path).c_str())))
 #else
 	: sDirPath([] YB_LAMBDA_ANNOTATE((const char* p), , nonnull(2)){
 		const auto res(Deref(p) != char()
@@ -754,7 +757,7 @@ HDirectory::GetNodeCategory() const ynothrow
 HDirectory::operator string() const
 {
 #if YCL_Win32
-	return MakePathString(GetNativeName());
+	return MakePathString(GetNativeName(), {});
 #else
 	return GetNativeName();
 #endif
@@ -765,7 +768,7 @@ HDirectory::operator u16string() const
 #if YCL_Win32
 		GetNativeName();
 #else
-		MakePathStringU(GetNativeName());
+		MakePathStringU(GetNativeName(), {});
 #endif
 }
 
@@ -856,7 +859,8 @@ ugetcwd(char16_t* buf, size_t len) ynothrowv
 		// NOTE: Win32 guarantees there will be a separator if and only if when
 		//	the result is root directory for ::_wgetcwd, and actually it is
 		//	the same in ::%GetCurrentDirectoryW.
-		const auto n(::GetCurrentDirectoryW(len, wcast(buf)));
+		// XXX: Truncated.
+		const auto n(::GetCurrentDirectoryW(unsigned(len), wcast(buf)));
 
 		if(n != 0)
 			return buf;
@@ -954,7 +958,8 @@ template<>
 YF_API string
 FetchCurrentWorkingDirectory(size_t init, string::allocator_type a)
 {
-	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init, a));
+	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init,
+		a).c_str(), a);
 }
 template<>
 YF_API u16string
@@ -1248,14 +1253,15 @@ string
 ConvertToMBCS(const char16_t* path)
 {
 	// TODO: Optimize?
-	ImplRet(ystdex::restrict_length(MakePathString({path,
-		std::min<size_t>(ystdex::ntctslen(path), MaxLength)}), MaxMBCSLength))
+	return ystdex::restrict_length(MakePathString(std::u16string(path,
+		std::min<size_t>(ystdex::ntctslen(path), MaxLength)).c_str(), {}),
+		MaxMBCSLength);
 }
 
 EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 {
-	static_assert(std::is_same<EntryDataUnit, byte>::value,
+	static_assert(std::is_same<EntryDataUnit, byte>(),
 		"Only unsigned char as byte is supported by checksum generation.");
 
 	YAssertNonnull(p);

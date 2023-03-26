@@ -9,7 +9,6 @@ set -e
 # shellcheck source=./SHBuild-common.sh
 . "$(dirname "${BASH_SOURCE[0]}")/SHBuild-common.sh"
 
-SHBuild_CheckedCallSilent hg root
 SHBuild_CheckedCallSilent SHBuild_Put x | sed 's/x/x/g'
 
 : "${PatchBegin:="1"}"
@@ -23,9 +22,9 @@ use_git_=''
 
 test_hg_()
 {
-	if [[ $root_ == '' ]] && hash hg > /dev/null 2>& 1; then
+	if [[ "$root_" == '' ]] && hash hg > /dev/null 2>& 1; then
 		root_="$(SHBuild_2u "$(hg root 2> /dev/null)")"
-		if [[ $root_ != '' ]]; then
+		if [[ "$root_" != '' ]]; then
 			use_hg_=hg
 		fi
 	fi
@@ -33,17 +32,19 @@ test_hg_()
 
 test_git_()
 {
-	if [[ $root_ == '' ]] && hash git > /dev/null 2>& 1; then
+	if [[ "$root_" == '' ]] && hash git > /dev/null 2>& 1; then
 		root_="$(SHBuild_2u "$(git rev-parse --show-toplevel 2> /dev/null)")"
-		if [[ root_ != '' ]]; then
+		if [[ "$root_" != '' ]]; then
 			use_git_=git
 		fi
 	fi
 }
 
-if [[ $PatchHg != '' ]]; then
+# XXX: %(SHBuild_VCS_hg, SHBuild_VCS_git) are external.
+# shellcheck disable=2154
+if [[ "$SHBuild_VCS_hg" != '' ]]; then
 	test_hg_
-elif [[ $PatchGit != '' ]]; then
+elif [[ "$SHBuild_VCS_git" != '' ]]; then
 	test_git_
 else
 	test_hg_
@@ -52,10 +53,10 @@ fi
 
 SHBuild_Pushd "$root_"
 
-if [[ $use_hg_ != '' ]]; then
+if [[ "$use_hg_" != '' ]]; then
 	SHBuild_Puts "Using hg."
 	hg status --color=none -amn0 | xargs -0 hg diff --color=none > bak.patch
-elif [[ $use_git_ != '' ]]; then
+elif [[ "$use_git_" != '' ]]; then
 	SHBuild_Puts "Using git."
 	git diff --diff-filter=d --color=never HEAD > bak.patch
 else
@@ -66,13 +67,14 @@ fi
 # XXX: This requires Bash 4.x.
 mapfile -t Versions < <(< bak.patch $RevisionPatcher)
 
-SHBuild_Puts Patch area = range [$PatchBegin, $PatchEnd].
+SHBuild_Puts Patch area = range ["$PatchBegin", "$PatchEnd"].
 file=''
 for var in "${Versions[@]}"
 do
-	if [[ $file == '' ]]; then
-		file=$var
-	else
+	if [[ "$file" == '' ]]; then
+		file="$var"
+	# XXX: This is needed to skip non-regular files, e.g. git submodules.
+	elif [[ -f "$file" ]]; then
 		sed -b -i \
 "$PatchBegin,${PatchEnd}s/version r[0-9][^ \\r\\n]*/version r$var/g" "$file"
 		SHBuild_Puts "\"$file\" processed using revision number \"$var\"."

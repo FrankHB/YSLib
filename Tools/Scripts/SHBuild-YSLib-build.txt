@@ -1,11 +1,10 @@
-﻿"#", "(C) 2014-2022 FrankHB.",
+﻿"#", "(C) 2014-2023 FrankHB.",
 "NPLA1 script for building YSLib using SHBuild.";
 
 $import! std.strings ++ string->symbol string-empty?,
 $import! std.io load puts,
-$import! std.system env-get system-quote cmd-get-args,
-$import! env_SHBuild_ SHBuild_EnsureDirectory_ SHBuild_TrimOptions_
-	SHBuild_EchoVar SHBuild_SDot_;
+$import! std.system env-get system-quote cmd-get-args create-directory*,
+$import! env_SHBuild_ SHBuild_TrimOptions_ SHBuild_EchoVar SHBuild_SDot_;
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 $def! env_SHBuild_Common_ $provide! (
@@ -22,12 +21,16 @@ $def! env_SHBuild_Common_ $provide! (
 	build-with-conf-opt
 	cons-cmd
 	get_env_SHB_
+	get-vcs-rev-info_
 	ld-ext-noadjust_
+	nul_dev_
+	rmatch?
 	safeenv-empty?
 	safeenv-get
 	safeenv-restore
 	safeenv-set
 	system-check
+	system-ok
 	system-or-puts
 	system-quote-m_
 	putss
@@ -109,7 +112,7 @@ $defl! host-build-with-conf-opt_
 	build-with-conf-opt outdir host-arch host-os debug dynamic shbopt-ext app
 		do-ld-ext do-build;
 
-SHBuild_EnsureDirectory_ SHBuild_BuildDir;
+create-directory* SHBuild_BuildDir;
 $defl! skip-or-build_ (nskip dynamic debug) $let
 (
 	(target-name ++ ($if dynamic "dynamic" "static") " libraries")
@@ -191,6 +194,44 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 					$if dynamic (safeenv-set "LIBS" (cons-cmd (++ "-L"
 						(system-quote-m_ outdir))
 						(++ "-l" (dnameof "YBase")) LIBS_YFramework));
+					$def! release-rev_ "900";
+					$def! (vcs bstr rev-str) () get-vcs-rev-info_;
+					putss "INFO: Try using detected revision from VCS '" vcs
+						"': " bstr ", '" rev-str "'.";
+					$def! bnum-opt $if (string-empty? vcs) ""
+					(
+						$if (rmatch? bstr "[1-9]\\d*")
+							(++ "-DYSL_BuildNumber=" bstr)
+							(
+								putss "WARNING: Build number string '" bstr
+									"' is not a positive decimal integer"
+									" without leading zero(es). Use the default"
+									" value from the recent release '"
+									release-rev_ "' instead.";
+								++ "-DYSL_BuildNumber=" release-rev_
+							)
+					);
+					$def! rev-opt $if (string-empty? vcs) ""
+					(
+						$import! std.io readable-nonempty-file?;
+
+						$let ((dfile ++ outdir "/" LIBPFX (dnameof "YFramework")
+							"/source/YSLib/Core/YCoreUtilities.cpp.d")
+							(dep ++ YSLib_BaseDir ($if (eqv? vcs "hg")
+								"/.hg/branch" "/.git/logs/HEAD")))
+							$let ((ok system-ok
+								(cons-cmd "sed -i" (++ "\"1a\\ " (($remote-eval
+								regex-replace std.strings) dep (($remote-eval
+								string->regex std.strings) " ") "\\ ")
+								" \\\\\\\\\"")
+								(system-quote-m_ dfile) "2>" nul_dev_)))
+								putss ($if ok "INFO" "WARNING")
+									": File '" dep "' " ($if ok "is added"
+									"failed to add") " as the dependency into '"
+									dfile "'.";
+						++ "-DYSL_VCS_Revision=\"\\\"\\\\\\\"" rev-str
+							"\\\\\\\"\\\"\""
+					);
 					"XXX", "Precompiled header is not available as it",
 						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
 					"XXX", "See $2020-10 @ doc/Workflow.txt.";
@@ -199,6 +240,7 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						$and use-g++ (eqv? host-platform_ "MinGW64");
 					"XXX", "See $2020-12 @ doc/Workflow.txt.";
 					$def! SHBuild_LDFLAGS safeenv-get "SHBuild_LDFLAGS";
+					"XXX", "See $2022-12 @ doc/Workflow.txt.";
 					$defl! add-fix-flags ()
 						$cond
 							(mingw64g "-Og -g -fno-var-tracking-assignments")
@@ -218,7 +260,8 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						extra
 					);
 					build-lib "YFramework" ($if mingw64g () inc-pch)
-						(() add-fix-flags-w) ($if dynamic "-DYB_DLL" "")
+						(() add-fix-flags-w) bnum-opt rev-opt
+						($if dynamic "-DYB_DLL" "")
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
 						CFLAGS_freetype_other))
@@ -266,7 +309,7 @@ $let ()
 	$import! env_SHB_ InstInc InstLibS InstLibD InstSHBuild;
 	$defl! SHB_InstInc (srcdir) InstInc srcdir SR_Include_;
 
-	for-each-ltr SHBuild_EnsureDirectory_ (list SR_Bin_ SR_Include_ SR_Lib_
+	for-each-ltr create-directory* (list SR_Bin_ SR_Include_ SR_Lib_
 		SR_Share_ SR_Share_NPLA1_ SR_Var_NPLA1_);
 
 	$if (safeenv-empty? "SHBuild_No3rd")

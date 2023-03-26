@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2022 FrankHB.
+	© 2011-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r838
+\version r938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2022-06-05 01:35 +0800
+	2023-03-24 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,9 @@
 #include "cassert.h" // for <cstdio>, yconstraint;
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
+#include <array> // for std::array;
 #include <ios> // for std::ios_base::openmode;
+#include "cstring.h" // for ystdex::is_null;
 #include "operators.hpp" // for input_iteratable, byte;
 
 namespace ystdex
@@ -44,12 +46,12 @@ namespace ystdex
 \note 分别使用 std::vsnprintf 和 std::vswprintf 实现。
 \since build 564
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
 vfmtlen(const char*, std::va_list) ynothrowv;
 YB_ATTR_nodiscard YB_API YB_NONNULL(1) YB_PURE size_t
 vfmtlen(const wchar_t*, std::va_list) ynothrowv;
-//@}
+//!@}
 
 
 /*!
@@ -64,17 +66,6 @@ setnbuf(std::FILE* stream) ynothrowv
 	yconstraint(stream);
 	return std::setvbuf(stream, {}, _IONBF, 0) == 0;
 }
-
-/*!
-\brief 判断指定路径的文件是否存在。
-\pre 断言：参数非空。
-\note 第二参数指定是否允许清空和创建文件。
-\note 使用 std::fopen 二进制模式实现。
-\return 以指定路径打开文件是否成功。
-\since build 904
-*/
-YB_ATTR_nodiscard YB_API bool
-fexists(const char*, bool = {}) ynothrowv;
 
 
 /*!
@@ -108,22 +99,27 @@ read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
 
 
 /*!
+\brief 固定模式字符串。
+\tparam _tChar 字符类型。
+\invariant 内容为 NTCTS 。
+\since build 970
+*/
+template<typename _tChar = char>
+using fixed_openmode = std::array<_tChar, yimpl(4)>;
+
+
+/*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
 \since build 923
 */
-//@{
-/*!
-\see ISO C++11 Table 132 。
-\note 忽略 std::ios_base::ate 。
-\note 返回值未指定，但返回值指向的内容是确定的，且无副作用，因此可用 YB_STATELESS 。
-\see LWG 596 。
-*/
-template<typename _tChar = char>
-YB_ATTR_nodiscard YB_STATELESS const _tChar*
-openmode_conv(std::ios_base::openmode mode) ynothrow
+//!@{
+namespace details
 {
-	using namespace std;
-	static yconstexpr const _tChar modes[12][4] = {
+
+template<typename _tChar>
+struct modes_holder final
+{
+	static yconstexpr const fixed_openmode<_tChar> modes[] = {
 		{_tChar('w'), _tChar('b'), _tChar()},
 		{_tChar('w'), _tChar()},
 		{_tChar('a'), _tChar('b'), _tChar()},
@@ -135,8 +131,34 @@ openmode_conv(std::ios_base::openmode mode) ynothrow
 		{_tChar('a'), _tChar('+'), _tChar('b'), _tChar()},
 		{_tChar('a'), _tChar('+'), _tChar()},
 		{_tChar('r'), _tChar('+'), _tChar('b'), _tChar()},
-		{_tChar('r'), _tChar('+'), _tChar()}
+		{_tChar('r'), _tChar('+'), _tChar()},
+		{}
 	};
+};
+
+#if __cpp_inline_variables < 201606L
+template<typename _tChar>
+yconstexpr const fixed_openmode<_tChar> modes_holder<_tChar>::modes[];
+#endif
+
+} // namespace details;
+
+/*!
+\see ISO C++11 Table 132 。
+\note 忽略 std::ios_base::ate 。
+\see LWG 596 。
+*/
+//!@{
+template<typename _tChar = char>
+YB_ATTR_nodiscard YB_STATELESS yconstfn_relaxed const fixed_openmode<_tChar>&
+fixed_openmode_conv(std::ios_base::openmode mode) ynothrow
+{
+	using namespace std;
+	// NOTE: WG21 N2643 (in ISO C++2b) is not relied on.
+#if __cpp_constexpr >= 201304L
+	yconstexpr
+#endif
+		const auto& modes(details::modes_holder<_tChar>::modes);
 
 	switch(unsigned((mode &= ~ios_base::ate) & ~ios_base::binary))
 	{
@@ -158,8 +180,19 @@ openmode_conv(std::ios_base::openmode mode) ynothrow
 	default:
 		break;
 	}
-	return {};
+	return modes[12];
 }
+
+//! \note 返回值未指定，但内容确定且无副作用，因此可用 \c YB_STATELESS 。
+template<typename _tChar = char>
+YB_ATTR_nodiscard YB_STATELESS yconstfn_relaxed const _tChar*
+openmode_conv(std::ios_base::openmode mode) ynothrow
+{
+	const auto& fmode(ystdex::fixed_openmode_conv<_tChar>(mode));
+
+	return ystdex::is_null(fmode[0]) ? nullptr : &fmode[0];
+}
+//!@}
 /*!
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
 \return 若失败（包括空参数情形）为 std::ios_base::openmode() ，否则为对应的值。
@@ -167,6 +200,7 @@ openmode_conv(std::ios_base::openmode mode) ynothrow
 \note 顺序严格限定。
 \note 支持 x 转换。
 */
+//!@{
 template<typename _tChar = char>
 YB_ATTR_nodiscard YB_PURE std::ios_base::openmode
 openmode_conv(const _tChar* s) ynothrow
@@ -191,7 +225,7 @@ openmode_conv(const _tChar* s) ynothrow
 		default:
 			goto invalid;
 		}
-		if(s[1] != _tChar())
+		if(!ystdex::is_null(s[1]))
 		{
 			auto l(char_traits<_tChar>::length(s));
 
@@ -233,7 +267,34 @@ openmode_conv(const _tChar* s) ynothrow
 invalid:
 	return ios_base::openmode();
 }
-//@}
+//! \since build 970
+template<typename _tChar = char>
+YB_ATTR_nodiscard YB_PURE inline std::ios_base::openmode
+openmode_conv(const fixed_openmode<_tChar>& fmode) ynothrow
+{
+	return ystdex::openmode_conv<_tChar>(&fmode[0]);
+}
+//!@}
+//!@}
+
+
+/*!
+\brief 判断指定路径的文件是否存在。
+\pre 断言：字符串参数非空。
+\note 使用 \c std::fopen 实现，第二参数指定打开模式。
+\return 以指定路径打开文件是否成功。
+\since build 970
+*/
+//!@{
+YB_ATTR_nodiscard YB_API YB_NONNULL(1, 2) bool
+fexists(const char*, const char* = "rb") ynothrowv;
+/*!
+\warning 若模式转换无法得到支持 \c std::fopen 的模式，则行为未定义。
+\sa ystdex::openmode_conv
+*/
+YB_ATTR_nodiscard YB_API YB_NONNULL(1) bool
+fexists(const char*, std::ios_base::openmode) ynothrowv;
+//!@}
 
 
 /*!
@@ -245,13 +306,13 @@ class YB_API ifile_iterator
 {
 public:
 	//! \since build 676
-	//@{
+	//!@{
 	using iterator_category = std::input_iterator_tag;
 	using value_type = byte;
 	using pointer = const byte*;
 	using reference = const byte&;
 	using difference_type = ptrdiff_t;
-	//@}
+	//!@}
 	using char_type = byte;
 	//! \since build 607
 	using int_type = int;
@@ -267,7 +328,7 @@ private:
 public:
 	/*!
 	\brief 无参数构造。
-	\post <tt>!stream</tt> 。
+	\post \c !stream 。
 
 	构造空流迭代器。
 	*/
@@ -277,7 +338,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用流指针。
-	\pre 断言： <tt>ptr</tt> 。
+	\pre 断言：\c ptr 。
 	\post <tt>stream == ptr</tt> 。
 	\since build 458
 	*/
@@ -343,8 +404,8 @@ public:
 	\brief 向流中写回字符。
 	\since build 607
 	*/
-	//@{
-	//! \pre 断言： <tt>!stream</tt> 。
+	//!@{
+	//! \pre 断言：\c !stream 。
 	int_type
 	sputbackc(char_type c)
 	{
@@ -353,7 +414,7 @@ public:
 		return std::ungetc(char(c), stream);
 	}
 	/*!
-	\pre 断言： <tt>!stream || steram == s</tt> 。
+	\pre 断言：<tt>!stream || steram == s</tt> 。
 	\post <tt>stream == s</tt> 。
 	*/
 	int_type
@@ -364,19 +425,19 @@ public:
 		return sputbackc(c);
 	}
 
-	//! \pre 间接断言： <tt>!stream</tt> 。
+	//! \pre 间接断言：\c !stream 。
 	int_type
 	sungetc()
 	{
 		return sputbackc(value);
 	}
-	//! \pre 间接断言： <tt>!stream || steram == s</tt> 。
+	//! \pre 间接断言：<tt>!stream || steram == s</tt> 。
 	int_type
 	sungetc(std::FILE* s)
 	{
 		return sputbackc(value, s);
 	}
-	//@}
+	//!@}
 };
 
 

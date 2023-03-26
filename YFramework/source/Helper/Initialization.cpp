@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r4017
+\version r4020
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2023-02-20 07:15 +0800
+	2023-03-26 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_all_of;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_NLS // for FetchModuleFileName,
+#	include YFM_Win32_YCLib_NLS // for platform_ex::FetchModuleFileName,
 //	platform_ex::FetchDBCSOffset, platform_ex::WCSToUTF8,
 //	platform_ex::UTF8ToWCS;
 #endif
@@ -280,7 +280,8 @@ FetchPreferredConfPath()
 inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
 	//	%CSIDL_FONTS. See https://msdn.microsoft.com/library/dd378457.aspx.
-	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath()) + "Fonts\\")
+	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath(), {})
+		+ "Fonts\\")
 #elif YCL_Android
 #	define YF_Helper_Initialization_DataDirectory_ \
 	(FetchRootPathString() + "Data/")

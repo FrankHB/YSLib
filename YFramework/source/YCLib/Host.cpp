@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r1584
+\version r1592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2023-03-07 12:52 +0800
+	2023-03-26 11:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,9 @@
 #include YFM_YSLib_Core_YException // for YSLib, to_std_string,
 //	FetchCachedCommandResult, FilterExceptions;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
-//	::sem_close, ::sem_unlink, ::pipe, MAX_PATH, ToHandle, YCL_CallGlobal,
-//	isatty, platform_ex::ToHandle, FILE_TYPE_REMOTE, FILE_TYPE_CHAR,
-//	FILE_TYPE_PIPE;
+//	::sem_close, ::sem_unlink, ::CreateSemaphoreW, ::pipe, ToHandle,
+//	YCL_CallGlobal, isatty, platform_ex::ToHandle, FILE_TYPE_REMOTE,
+//	FILE_TYPE_CHAR, FILE_TYPE_PIPE;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
 //	MakePathString;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
@@ -169,7 +169,7 @@ Semaphore::Semaphore(const char* n, CountType init)
 Semaphore::Semaphore(const char16_t* n, CountType init)
 #	if YCL_Win32
 	// TODO: Allow setting of security attributes.
-	: h_sem(YCL_CallF_Win32(CreateSemaphore, {}, init,
+	: h_sem(YCL_CallF_Win32(CreateSemaphoreW, {}, init,
 		std::numeric_limits<CountType>::max(), platform::wcast(n)))
 #	else
 	: Semaphore(platform::MakePathString(n).c_str(), init)
@@ -257,13 +257,13 @@ MakePipe()
 
 
 #	if YCL_Win32
-string
+std::string
 DecodeArg(const char* str)
 {
 	return MBCSToMBCS(str, CP_ACP, CP_UTF8);
 }
 
-string
+std::string
 EncodeArg(const char* str)
 {
 	return MBCSToMBCS(str);
@@ -337,8 +337,9 @@ bool
 WConsoleTerminal::WriteString(const char* s, size_t len)
 {
 	const auto wstr(UTF8ToWCS(string_view(s, len)));
+	const auto wlen(wstr.length());
 
-	return WConsole::WriteString(wstr) == wstr.length();
+	return WConsole::WriteString(wstring_view(wstr.c_str(), wlen)) == wlen;
 }
 #	endif
 
