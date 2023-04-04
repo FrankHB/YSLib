@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016, 2019-2020 FrankHB.
+	© 2012-2013, 2015-2016, 2019-2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r611
+\version r626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2020-07-24 22:22 +0800
+	2023-03-26 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace
 {
 
 //! \since build 399
-//@{
+//!@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE _type
 FetchSetting(const ValueNode::Container&, const string&);
@@ -62,10 +62,10 @@ template<>
 YB_ATTR_nodiscard YB_PURE Color
 FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 {
-	const auto s(FetchSetting<string>(con, name).c_str());
+	const auto& str(FetchSetting<string>(con, name));
 	unsigned r, g, b;
 
-	if(std::sscanf(s, "%u%u%u", &r, &g, &b) != 3)
+	if(std::sscanf(str.c_str(), "%u%u%u", &r, &g, &b) != 3)
 		throw std::invalid_argument("Color components are not enough.");
 #if false
 	if(r < 0x100 && g < 0x100 && b < 0x100)
@@ -75,7 +75,7 @@ FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 	return Color(ystdex::min<MonoType>(r, 0xFF), ystdex::min<MonoType>(g, 0xFF),
 		ystdex::min<MonoType>(b, 0xFF));
 }
-//@}
+//!@}
 
 //! \since build 345
 YB_ATTR_nodiscard YB_PURE ValueNode
@@ -113,16 +113,17 @@ ReaderSetting::ReaderSetting(const ValueNode::Container& con)
 	SmoothScrollDuration(FetchSetting<int>(con, "SmoothScrollDuration"))
 {}
 
-ReaderSetting::operator ValueNode::Container() const
+ValueNode::Container
+ReaderSetting::ToNodeContainer(ValueNode::allocator_type a) const
 {
-	return ValueNode::Container{ColorToNode("UpColor", UpColor),
-		ColorToNode("DownColor", DownColor),
-		ColorToNode("FontColor", FontColor),
-		AsNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
-		StringifyToNode("FontSize", Font.GetSize()),
-		StringifyToNode("SmoothScroll", int(SmoothScroll)),
-		StringifyToNode("ScrollDuration", ScrollDuration.count()),
-		StringifyToNode("SmoothScrollDuration", SmoothScrollDuration.count())};
+	return ValueNode::Container({ColorToNode({"UpColor", a}, UpColor),
+		ColorToNode({"DownColor", a}, DownColor), ColorToNode({"FontColor", a},
+		FontColor), AsNode({"FontFamily", a},
+		Font.GetFontFamily().GetFamilyName()), StringifyToNode(a, {"FontSize",
+		a}, Font.GetSize()), StringifyToNode(a, {"SmoothScroll", a},
+		int(SmoothScroll)), StringifyToNode(a, {"ScrollDuration", a},
+		ScrollDuration.count()), StringifyToNode(a, {"SmoothScrollDuration", a},
+		SmoothScrollDuration.count())}, a);
 }
 
 } // namespace YReader;

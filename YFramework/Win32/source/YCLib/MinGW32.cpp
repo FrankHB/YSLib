@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2583
+\version r2596
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2023-03-26 12:18 +0800
+	2023-03-31 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,7 +305,7 @@ auto
 DoWithDefaultOverlapped(_func f, std::uint64_t off)
 	-> decltype(f(std::declval<::OVERLAPPED&>()))
 {
-	::OVERLAPPED overlapped{0, 0, {Low32(off), High32(off)}, {}};
+	::OVERLAPPED overlapped{0, 0, {{Low32(off), High32(off)}}, {}};
 
 	return f(overlapped);
 }
@@ -320,8 +320,9 @@ enum class SystemPaths
 	Windows
 };
 
+//! \since build 971
 YB_ATTR_nodiscard wstring
-FetchFixedSystemPath(SystemPaths e, size_t s)
+FetchFixedSystemPath(wstring::allocator_type a, SystemPaths e, size_t s)
 {
 	// XXX: Depends right behavior on external API.
 	const auto p_buf(make_unique_default_init<wchar_t[]>(s));
@@ -336,7 +337,7 @@ FetchFixedSystemPath(SystemPaths e, size_t s)
 		YCL_CallF_Win32(GetSystemWindowsDirectoryW, str, unsigned(s));
 		break;
 	}
-	return ystdex::rtrim(wstring(str), L'\\') + L'\\';
+	return ystdex::rtrim(wstring(str, a), L'\\') + L'\\';
 }
 //!@}
 
@@ -453,7 +454,7 @@ CategorizeNode(FileAttributes attr, unsigned long reparse_tag) ynothrow
 
 	if(IsDirectory(attr))
 		res |= NodeCategory::Directory;
-	if(attr & ReparsePoint)
+	if(bool(attr & FileAttributes::ReparsePoint))
 	{
 		switch(reparse_tag)
 		{
@@ -542,7 +543,7 @@ DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
 }
 
 
-DirectoryFindData::DirectoryFindData(wstring name)
+DirectoryFindData::DirectoryFindData(wstring&& name)
 	: dir_name(std::move(name)), find_data()
 {
 	if(ystdex::rtrim(dir_name, L"/\\").empty())
@@ -552,9 +553,9 @@ DirectoryFindData::DirectoryFindData(wstring name)
 
 	const auto attr(FileAttributes(::GetFileAttributesW(dir_name.c_str())));
 
-	if(attr != Invalid)
+	if(attr != FileAttributes::Invalid)
 	{
-		if(attr & Directory)
+		if(bool(attr & FileAttributes::Directory))
 			dir_name += L"\\*";
 		else
 			ystdex::throw_error(ENOTDIR, yfsig);
@@ -693,7 +694,7 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 	return MakeFileToDo([=, &rdb](UniqueHandle::pointer h){
 		return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
 			-> wstring_view{
-			if(info.dwFileAttributes & ReparsePoint)
+			if(info.dwFileAttributes & unsigned(FileAttributes::ReparsePoint))
 			{
 				YCL_CallF_Win32(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
 					0, &rdb, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, {}, {});
@@ -992,15 +993,15 @@ Mutex::unlock() ynothrowv
 
 
 wstring
-FetchSystemPath(size_t s)
+FetchSystemPath(wstring::allocator_type a, size_t s)
 {
-	return FetchFixedSystemPath(SystemPaths::System, s);
+	return FetchFixedSystemPath(a, SystemPaths::System, s);
 }
 
 wstring
-FetchWindowsPath(size_t s)
+FetchWindowsPath(wstring::allocator_type a, size_t s)
 {
-	return FetchFixedSystemPath(SystemPaths::Windows, s);
+	return FetchFixedSystemPath(a, SystemPaths::Windows, s);
 }
 
 

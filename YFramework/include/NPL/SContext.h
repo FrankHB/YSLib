@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4638
+\version r4746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2023-01-25 20:54 +0800
+	2023-03-31 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,9 @@
 #include YFM_NPL_Lexical // for ystdex::enable_if_constructible_t,
 //	ystdex::copy_and_swap, ystdex::enable_if_t, ystdex::enable_if_same_param_t,
 //	ystdex::is_same_param, ystdex::exclude_self_t,
-//	ystdex::enable_if_inconvertible_t, ystdex::invoke, ystdex::ref_eq,
-//	std::swap, ystdex::addrof, ystdex::compose, LexemeList, ByteParser,
+//	ystdex::enable_if_inconvertible_t, std::swap, LexemeList, ByteParser,
 //	ystdex::expand_proxy, ystdex::unref, pair, std::is_lvalue_reference;
+//	YSLib::Alert, YSLib::stack;
 #include YFM_YSLib_Core_ValueNode // for YSLib::AddValueTo, YSLib::Deref,
 //	YSLib::MakeIndex, YSLib::NoContainer, YSLib::NoContainerTag,
 //	YSLib::ValueNode, YSLib::ValueObject, YSLib::forward_as_tuple, YSLib::get,
@@ -46,7 +46,11 @@
 #include <ystdex/utility.hpp> // for ystdex::forward_like, ystdex::as_const;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
+#include <ystdex/utility.hpp> // for ystdex::forward_like;
+#include <ystdex/invoke.hpp> // for ystdex::invoke;
+#include <ystdex/functor.hpp> // for ystdex::ref_eq, ystdex::addrof;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
+#include <ystdex/compose.hpp> // for ystdex::compose;
 #include <ystdex/range.hpp> // for std::iterator_traits,
 //	ystdex::range_iterator_t, ystdex::begin, ystdex::end,
 //	std::input_iterator_tag, std::random_access_iterator_tag;
@@ -91,11 +95,11 @@ using YSLib::observer_ptr;
 //! \since build 899
 using YSLib::tuple;
 //! \since build 928
-//@{
+//!@{
 using YSLib::type_id;
 using YSLib::type_index;
 using YSLib::type_info;
-//@}
+//!@}
 //! \since build 788
 using YSLib::weak_ptr;
 
@@ -115,7 +119,7 @@ using YSLib::weak_ptr;
 #endif
 
 //! \since build 857
-//@{
+//!@{
 //! \brief 项标签索引：指定项标签元数据掩码的位。
 enum TermTagIndices : size_t
 {
@@ -189,7 +193,7 @@ enum class TermTags
 };
 
 //! \relates TermTags
-//@{
+//!@{
 DefBitmaskEnum(TermTags)
 
 /*!
@@ -255,8 +259,8 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn
 */
 inline PDefH(void, EnsureValueTags, TermTags& tags) ynothrow
 	ImplExpr(tags &= ~yimpl(TermTags::Temporary))
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -284,14 +288,14 @@ public:
 
 private:
 	//! \since build 853
-	//@{
+	//!@{
 	//! \brief 子项的容器。
 	Container container{};
 
 public:
 	//! \brief 值数据成员。
 	ValueObject Value{};
-	//@}
+	//!@}
 	/*!
 	\brief 项的标签。
 	\since build 857
@@ -301,7 +305,7 @@ public:
 	DefDeCtor(TermNode)
 	// XXX: Not all constructors like %ValueNode need to be supported here.
 	//! \note 部分构造函数和 ValueNode 类似。
-	//@{
+	//!@{
 	explicit
 	TermNode(allocator_type a)
 		: container(a)
@@ -333,7 +337,7 @@ public:
 	\note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
 	\since build 853
 	*/
-	//@{
+	//!@{
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -352,7 +356,7 @@ public:
 		: container(std::move(con)), Value(yforward(args)...)
 	{}
 	//! \since build 947
-	//@{
+	//!@{
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -370,7 +374,7 @@ public:
 	TermNode(TermTags tags, Container&& con, _tParams&&... args)
 		: container(std::move(con)), Value(yforward(args)...), Tags(tags)
 	{}
-	//@}
+	//!@}
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -393,7 +397,7 @@ public:
 		: container(std::move(con), a), Value(yforward(args)...)
 	{}
 	//! \since build 947
-	//@{
+	//!@{
 	template<typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -415,10 +419,10 @@ public:
 		Container&& con, _tParams&&... args)
 		: container(std::move(con), a), Value(yforward(args)...), Tags(tags)
 	{}
-	//@}
-	//@}
+	//!@}
+	//!@}
 	//! \warning 不保证嵌套调用安全。
-	//@{
+	//!@{
 	explicit
 	TermNode(const ValueNode& nd)
 		: container(ConCons(nd.GetContainer())), Value(nd.Value)
@@ -435,8 +439,8 @@ public:
 		: container(ConCons(std::move(nd.GetContainerRef()), a)),
 		Value(std::move(nd.Value))
 	{}
-	//@}
-	//@}
+	//!@}
+	//!@}
 	// XXX: This needs tag to avoid clash with other constructors.
 	TermNode(YSLib::ListContainerTag, std::initializer_list<TermNode> il)
 		: container(il)
@@ -467,9 +471,9 @@ public:
 		yforward(args)...)
 	{}
 	//! \note 除非 Value 的构造非嵌套调用安全，支持构造任意子节点时的嵌套调用安全。
-	//@{
+	//!@{
 	/*!
-	\brief 复制构造：使用参数和参数的分配器。
+	\brief 复制构造：传播分配器。
 	\since build 879
 	*/
 	TermNode(const TermNode& nd)
@@ -511,7 +515,7 @@ public:
 		: container(std::move(nd.container), a), Value(std::move(nd.Value)),
 		Tags(tags)
 	{}
-	//@}
+	//!@}
 
 	/*
 	\brief 析构：类定义外默认实现。
@@ -554,17 +558,18 @@ public:
 			&& x.Value == y.Value)
 
 	//! \since build 853
-	YB_PURE DefBoolNeg(YB_PURE explicit, bool(Value) || !empty())
+	DefBoolNeg(explicit, bool(Value) || !empty())
 
 	//! \since build 853
-	//@{
-	DefGetter(const ynothrow, const Container&, Container, container)
-	DefGetter(ynothrow, Container&, ContainerRef, container)
+	//!@{
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const Container&, Container, container)
+	YB_ATTR_nodiscard DefGetter(ynothrow, Container&, ContainerRef, container)
 
 	template<class _tCon, class _type>
 	yimpl(ystdex::enable_if_t)<
 		ystdex::and_<std::is_assignable<Container, _tCon&&>,
-		std::is_assignable<ValueObject, _type&&>>::value>
+		std::is_assignable<ValueObject, _type&&>>{}>
 	SetContent(_tCon&& con, _type&& val) ynoexcept(ystdex::and_<
 		std::is_nothrow_assignable<Container, _tCon&&>,
 		std::is_nothrow_assignable<ValueObject, _type&&>>())
@@ -577,7 +582,7 @@ public:
 	//! \pre 间接断言：容器分配器和参数的容器分配器相等。
 	PDefH(void, SetContent, TermNode&& nd)
 		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value), Tags = nd.Tags)
-	//@}
+	//!@}
 	//! \since build 947
 	template<typename _tParam>
 	inline yimpl(ystdex::enable_if_same_param_t<ValueObject, _tParam>)
@@ -586,7 +591,7 @@ public:
 		Value = yforward(arg);
 	}
 	//! \since build 918
-	//@{
+	//!@{
 	template<typename _tParam, typename... _tParams,
 		yimpl(ystdex::enable_if_t<sizeof...(_tParams) != 0
 		|| !ystdex::is_same_param<ValueObject, _tParam>::value, int> = 0,
@@ -606,7 +611,7 @@ public:
 	{
 		Value.assign(std::allocator_arg, a, yforward(args)...);
 	}
-	//@}
+	//!@}
 
 	//! \since build 853
 	PDefH(void, Add, const TermNode& nd)
@@ -616,9 +621,9 @@ public:
 		ImplExpr(container.push_back(std::move(nd)))
 
 	//! \since build 853
-	//@{
+	//!@{
 	//! \note 除非 Value 的析构非嵌套调用安全，支持移除任意子节点时的嵌套调用安全。
-	//@{
+	//!@{
 	//! \note 不访问 Tags 。
 	PDefH(void, Clear, ) ynothrow
 		// XXX: The order can be siginificant.
@@ -630,13 +635,13 @@ public:
 	*/
 	void
 	ClearContainer() ynothrow;
-	//@}
+	//!@}
 
 	/*!
 	\note 允许被参数中被复制的对象直接或间接地被目标引用。
 	\since build 913
 	*/
-	//@{
+	//!@{
 	PDefH(void, CopyContainer, const TermNode& nd)
 		ImplExpr(GetContainerRef() = Container(nd.GetContainer()))
 
@@ -645,26 +650,25 @@ public:
 
 	PDefH(void, CopyValue, const TermNode& nd)
 		ImplExpr(Value = ValueObject(nd.Value))
-	//@}
+	//!@}
 
 private:
 	//! \warning 不保证嵌套调用安全。
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_FLATTEN YB_PURE static TermNode::Container
 	ConCons(const ValueNode::Container&, allocator_type = {});
 	YB_ATTR_nodiscard YB_FLATTEN YB_PURE static TermNode::Container
 	ConCons(ValueNode::Container&&, allocator_type = {});
-	//@}
+	//!@}
 
 	//! \since build 934
 	YB_ATTR_nodiscard YB_PURE static Container
 	ConSub(const Container&, allocator_type);
 
 public:
-	template<class _tCon, typename _fCallable,
-		yimpl(typename = ystdex::enable_if_t<
-		std::is_same<Container&, ystdex::remove_cvref_t<_tCon>&>::value>)>
-	static Container
+	template<class _tCon, typename _fCallable, yimpl(typename
+		= ystdex::enable_if_same_t<Container&, ystdex::remove_cvref_t<_tCon>&>)>
+	YB_ATTR_nodiscard YB_PURE static Container
 	CreateRecursively(_tCon&& con, _fCallable f)
 	{
 		Container res(con.get_allocator());
@@ -675,28 +679,28 @@ public:
 				ystdex::invoke(f, ystdex::forward_like<_tCon>(nd.Value)));
 		return res;
 	}
-	//@}
+	//!@}
 
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) &
 	{
 		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) const&
 	{
 		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) &&
 	{
 		return CreateRecursively(std::move(container), f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) const&&
 	{
 		return CreateRecursively(std::move(container), f);
@@ -707,7 +711,7 @@ public:
 	\note 允许被参数中被转移的对象直接或间接地被目标引用。
 	\since build 913
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 转移容器。
 
@@ -740,7 +744,7 @@ public:
 		ImplExpr(
 			YAssert(!ystdex::ref_eq<>()(*this, nd), "Invalid self move found."),
 			Value = ValueObject(std::move(nd.Value)))
-	//@}
+	//!@}
 
 	PDefH(void, Remove, const_iterator i)
 		ImplExpr(erase(i))
@@ -806,7 +810,7 @@ public:
 };
 
 //! \relates TermNode
-//@{
+//!@{
 //! \since build 674
 using TNIter = TermNode::iterator;
 //! \since build 674
@@ -816,7 +820,7 @@ using TNCIter = TermNode::const_iterator;
 \brief 项节点分类判断操作。
 \since build 733
 */
-//@{
+//!@{
 //! \brief 判断项是否为枝节点。
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsBranch, const TermNode& nd) ynothrow
@@ -865,7 +869,7 @@ YB_ATTR_nodiscard YB_PURE inline
 	ImplRet(IsLeaf(nd) || IsList(nd))
 
 //! \since build 947
-//@{
+//!@{
 //! \brief 判断项是否为原子节点：不能表示为一等对象的有序对的节点。
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsAtom, const TermNode& nd) ynothrow
@@ -875,7 +879,7 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, IsPair, const TermNode& nd) ynothrow
 	ImplRet(!IsAtom(nd))
-//@}
+//!@}
 
 /*!
 \brief 判断项表示具有一个元素的列表。
@@ -885,7 +889,7 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(bool, IsSingleElementList,
 	const TermNode& term) ynothrow
 	// XXX: First calling %IsList is more efficient in most case.
 	ImplRet(IsList(term) && term.size() == 1)
-//@}
+//!@}
 
 //! \since build 928
 using YSLib::IsTyped;
@@ -923,7 +927,7 @@ HasValue(const TermNode& nd, const _type& x)
 }
 
 //! \since build 948
-//@{
+//!@{
 //! \brief 对不具有粘滞位的子项前缀计数。
 YB_ATTR_nodiscard YB_PURE YB_FLATTEN inline
 	PDefH(size_t, CountPrefix, const TermNode::Container& con) ynothrow
@@ -953,7 +957,7 @@ FindSticky(_tIn first, _tIn last) ynothrow
 }
 
 //! \brief 从节点容器查找含有粘滞位的第一个子项。
-//@{
+//!@{
 //! \since build 953
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNIter, FindStickySubterm, TermNode::Container& con) ynothrow
@@ -961,9 +965,9 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNCIter, FindStickySubterm, const TermNode::Container& con) ynothrow
 	ImplRet(NPL::FindSticky(con.begin(), con.end()))
-//@}
+//!@}
 //! \brief 从节点查找含有粘滞位的第一个子项。
-//@{
+//!@{
 //! \since build 953
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNIter, FindStickySubterm, TermNode& nd) ynothrow
@@ -971,13 +975,13 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TNCIter, FindStickySubterm, const TermNode& nd) ynothrow
 	ImplRet(NPL::FindStickySubterm(nd.GetContainer()))
-//@}
+//!@}
 
 //! \brief 判断节点中是否具有标签包含粘滞位的子节点。
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(bool, HasStickySubterm, const TermNode& nd) ynothrow
 	ImplRet(FindStickySubterm(nd) != nd.end())
-//@}
+//!@}
 
 //! \since build 853
 using YSLib::Access;
@@ -1036,7 +1040,7 @@ YB_NONNULL(2) inline PDefH(void, AssertBranchedList, const TermNode& nd,
 \pre 断言：参数指定的分配器相等。
 \since build 941
 */
-//@{
+//!@{
 YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators,
 	const TermNode::allocator_type& a, const TermNode::Container& con,
 	const char* msg = "Allocators mismatch to the term container.") ynothrowv
@@ -1058,7 +1062,7 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators, const TermNode& x,
 	ynothrowv
 	ImplExpr(yunused(x), yunused(y), yunused(msg),
 		NPL::AssertMatchedAllocators(x.GetContainer(), y.GetContainer()))
-//@}
+//!@}
 
 /*!
 \brief 断言具有可表示被引用对象的标签节点。
@@ -1066,7 +1070,7 @@ YB_NONNULL(3) inline PDefH(void, AssertMatchedAllocators, const TermNode& x,
 \sa IsReferentTags
 \since build 947
 */
-//@{
+//!@{
 YB_NONNULL(2) inline
 	PDefH(void, AssertReferentTags, TermTags tags, const char* msg
 	= "Invalid term of referent found.") ynothrowv
@@ -1075,7 +1079,7 @@ YB_NONNULL(2) inline
 	PDefH(void, AssertReferentTags, const TermNode& nd, const char* msg
 	= "Invalid term of referent found.") ynothrowv
 	ImplExpr(AssertReferentTags(nd.Tags, msg))
-//@}
+//!@}
 
 /*!
 \brief 断言具有可表示一等对象的值的标签节点。
@@ -1083,7 +1087,7 @@ YB_NONNULL(2) inline
 \note 较 EnsureValueTags 更严格，对不符合要求的项总是断言失败。
 \sa EnsureValueTags
 */
-//@{
+//!@{
 //! \since build 953
 YB_NONNULL(2) inline
 	PDefH(void, AssertValueTags, TermTags tags, const char* msg
@@ -1095,10 +1099,10 @@ YB_NONNULL(2) inline
 	PDefH(void, AssertValueTags, const TermNode& nd, const char* msg
 	= "Invalid term of first-class value found.") ynothrowv
 	ImplExpr(AssertValueTags(nd.Tags, msg))
-//@}
+//!@}
 
 //! \brief 创建项节点。
-//@{
+//!@{
 //! \since build 942
 template<typename... _tParam, typename... _tParams>
 YB_ATTR_nodiscard inline
@@ -1133,10 +1137,10 @@ AsTermNodeTagged(TermNode::allocator_type a, TermTags tags, _tParams&&... args)
 	return
 		TermNode(std::allocator_arg, a, tags, NoContainer, yforward(args)...);
 }
-//@}
+//!@}
 
 //! \since build 852
-//@{
+//!@{
 // NOTE: Like %YSLib::GetValueOf.
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(ValueObject, GetValueOf, observer_ptr<const TermNode> p_term)
@@ -1154,9 +1158,9 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
 	}), p_term))
 
 //! \since build 872
-//@{
+//!@{
 //! \pre 断言：参数指定的项是枝节点。
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermNode&, AccessFirstSubterm, TermNode& nd)
 	ImplRet(AssertBranch(nd), NPL::Deref(nd.begin()))
@@ -1167,7 +1171,7 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(TermNode&&, MoveFirstSubterm, TermNode& nd)
 	ImplRet(std::move(AccessFirstSubterm(nd)))
-//@}
+//!@}
 
 YB_ATTR_nodiscard inline
 	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode& nd)
@@ -1175,7 +1179,7 @@ YB_ATTR_nodiscard inline
 YB_ATTR_nodiscard inline
 	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& nd)
 	ImplRet(YSLib::share_move(nd.get_allocator(), nd))
-//@}
+//!@}
 
 /*!
 \brief 移除项中第一个表示一等对象的子节点。
@@ -1202,8 +1206,8 @@ SetContentWith(TermNode& dst, _tNode&& nd, _fCallable f)
 
 	dst.SetContent(std::move(con), std::move(vo));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 遍历子节点。
@@ -1227,12 +1231,12 @@ TraverseSubnodes(_fCallable f, const _tNode& nd)
 
 
 //! \since build 891
-//@{
+//!@{
 /*!
 \brief 转换参数为词素。
 \note 可配合其它不能直接转换为词素的参数类型的 ADL 重载使用。
 */
-//@{
+//!@{
 template<class _type, yimpl(typename = ystdex::enable_if_convertible_t<
 	const _type&, const LexemeList::value_type&>)>
 YB_ATTR_nodiscard YB_STATELESS const _type&
@@ -1243,7 +1247,7 @@ ToLexeme(const _type& val) ynothrow
 YB_ATTR_nodiscard YB_PURE inline PDefH(const string&, ToLexeme,
 	const SourcedByteParser::ParseResult::value_type& val) ynothrow
 	ImplRet(val.second)
-//@}
+//!@}
 
 /*!
 \ingroup functors
@@ -1283,8 +1287,10 @@ public:
 
 	DefDeCtor(ReaderState)
 
-	DefPred(const ynothrow, Balanced, LeftDelimiterCount == RightDelimiterCount)
-	DefPred(const ynothrow, Valid, LeftDelimiterCount >= RightDelimiterCount)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Balanced,
+		LeftDelimiterCount == RightDelimiterCount)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Valid,
+		LeftDelimiterCount >= RightDelimiterCount)
 
 	PDefH(void, Reset, ) ynothrow
 		ImplExpr(*this = ReaderState())
@@ -1303,7 +1309,7 @@ public:
 
 
 //! \warning 非虚析构。
-//@{
+//!@{
 /*!
 \brief 会话：分析组成 NPL 基本翻译单元的源代码。
 \since build 304
@@ -1314,7 +1320,7 @@ public:
 	//! \since build 890
 	using DefaultParser = ByteParser;
 	//! \since build 959
-	using allocator_type = YSLib::default_allocator<yimpl(byte)>;
+	using allocator_type = default_allocator<yimpl(byte)>;
 	//! \since build 592
 	LexicalAnalyzer Lexer{};
 
@@ -1357,7 +1363,7 @@ public:
 	\sa DefaultParser
 	\sa SContextParsers
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 使用解析器处理输入范围。
 	\since build 889
@@ -1367,7 +1373,7 @@ public:
 	对没有使用解析器的参数，使用新创建的 DefaultParser 的引用。
 	解析器参数应指定 SContext 语法解析器、其兼容的函数或这些类型对应的引用包装类型。
 	*/
-	//@{
+	//!@{
 	//! \since build 890
 	template<typename _tIn>
 	YB_ATTR_nodiscard inline DefaultParser
@@ -1396,7 +1402,7 @@ public:
 	{
 		return Process(ystdex::begin(c), ystdex::end(c), parse);
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 使用解析器处理输入范围读取列表或元素。
@@ -1404,7 +1410,7 @@ public:
 
 	同 Process ，但维护读取器状态，当读取完整的列表或元素时终止，返回解析器和迭代器。
 	*/
-	//@{
+	//!@{
 	template<typename _tIn>
 	YB_ATTR_nodiscard inline pair<DefaultParser, _tIn>
 	ProcessOne(ReaderState& rs, _tIn first, _tIn last)
@@ -1433,8 +1439,8 @@ public:
 	{
 		return ProcessOne(rs, ystdex::begin(c), ystdex::end(c), parse);
 	}
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 private:
 	//! \since build 890
@@ -1452,7 +1458,7 @@ private:
 	{}
 
 	//! \since build 899
-	//@{
+	//!@{
 	template<typename _tIn, class _tTag>
 	YB_ATTR_nodiscard inline DefaultParser
 	ProcessSequence(_tIn first, _tIn last, _tTag)
@@ -1530,7 +1536,7 @@ private:
 		return ProcessSequenceOne(rs, first, last, parse,
 			std::input_iterator_tag());
 	}
-	//@}
+	//!@}
 
 public:
 	/*!
@@ -1541,7 +1547,7 @@ public:
 		PDefH(allocator_type, get_allocator, ) const ynothrow
 		ImplRet(allocator)
 };
-//@}
+//!@}
 
 
 /*!
@@ -1560,7 +1566,7 @@ namespace SContext
 \note 使用 ADL ToLexeme 转换访问的迭代器值为词素值。
 \sa ToLexeme
 */
-//@{
+//!@{
 //! \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
 template<typename _tIn>
 YB_ATTR_nodiscard _tIn
@@ -1587,7 +1593,7 @@ Validate(_tIn first, _tIn last)
 \brief 遍历规约记号列表，取抽象语法树储存至指定值类型节点。
 \param term 项节点。
 */
-//@{
+//!@{
 //! \param tokenize 标记器。
 template<typename _tIn, typename _fTokenize>
 YB_ATTR_nodiscard _tIn
@@ -1630,15 +1636,15 @@ Reduce(TermNode& term, _tIn first, _tIn last)
 	return SContext::Reduce(term, first, last,
 		LexemeTokenizer{term.get_allocator()});
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
 \throw LoggedEvent 警报：找到冗余的 ')' 。
 */
-//@{
+//!@{
 template<class _tParseResult>
 void
 Analyze(TermNode& root, const _tParseResult& parse_result)
@@ -1669,9 +1675,9 @@ Analyze(TermNode& root, _fTokenize tokenize, const Session& sess,
 {
 	Analyze(root, std::move(tokenize), sess.GetResult(parse));
 }
-//@}
+//!@}
 //! \note 调用 ADL Analyze 分析节点。
-//@{
+//!@{
 //! \since build 889
 template<typename _tParam, typename... _tParams,
 	yimpl(ystdex::exclude_self_t<TermNode, _tParam, int> = 0)>
@@ -1694,7 +1700,7 @@ Analyze(std::allocator_arg_t, TermNode::allocator_type a, _tParams&&... args)
 	Analyze(root, yforward(args)...);
 	return root;
 }
-//@}
+//!@}
 
 } // namespace SContext;
 

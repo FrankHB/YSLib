@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016, 2018-2022 FrankHB.
+	© 2011-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4925
+\version r4942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2022-11-28 18:27 +0800
+	2023-04-05 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,12 +146,14 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 void
 TextInfoBox::UpdateData(DualScreenReader& reader)
 {
-	yunseq(lblEncoding.Text = "Encoding: " + to_string(reader.GetEncoding())
-		+ ';',
-		lblSize.Text = "Size: " + to_string(reader.GetTextSize()) + " B;",
-		lblTop.Text = "Top: " + to_string(reader.GetTopPosition()) + " B;",
-		lblBottom.Text = "Bottom: " + to_string(reader.GetBottomPosition())
-		+ " B;"),
+	yunseq(lblEncoding.Text = String("Encoding: " + to_string(
+		reader.GetEncoding()) + ';', lblEncoding.Text.get_allocator()),
+		lblSize.Text = String("Size: " + to_string(reader.GetTextSize())
+		+ " B;", lblSize.Text.get_allocator()), lblTop.Text = String("Top: "
+		+ to_string(reader.GetTopPosition()) + " B;",
+		lblTop.Text.get_allocator()), lblBottom.Text = String("Bottom: "
+		+ to_string(reader.GetBottomPosition()) + " B;",
+		lblBottom.Text.get_allocator())),
 	InvalidateWidgets(lblEncoding, lblSize);
 }
 
@@ -235,7 +237,8 @@ ReaderSetting
 ShlReader::LoadGlobalConfiguration()
 {
 	TryRet(ReaderSetting(AccessNode(FetchRoot() %= AccessNode(
-		LoadConfiguration(), "YReader"), "ReaderSetting").GetContainer()))
+		LoadConfiguration(FetchRoot().get_allocator()), "YReader"),
+		"ReaderSetting").GetContainer()))
 	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
 		"Loading global configuration failed, type = [%s].", typeid(e).name()))
@@ -274,7 +277,8 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 	{
 		auto& root(FetchRoot());
 
-		root["YReader"]["ReaderSetting"].SetChildren(ValueNode::Container(rs));
+		root["YReader"]["ReaderSetting"].SetChildren(
+			rs.ToNodeContainer(root.get_allocator()));
 		SaveConfiguration(root);
 	}
 	CatchExpr(std::exception& e, YTraceDe(Warning,
@@ -778,9 +782,11 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
 		try
 		{
-			pnlFileInfo.lblSize.Text = u"当前位置： "
-				+ String(to_string(HexArea.GetModel().GetPosition())
-				+ " / " + to_string(HexArea.GetModel().GetSize()));
+			const auto a(pnlFileInfo.lblSize.Text.get_allocator());
+
+			pnlFileInfo.lblSize.Text = u"当前位置："
+				+ String(to_string(HexArea.GetModel().GetPosition()), a)
+				+ u" / " + String(to_string(HexArea.GetModel().GetSize()));
 			Invalidate(pnlFileInfo.lblSize);
 		}
 		CatchIgnore(LoggedEvent&)

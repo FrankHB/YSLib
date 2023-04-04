@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3899
+\version r4070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2023-03-11 09:40 +0800
+	2023-04-04 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,20 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Service_File // for basic_string_view, HDirectory, size_t,
-//	string, YSLib::CheckNonnegative, ystdex::enable_if_constructible_r_t,
-//	ystdex::enable_if_t, ystdex::and_, ystdex::not_, std::is_constructible,
-//	u16string_view, std::is_constructible, FetchCurrentWorkingDirectory,
-//	function, FileDescriptor, mode_t, UniqueFile, IO::Remove;
+//	string, ystdex::remove_cvref_t, YSLib::CheckNonnegative, string_view,
+//	ystdex::enable_if_t, ystdex::and_, ystdex::not_, ystdex::or_,
+//	std::is_convertible, std::is_constructible, u16string_view,
+//	std::enable_if_inconvertible_t, ystdex::enable_if_constructible_r_t,
+//	FetchCurrentWorkingDirectory, function, FileDescriptor, mode_t, UniqueFile,
+//	IO::Remove;
+#include <ystdex/path.hpp> // for ystdex::path, ystdex::to_string,
+//	ystdex::to_string_d;
 #include YFM_YSLib_Core_YString // for String;
-#include <ystdex/algorithm.hpp> // for ystdex::split;
-#include <ystdex/path.hpp> // for ystdex::path;
+#include <ystdex/operators.hpp> // for ystdex::totally_ordered,
+//	ystdex::dividable;
+#include <ystdex/algorithm.hpp> // for ystdex::split, ystdex::fast_all_of;
 #include <ystdex/allocator.hpp> // for ystdex::make_obj_using_allocator;
+#include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
 
 namespace YSLib
 {
@@ -138,14 +144,14 @@ struct PathTraits : ystdex::path_traits<void>
 \since build 540
 */
 template<class _tString>
-inline ystdex::decay_t<_tString>
-NormalizeDirectoryPathTail(_tString&& str, typename
-	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
-	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
+inline ystdex::remove_cvref_t<_tString>
+NormalizeDirectoryPathTail(_tString&& str, typename ystdex::string_traits<
+	_tString>::const_pointer tail = FetchSeparatorString<typename
+	ystdex::string_traits<_tString>::value_type>())
 {
 	using value_type = typename ystdex::string_traits<_tString>::value_type;
 
-	TrimTrailingSeperator(yforward(str), tail);
+	ystdex::rtrim(yforward(str), tail);
 	YAssert(str.empty() || !IsSeparator(str.back()), "Invalid path converted.");
 	str += FetchSeparator<value_type>();
 	return yforward(str);
@@ -277,7 +283,13 @@ using ypath = ystdex::path<vector<String>, PathTraits>;
 \sa ypath
 */
 class YF_API Path : private ypath, private ystdex::totally_ordered<Path>,
-	private ystdex::dividable<Path, String>, private ystdex::dividable<Path>
+	private ystdex::dividable<Path>, private ystdex::dividable<Path, ypath>,
+	// XXX: It is necessary to have %String separately to avoid the ambiguity of
+	//	converting to 'const string_view&' and 'string_view&&'. And
+	//	'u16string_view' is not used to avoid the ambiguity with conversion to
+	//	%String.
+	private ystdex::dividable<Path, String>,
+	private ystdex::dividable<Path, string_view>
 {
 public:
 	using ypath::iterator;
@@ -288,31 +300,43 @@ public:
 	using ypath::traits_type;
 	//! \since build 957
 	using allocator_type = ypath::container_type::allocator_type;
+	//! \since build 971
+	template<typename _type>
+	using enable_if_string_arg_t = ystdex::enable_if_t<ystdex::and_<
+		ystdex::not_<ystdex::or_<std::is_convertible<_type, ypath>,
+		std::is_convertible<_type, allocator_type>>>,
+		ystdex::or_<std::is_constructible<u16string_view, _type>,
+		std::is_constructible<String, _type>>>{}>;
 
 public:
-	/*!
-	\brief 无参数构造：默认实现。
-	*/
+	//! \brief 无参数构造：默认实现。
 	DefDeCtor(Path)
 	//! \since build 957
 	//!@{
+	explicit
 	Path(allocator_type a) ynothrow
 		: ypath(a)
 	{}
-	//! \since build 635
+	//! \since build 971
+	//!@{
 	explicit
-	Path(ypath pth) ynothrow
+	Path(const ypath& pth)
+		// NOTE: Always propagate the allocator for elements.
+		: ypath(pth, pth.get_container().get_allocator())
+	{}
+	explicit
+	Path(ypath&& pth) ynothrow
 		: ypath(std::move(pth))
 	{}
-	Path(ypath pth, allocator_type a) ynothrow
+	Path(const ypath& pth, allocator_type a) ynothrow
+		: ypath(pth, a)
+	{}
+	Path(ypath&& pth, allocator_type a) ynothrow
 		: ypath(std::move(pth), a)
 	{}
-	/*!
-	\pre 间接断言：初始化的视图的路径参数的数据指针非空。
-	*/
-	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		ystdex::or_<std::is_constructible<u16string_view, _type>,
-		std::is_constructible<String, _type>>{}>,
+	//!@}
+	//! \pre 间接断言：初始化的视图的路径参数的数据指针非空。
+	template<typename _type, yimpl(typename = enable_if_string_arg_t<_type>,
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg, allocator_type a = {})
@@ -372,23 +396,26 @@ public:
 	//!@{
 	PDefHOp(Path&, /=, const Path& pth)
 		ImplRet(GetBaseRef() /= pth, *this)
+	//! \since build 971
+	PDefHOp(Path&, /=, Path&& pth)
+		ImplRet(GetBaseRef() /= std::move(pth), *this)
 	//! \since build 838
 	PDefHOp(Path&, /=, const ypath& pth)
 		ImplRet(GetBaseRef() /= pth, *this)
+	//! \since build 971
+	PDefHOp(Path&, /=, ypath&& pth)
+		ImplRet(GetBaseRef() /= std::move(pth), *this)
 	//! \since build 838
-	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		ystdex::or_<std::is_constructible<u16string_view, _type>,
-		std::is_constructible<String, _type>>{}>,
-		typename = ystdex::exclude_self_t<Path, _type>,
-		typename = ystdex::exclude_self_t<ypath, _type>)>
+	template<typename _type, yimpl(typename = enable_if_string_arg_t<_type>,
+		typename = ystdex::enable_if_inconvertible_t<_type, Path>)>
 	Path&
 	operator/=(_type&& arg)
 	{
 		// NOTE: Since effective insertion of path needs %value_type, the
 		//	conversion to %String is always required here. No other string view
 		//	type is needed to be handled specially.
-		return GetBaseRef() /= String(AsStringArg(yforward(arg),
-			get_allocator())), *this;
+		GetBaseRef() /= String(AsStringArg(yforward(arg), get_allocator()));
+		return *this;
 	}
 	//!@}
 
@@ -419,31 +446,30 @@ public:
 	//! \since build 641
 	//!@{
 	//! \brief 取不带分隔符结束的字符串。
-	PDefH(String, GetLeafString,
+	YB_ATTR_nodiscard YB_PURE PDefH(String, GetLeafString,
 		char16_t delimiter = FetchSeparator<char16_t>()) const
-		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
+		ImplRet(ystdex::to_string(GetBase(), delimiter))
 	/*!
 	\brief 取指定分隔符的字符串表示。
 	\post 断言：结果为空或以分隔符结束。
 	*/
-	String
+	YB_ATTR_nodiscard YB_PURE String
 	GetString(char16_t = FetchSeparator<char16_t>()) const;
 	//!@}
 
 private:
-	//! \since build 960
-	template<typename _tParam>
-	YB_ATTR_nodiscard static YB_PURE auto
+	//! \since build 971
+	template<typename _tParam, yimpl(typename
+		= ystdex::enable_if_inconstructible_t<String, _tParam>)>
+	YB_ATTR_nodiscard static YB_PURE yimpl(ystdex::enable_if_constructible_r_t)<
+		u16string_view, u16string_view, _tParam>
 	AsStringArg(_tParam&& arg, allocator_type = {})
-		-> yimpl(ystdex::enable_if_constructible_r_t)<u16string_view,
-		u16string_view, _tParam>
 	{
 		return u16string_view(yforward(arg));
 	}
 	//! \since build 960
-	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
-		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
-		_tParam>>, std::is_constructible<String, _tParam>>{}>)>
+	template<typename _tParam, yimpl(typename
+		= ystdex::enable_if_constructible_t<String, _tParam>)>
 	YB_ATTR_nodiscard static YB_PURE String
 	AsStringArg(_tParam&& arg, allocator_type a = {})
 	{
@@ -549,8 +575,28 @@ public:
 		ImplRet(ypath::get_container().get_allocator())
 
 	//! \since build 475
-	friend PDefH(String, to_string, const Path& pth)
-		ImplRet(to_string(pth.GetBase(), {FetchSeparator<char16_t>()}))
+	YB_ATTR_nodiscard YB_PURE friend PDefH(String, to_string, const Path& pth)
+		ImplRet(ystdex::to_string(pth.GetBase(), pth.get_allocator(),
+			FetchSeparator<char16_t>()))
+	//! \since build 971
+	//!@{
+	template<typename _tSep>
+	YB_ATTR_nodiscard YB_PURE friend inline String
+	to_string(const Path& pth, const _tSep& sep)
+	{
+		return ystdex::to_string(pth.GetBase(), pth.get_allocator(), sep);
+	}
+
+	YB_ATTR_nodiscard YB_PURE friend PDefH(String, to_string_d, const Path& pth)
+		ImplRet(ystdex::to_string_d(pth.GetBase(), pth.get_allocator(),
+		FetchSeparator<char16_t>()))
+	template<typename _tSep>
+	YB_ATTR_nodiscard YB_PURE friend inline String
+	to_string_d(const Path& pth, const _tSep& sep)
+	{
+		return ystdex::to_string_d(pth.GetBase(), pth.get_allocator(), sep);
+	}
+	//!@}
 };
 
 
@@ -590,10 +636,14 @@ inline PDefH(bool, IsAbsolute, const Path& pth)
 \sa IsRelative
 \sa Path::Normalize
 \sa FetchCurrentWorkingDirectory
-\since build 542
+\since build 410
 */
-YF_API Path
-MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
+//! \since build 971
+YB_ATTR_nodiscard YF_API YB_PURE Path
+MakeNormalizedAbsolute(Path&&, size_t = MaxPathLength);
+YB_ATTR_nodiscard inline YB_PURE PDefH(Path, MakeNormalizedAbsolute,
+	const Path& pth, size_t init_size = MaxPathLength)
+	ImplRet(IO::MakeNormalizedAbsolute(Path(pth), init_size))
 //!@}
 
 
@@ -603,19 +653,45 @@ MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
 \since build 410
 */
 //!@{
-YF_API YB_NONNULL(1) bool
-VerifyDirectory(const char*);
-//! \since build 699
-YF_API YB_NONNULL(1) bool
-VerifyDirectory(const char16_t*);
-inline PDefH(bool, VerifyDirectory, const string& path)
-	ImplRet(VerifyDirectory(path.c_str()))
-//! \since build 699
-inline PDefH(bool, VerifyDirectory, const u16string& path)
-	ImplRet(VerifyDirectory(path.c_str()))
-inline PDefH(bool, VerifyDirectory, const String& path)
-	ImplRet(VerifyDirectory(path.c_str()))
-inline PDefH(bool, VerifyDirectory, const Path& pth)
+//! \since build 971
+//!@{
+/*!
+\note 支持的类型实现定义：\c wchar_t 字符串仅在 Win32 平台被支持。
+\sa DirectorySession
+*/
+template<typename... _tParams>
+YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_constructible_r_t)<
+	bool, DirectorySession, _tParams...>
+VerifyDirectory(_tParams&&... args)
+{
+	try
+	{
+		DirectorySession dir_sess(yforward(args)...);
+
+		return true;
+	}
+	CatchExpr(std::system_error& e, YTraceDe(Debug,
+		"Directory verfication failed."), ExtractAndTrace(e, Debug))
+	return {};
+}
+template<typename _tString>
+YB_ATTR_nodiscard YB_PURE inline auto
+VerifyDirectory(_tString&& path) -> yimpl(ystdex::enable_if_inconstructible_r_t)
+	<decltype(IO::VerifyDirectory(&path[0], path.get_allocator())),
+	DirectorySession, _tString>
+{
+	return IO::VerifyDirectory(&path[0], path.get_allocator());
+}
+template<typename _tString>
+YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_inconstructible_r_t)
+	<decltype(IO::VerifyDirectory(&std::declval<_tString&>()[0])),
+	DirectorySession, _tString>
+VerifyDirectory(_tString&& path)
+{
+	return IO::VerifyDirectory(&path[0]);
+}
+//!@}
+YB_ATTR_nodiscard YB_PURE inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
 //!@}
 
@@ -625,12 +701,27 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 \since build 710
 */
 template<class _tString>
-inline ystdex::decay_t<_tString>
+inline ystdex::remove_cvref_t<_tString>
 VerifyDirectoryPathTail(_tString&& str)
 {
 	if(!(str.empty() || VerifyDirectory(str)))
 		str.pop_back();
 	return yforward(str);
+}
+
+/*!
+\brief 验证参数指定的目录范围都可访问。
+\since build 971
+*/
+template<class _tRange>
+YB_ATTR_nodiscard YB_PURE bool
+VerifyDirectories(const _tRange& c)
+{
+	return ystdex::fast_all_of(ystdex::begin(c), ystdex::end(c),
+		[](const Path& pth) ynothrow -> bool{
+		TryRet(VerifyDirectory(pth))
+		CatchRet(..., {})
+	});
 }
 
 /*!
@@ -790,13 +881,16 @@ Traverse(HDirectory& dir, _func f)
 //!@{
 //! \note 允许目录路径以分隔符结束。
 //!@{
-//! \pre 间接断言：指针参数非空。
+/*!
+\pre 间接断言：指针参数非空。
+\since build 971
+*/
 template<typename _func>
 YB_NONNULL(1) inline void
-Traverse(const char* path, _func f)
+Traverse(const char* path, _func f, string::allocator_type a = {})
 {
 	// NOTE: Separators at end of path is allowed by %HDirectory::HDirectory.
-	HDirectory dir(path);
+	HDirectory dir(path, a);
 
 	IO::Traverse(dir, f);
 }
@@ -805,7 +899,7 @@ template<typename _func>
 inline void
 Traverse(const string& path, _func f)
 {
-	IO::Traverse(path.c_str(), f);
+	IO::Traverse(path.c_str(), f, path.get_allocator());
 }
 //!@}
 template<typename _func>
@@ -820,24 +914,24 @@ Traverse(const Path& pth, _func f)
 //!@{
 /*!
 \pre 间接断言：指针参数非空。
-\since build 654
+\since build 971
 */
 template<typename _func>
 YB_NONNULL(1) void
-TraverseChildren(const char* path, _func f)
+TraverseChildren(const char* path, _func f, string::allocator_type a = {})
 {
 	IO::Traverse(path, [f](NodeCategory c, NativePathView npv)
 		ynoexcept_spec(f(c, npv)){
 		if(!PathTraits::is_parent(npv))
 			f(c, npv);
-	});
+	}, a);
 }
 //! \since build 593
 template<typename _func>
 void
 TraverseChildren(const string& path, _func f)
 {
-	IO::TraverseChildren(path.c_str(), f);
+	IO::TraverseChildren(path.c_str(), f, path.get_allocator());
 }
 //!@}
 //! \since build 654
@@ -864,7 +958,7 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 {
 	EnsureDirectory(dst);
 	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
-		const String name(npv);
+		const String name(npv, dst.get_allocator());
 		// NOTE: Allowed to be modified.
 		auto dname(dst / name), sname(src / name);
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2020 FrankHB.
+	© 2014-2016, 2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r830
+\version r833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2020-01-12 18:12 +0800
+	2023-04-03 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,13 +180,13 @@ ImplDeDtor(TreeList)
 String
 TreeList::DefaultExtractText(const ValueNode& node)
 {
-	return Access<string>(node);
+	return String(Access<string>(node));
 }
 
 String
 TreeList::ExtractNodeName(const ValueNode& node)
 {
-	return node.GetName();
+	return String(node.GetName());
 }
 
 Rect

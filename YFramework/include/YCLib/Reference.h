@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2019 FrankHB.
+	© 2010-2019, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2850
+\version r2864
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2019-11-04 18:20 +0800
+	2023-03-30 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,6 @@
 #include <utility>
 #include <ystdex/memory.hpp>
 #include <ystdex/ref.hpp>
-#include <ystdex/pointer.hpp>
 
 namespace platform
 {
@@ -47,6 +46,10 @@ inline namespace references
 using yimpl(ystdex)::allocate_shared;
 //! \since build 847
 using ystdex::allocate_unique;
+//! \since build 971
+using ystdex::allocator_delete;
+//! \since build 971
+using ystdex::allocator_guard_delete;
 using yimpl(std)::bad_weak_ptr;
 using yimpl(std)::const_pointer_cast;
 //! \since build 669
@@ -80,20 +83,20 @@ using ystdex::owns_unique;
 using ystdex::owns_unique_nonnull;
 using ystdex::reset;
 //! \since build 783
-//@{
+//!@{
 using ystdex::share_copy;
 using ystdex::share_forward;
 using ystdex::share_move;
-//@}
+//!@}
 using ystdex::share_raw;
 using yimpl(std)::shared_ptr;
 using yimpl(std)::static_pointer_cast;
 //! \since build 783
-//@{
+//!@{
 using ystdex::unique_copy;
 using ystdex::unique_forward;
 using ystdex::unique_move;
-//@}
+//!@}
 using ystdex::unique_raw;
 using yimpl(std)::unique_ptr;
 /*!
@@ -103,9 +106,9 @@ using yimpl(std)::unique_ptr;
 \sa ystdex::unique_ptr_pointer
 \since build 671
 
-元素类型通过 unique_ptr_pointer 按指定的删除器推断，若失败则为第二参数。
+元素类型通过 ystdex::unique_ptr_pointer 按指定的删除器推断，若失败则为第二参数。
 */
-template<class _tDeleter, typename _tDefault = void>
+template<typename _tDeleter, typename _tDefault = void>
 using unique_ptr_from = unique_ptr<ystdex::defer_element<
 	ystdex::unique_ptr_pointer<void, _tDeleter>, _tDefault>, _tDeleter>;
 using yimpl(std)::weak_ptr;
@@ -114,10 +117,10 @@ using yimpl(std)::weak_ptr;
 using ystdex::lref;
 
 //! \since build 669
-//@{
+//!@{
 using ystdex::nptr;
 using ystdex::pointer_iterator;
-//@}
+//!@}
 //! \since build 755
 using ystdex::tidy_ptr;
 

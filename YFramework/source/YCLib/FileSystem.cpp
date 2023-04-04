@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r5032
+\version r5148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2023-03-26 11:41 +0800
+	2023-03-30 15:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,9 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for basic_string, std::is_integral,
-//	std::chrono::system_clock, YAssertNonnull, default_delete, make_observer,
+#include YFM_YCLib_FileSystem // for basic_string, ystdex::allocate_unique,
+//	std::is_integral, std::chrono::system_clock, CallNothrow, YAssertNonnull,
+//	wstring, make_observer, make_unique, errno, ERANGE, ystdex::ntctscpy,
 //	ystdex::retry_on_cond, std::tm, std::is_same, std::min, std::accumulate,
 //	ystdex::read_uint_le, std::bind, std::ref, ystdex::write_uint_le;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
@@ -38,11 +39,12 @@
 //	std::errc::invalid_argument, std::strchr;
 #include YFM_YCLib_NativeAPI // for ::dev_t, ::ino_t, Mode, struct ::stat,
 //	::stat, ::GetFileAttributesW, platform_ex::cstat, platform_ex::estat,
-//	::futimens, ::linkat, ::symlink, ::lstat, ::readlink;
-#include "CHRLib/YModules.h"
-#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
+//	::futimens, ::linkat, ::symlink, ::lstat, ::readlink,
+//	::GetCurrentDirectoryW, ::WideCharToMultiByte;
 #include <ystdex/ctime.h> // for std::time_t, ystdex::is_date_range_valid,
 //	ystdex::is_time_no_leap_valid;
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for YCL_DeclW32Call, YCL_CallF_Win32,
 //	platform_ex::FileAttributes, platform_ex::GetErrnoFromWin32,
@@ -131,16 +133,6 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 #endif
 
 #if YCL_Win32
-//! \since build 715
-template<class _type, typename _tParam>
-_type*
-CreateDirectoryDataPtr(_tParam&& arg)
-{
-	return new _type(yforward(arg));
-}
-#endif
-
-#if YCL_Win32
 //! \since build 639
 //!@{
 using platform_ex::FileAttributes;
@@ -149,9 +141,9 @@ using platform_ex::GetErrnoFromWin32;
 YB_NONNULL(1) bool
 UnlinkWithAttr(const wchar_t* path, FileAttributes attr) ynothrow
 {
-	return !(attr & FileAttributes::ReadOnly) || ::SetFileAttributesW(path,
-		attr & ~FileAttributes::ReadOnly) ? ::_wunlink(path) == 0
-		: (errno = GetErrnoFromWin32(), false);
+	return !bool(attr & FileAttributes::ReadOnly) || ::SetFileAttributesW(path,
+		static_cast<unsigned long>(attr & ~FileAttributes::ReadOnly))
+		? ::_wunlink(path) == 0 : (errno = GetErrnoFromWin32(), false);
 }
 
 template<typename _func>
@@ -162,7 +154,7 @@ CallFuncWithAttr(_func f, const char* path)
 	const auto& wstr(wpath.c_str());
 	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
 
-	return attr != platform_ex::Invalid ? f(wstr, attr)
+	return attr != FileAttributes::Invalid ? f(wstr, attr)
 		: (errno = GetErrnoFromWin32(), false);
 }
 //!@}
@@ -387,10 +379,10 @@ IsDirectory(const char16_t* path)
 {
 #if YCL_Win32
 	// TODO: Simplify?
-	const auto attr(::GetFileAttributesW(wcast(path)));
+	const auto attr(FileAttributes(::GetFileAttributesW(wcast(path))));
 
-	return attr != platform_ex::Invalid
-		&& (platform_ex::FileAttributes(attr) & platform_ex::Directory);
+	return attr != FileAttributes::Invalid
+		&& bool(FileAttributes(attr) & FileAttributes::Directory);
 #else
 	return IsDirectory(MakePathString(path).c_str());
 #endif
@@ -617,7 +609,8 @@ void
 DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 {
 #if YCL_Win32
-	default_delete<Data>::operator()(p);
+	static_cast<const ystdex::allocator_delete<default_allocator<Data>>&>(*this)
+		(p);
 #else
 	const auto res(::closedir(ToDirPtr(p)));
 
@@ -627,20 +620,22 @@ DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 }
 
 
-DirectorySession::DirectorySession()
+DirectorySession::DirectorySession(basic_string<NativeChar>::allocator_type a)
 #if YCL_Win32
-	: DirectorySession(u".")
+	// XXX: This is optimal compared use 'u"."' directly by less copying.
+	: DirectorySession(L".", a)
 #else
-	: DirectorySession(".")
+	: DirectorySession(".", a)
 #endif
 {}
-DirectorySession::DirectorySession(const char* path)
+DirectorySession::DirectorySession(const char* path, string::allocator_type a)
 #if YCL_Win32
-	: dir(CreateDirectoryDataPtr<Data>(wstring(MakePathStringW(path).c_str())))
+	: DirectorySession(MakePathStringW(path, a))
 #else
-	: sDirPath([] YB_LAMBDA_ANNOTATE((const char* p), , nonnull(2)){
+	: sDirPath([&] YB_LAMBDA_ANNOTATE((const char* p), , nonnull(2)){
 		const auto res(Deref(p) != char()
-			? ystdex::rtrim(string(p), FetchSeparator<char>()) : ".");
+			? ystdex::rtrim(string(p, a), FetchSeparator<char>())
+			: string(".", a));
 
 		YAssert(res.empty() || EndsWithNonSeperator(res),
 			"Invalid directory name state found.");
@@ -654,13 +649,21 @@ DirectorySession::DirectorySession(const char* path)
 		ystdex::throw_error(errno, yfsig);
 #endif
 }
-DirectorySession::DirectorySession(const char16_t* path)
+DirectorySession::DirectorySession(const char16_t* path,
+	u16string::allocator_type a)
 #if YCL_Win32
-	: dir(CreateDirectoryDataPtr<Data>(path))
+	// XXX: The path would be copied anyway by the constructor of %Data to
+	//	prevent violation of strict aliasing.
+	: dir(platform::allocate_unique<Data>(a, u16string_view(path), a))
 #else
-	: DirectorySession(MakePathString(path).c_str())
+	: DirectorySession(MakePathString(path, a))
 #endif
 {}
+#if YCL_Win32
+DirectorySession::DirectorySession(wstring&& str)
+	: dir(platform::allocate_unique<Data>(str.get_allocator(), std::move(str)))
+{}
+#endif
 
 void
 DirectorySession::Rewind() ynothrow
@@ -754,21 +757,23 @@ HDirectory::GetNodeCategory() const ynothrow
 	return NodeCategory::Empty;
 }
 
-HDirectory::operator string() const
+HDirectory::operator std::string() const
 {
+	return
 #if YCL_Win32
-	return MakePathString(GetNativeName(), {});
+		MakePathString(GetNativeName());
 #else
-	return GetNativeName();
+		GetNativeName();
 #endif
 }
-HDirectory::operator u16string() const
+
+HDirectory::operator std::u16string() const
 {
 	return
 #if YCL_Win32
 		GetNativeName();
 #else
-		MakePathStringU(GetNativeName(), {});
+		MakePathStringU(GetNativeName());
 #endif
 }
 
@@ -780,6 +785,28 @@ HDirectory::GetNativeName() const ynothrow
 		dirent_str.data() : u".";
 #else
 		p_dirent->d_name : ".";
+#endif
+}
+
+string
+HDirectory::ConvertToMBCS(string::allocator_type a) const
+{
+	return
+#if YCL_Win32
+		MakePathString(GetNativeName(), a);
+#else
+		string(GetNativeName(), a);
+#endif
+}
+
+u16string
+HDirectory::ConvertToUCS2(u16string::allocator_type a) const
+{
+	return
+#if YCL_Win32
+		u16string(GetNativeName(), a);
+#else
+		MakePathStringU(GetNativeName(), a);
 #endif
 }
 
@@ -818,22 +845,50 @@ ugetcwd(char* buf, size_t size) ynothrowv
 		using namespace std;
 
 #if YCL_Win32
-		try
-		{
-			const auto p(make_unique<wchar_t[]>(size));
-
-			if(const auto cwd = ::_wgetcwd(p.get(), int(size)))
+		return CallNothrow({}, [=]() -> char*{
+			if(YB_LIKELY(size > 0))
 			{
-				const auto res(MakePathString(ucast(cwd)));
-				const auto len(res.length());
+				const auto p(make_unique<char16_t[]>(size));
+				const auto s(wcast(p.get()));
+				// XXX: Truncated.
+				const auto
+					n(::GetCurrentDirectoryW(unsigned(size), s));
 
-				if(size < len + 1)
-					errno = ERANGE;
+				if(n != 0)
+				{
+#if true
+					const int r_l(::WideCharToMultiByte(CP_UTF8, 0,
+						s, -1, {}, 0, {}, {}));
+
+					if(YB_LIKELY(r_l >= 0) && size >= size_t(r_l))
+					{
+						// XXX: This cannot be false in a sane implemenation.
+						if(YB_LIKELY(r_l != 0))
+							::WideCharToMultiByte(CP_UTF8, 0, s, -1, buf,
+								r_l, {}, {});
+						return buf;
+					}
+					else
+						errno = ERANGE;
+#else
+					// NOTE: Any optimized implemenations shall be equivalent to
+					//	this.
+					const auto res(MakePathString(p.get()));
+					const auto len(res.length());
+
+					if(size < len + 1)
+						errno = ERANGE;
+					else
+						return ystdex::ntctscpy(buf, res.data(), len);
+#endif
+				}
 				else
-					return ystdex::ntctscpy(buf, res.data(), len);
+					errno = GetErrnoFromWin32();
 			}
-		}
-		CatchExpr(std::bad_alloc&, errno = ENOMEM);
+			else
+				errno = EINVAL;
+			return {};
+		});
 #else
 		// NOTE: POSIX.1 2004 has no guarantee about slashes. POSIX.1 2013
 		//	mandates there are no redundant slashes. See http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html.
@@ -870,17 +925,15 @@ ugetcwd(char16_t* buf, size_t len) ynothrowv
 		// XXX: Alias by %char array is safe.
 		if(const auto cwd
 			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), len))
-			try
-			{
+			return CallNothrow({}, [=]() -> char16_t*{
 				const auto res(platform_ex::MakePathStringU(cwd));
 				const auto rlen(res.length());
 
-				if(len < rlen + 1)
-					errno = ERANGE;
-				else
+				if(len >= rlen + 1)
 					return ystdex::ntctscpy(buf, res.data(), rlen);
-			}
-			CatchExpr(std::bad_alloc&, errno = ENOMEM)
+				errno = ERANGE;
+				return {};
+			});
 #endif
 	}
 	else
@@ -939,7 +992,7 @@ YCL_Impl_FileSystem_ufunc_1(uremove)
 	return CallNothrow({}, [=]{
 		return CallFuncWithAttr([] YB_LAMBDA_ANNOTATE(
 			(const wchar_t* wstr, FileAttributes attr), ynothrow, nonnull(2)){
-			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
+			return bool(attr & FileAttributes::Directory) ? ::_wrmdir(wstr) == 0
 				: UnlinkWithAttr(wstr, attr);
 		}, path);
 	});

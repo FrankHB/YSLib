@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2595
+\version r2642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2023-03-04 02:12 +0800
+	2023-03-31 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for YSLib::RecordLevel, YSLib::Emergent, std::string,
-//	string_view, ::HANDLE, wstring, unique_ptr_from, ystdex::ends_with,
-//	ystdex::aligned_storage_t, ystdex::pun_ref, vector, string, pair,
-//	ystdex::remove_pointer_t, std::is_function, YSLib::Err;
+//	string_view, DefBitmaskEnum, ::HANDLE, wstring, unique_ptr_from,
+//	ystdex::ends_with, ystdex::aligned_storage_t, ystdex::pun_ref, vector,
+//	string, pair, ystdex::remove_pointer_t, std::is_function, YSLib::Err;
 #include YFM_YCLib_NativeAPI // for ERROR_SUCCESS, ::HMODULE, GetModuleHandleW,
 //	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, INFINITE, MAX_PATH, ::HGLOBAL, ::HLOCAL;
 #if !YCL_Win32
@@ -324,11 +324,13 @@ enum class CreationDisposition : unsigned long
 //!@}
 
 
-//! \since build 639
+//! \since build 971
 //!@{
 //! \see https://msdn.microsoft.com/library/gg258117.aspx 。
-enum FileAttributes : unsigned long
+enum class FileAttributes : unsigned long
 {
+	//! \since build 639
+	//!@{
 	ReadOnly = FILE_ATTRIBUTE_READONLY,
 	Hidden = FILE_ATTRIBUTE_HIDDEN,
 	System = FILE_ATTRIBUTE_SYSTEM,
@@ -352,8 +354,16 @@ enum FileAttributes : unsigned long
 	//! \warning 非 MSDN 文档公开。
 	EA = 0x40000,
 	Invalid = INVALID_FILE_ATTRIBUTES
+	//!@}
 };
 
+//! \relates FileAttributes
+DefBitmaskEnum(FileAttributes)
+//!@}
+
+
+//! \since build 639
+//!@{
 //! \see https://msdn.microsoft.com/library/aa363858.aspx 。
 enum FileFlags : unsigned long
 {
@@ -372,6 +382,7 @@ enum FileFlags : unsigned long
 	FirstPipeInstance = FILE_FLAG_FIRST_PIPE_INSTANCE
 };
 
+
 enum SecurityQoS : unsigned long
 {
 	Anonymous = SECURITY_ANONYMOUS,
@@ -383,12 +394,21 @@ enum SecurityQoS : unsigned long
 	Present = SECURITY_SQOS_PRESENT,
 	ValidFlags = SECURITY_VALID_SQOS_FLAGS
 };
+//!@}
 
-enum FileAttributesAndFlags : unsigned long
+
+//! \since build 971
+//!@{
+enum class FileAttributesAndFlags : unsigned long
 {
-	NormalWithDirectory = Normal | BackupSemantics,
+	//! \since build 639
+	NormalWithDirectory = unsigned(FileAttributes::Normal) | BackupSemantics,
+	//! \since build 639
 	NormalAll = NormalWithDirectory | OpenReparsePoint
 };
+
+//! \relates FileAttributesAndFlags
+DefBitmaskEnum(FileAttributesAndFlags)
 //!@}
 
 
@@ -398,7 +418,7 @@ enum FileAttributesAndFlags : unsigned long
 */
 YB_ATTR_nodiscard YB_STATELESS yconstfn
 	PDefH(bool, IsDirectory, FileAttributes attr) ynothrow
-	ImplRet(attr & Directory)
+	ImplRet(bool(attr & FileAttributes::Directory))
 /*!
 \brief 判断 \c ::WIN32_FIND_DATAA 指定的节点是否为目录。
 \since build 298
@@ -596,21 +616,25 @@ public:
 	\pre 间接断言：路径参数的数据指针非空。
 	\throw std::system_error 指定的路径不是目录。
 	\throw Win32Exception 路径属性查询失败。
-	\since build 658
+	\since build 971
 
 	打开 UTF-16 路径指定的目录。
 	目录路径无视结尾的斜杠和反斜杠。 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	*/
 	//!@{
-	DirectoryFindData(wstring_view sv)
-		: DirectoryFindData(wstring(sv))
+	DirectoryFindData(wstring_view sv, wstring::allocator_type a = {})
+		: DirectoryFindData(wstring(sv, a))
 	{}
-	//! \since build 705
-	DirectoryFindData(u16string_view sv)
-		: DirectoryFindData(wstring(sv.cbegin(), sv.cend()))
+	DirectoryFindData(u16string_view sv, u16string::allocator_type a = {})
+		: DirectoryFindData(wstring(sv.cbegin(), sv.cend(), a))
 	{}
-	//! \since build 705
-	DirectoryFindData(wstring);
+	DirectoryFindData(const wstring& str)
+		: DirectoryFindData(wstring(str, str.get_allocator()))
+	{}
+	DirectoryFindData(wstring&&);
+	// XXX: Constructor from 'const u16string&' is not provided to prevent
+	//	inefficient path by creation of unexpected 'u16string' objects, since
+	//	construction from 'u16string&&' is not available due to strict aliasing.
 	//!@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	DefDeDtor(DirectoryFindData)
@@ -963,21 +987,16 @@ public:
 /*!
 \throw Win32Exception 调用失败。
 \note 保证以一个分隔符结束。
+\since build 971
 */
 //!@{
-/*!
-\brief 取系统目录路径。
-\since build 593
-*/
+//! \brief 取系统目录路径。
 YB_ATTR_nodiscard YF_API wstring
-FetchSystemPath(size_t = MAX_PATH);
+FetchSystemPath(wstring::allocator_type a = {}, size_t = MAX_PATH);
 
-/*!
-\brief 取系统目录路径。
-\since build 693
-*/
+//! \brief 取系统目录路径。
 YB_ATTR_nodiscard YF_API wstring
-FetchWindowsPath(size_t = MAX_PATH);
+FetchWindowsPath(wstring::allocator_type a = {}, size_t = MAX_PATH);
 //!@}
 
 

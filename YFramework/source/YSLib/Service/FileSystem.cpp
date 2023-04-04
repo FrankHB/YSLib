@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2351
+\version r2397
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2023-03-11 09:40 +0800
+	2023-04-04 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,9 @@
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_FileSystem // for ystdex::to_string_d,
-//	FetchCurrentWorkingDirectory, IsAbsolute, DirectorySession, umkdir,
-//	MakeMBCS, FetchSeparator, use_openmode_t;
+#include YFM_YSLib_Service_FileSystem // for FetchCurrentWorkingDirectory,
+//	IsAbsolute, DirectorySession, umkdir, MakeMBCS, FetchSeparator,
+//	use_openmode_t;
 #include <ios> // for std::ios_base::in, std::ios_base::binary;
 #include <cerrno> // for errno, EEXIST;
 #include <ystdex/exception.h> // for std::system_error, ystdex::throw_error;
@@ -45,7 +45,7 @@ namespace IO
 String
 Path::GetString(char16_t delimiter) const
 {
-	auto res(ystdex::to_string_d(GetBase(), get_allocator(), delimiter));
+	auto res(to_string_d(GetBase(), get_allocator(), delimiter));
 
 	YAssert(res.empty() || res.back() == delimiter,
 		"Invalid conversion result found.");
@@ -60,38 +60,33 @@ Path::Verify(char16_t delimiter) const
 
 
 Path
-MakeNormalizedAbsolute(const Path& pth, size_t init_size)
+MakeNormalizedAbsolute(Path&& res, size_t init_size)
 {
-	Path res(pth);
-
 	if(IsRelative(res))
+#if true
+	{
+		// XXX: This is a bit more efficient, at least with x86_64-pc-linux G++
+		//	12.1.
+		Path pa(FetchCurrentWorkingDirectory<char16_t>(init_size,
+			res.get_allocator()));
+
+		res = std::move(pa) / std::move(res);
+	}
+#else
+		// NOTE: Any optimized implemenations shall be equivalent to this,
 		res = Path(FetchCurrentWorkingDirectory<char16_t>(init_size,
-			pth.get_allocator())) / res;
+			res.get_allocator())) / std::move(res);
+#endif
 	res.Normalize();
 	YTraceDe(Debug, "Converted path is '%s'.", res.VerifyAsMBCS().c_str());
 	YAssert(IsAbsolute(res), "Invalid path converted.");
-	return res;
+	return std::move(res);
 }
 
 
 //! \since build 699
 namespace
 {
-
-template<typename _tChar>
-YB_NONNULL(1) bool
-VerifyDirectoryImpl(const _tChar* path)
-{
-	try
-	{
-		DirectorySession ss(path);
-
-		return true;
-	}
-	CatchExpr(std::system_error& e, YTraceDe(Debug,
-		"Directory verfication failed."), ExtractAndTrace(e, Debug))
-	return {};
-}
 
 //! \since build 970
 YB_NONNULL(2, 3) void
@@ -105,17 +100,6 @@ CheckCreateDiretoryError(int err, const char* path, const char* sig)
 }
 
 } // unnamed namespace;
-
-bool
-VerifyDirectory(const char* path)
-{
-	return VerifyDirectoryImpl(path);
-}
-bool
-VerifyDirectory(const char16_t* path)
-{
-	return VerifyDirectoryImpl(path);
-}
 
 bool
 CreateDirectory(const char* path)
@@ -135,8 +119,8 @@ EnsureDirectory(const Path& pth)
 	{
 		bool success(true);
 		auto i(pth.begin());
-		string res(MakeMBCS<string>(*i));
-		const auto delimiter(FetchSeparator<char>());
+		auto res(i->GetMBCS());
+		const auto sep(FetchSeparator<char>());
 		const auto ensure([&]{
 			if(!VerifyDirectory(res) && !umkdir(res.c_str()))
 			{
@@ -147,13 +131,13 @@ EnsureDirectory(const Path& pth)
 
 		if(!PathTraits::has_root_path(res))
 		{
-			res += delimiter;
+			res += sep;
 			ensure();
 		}
 		while(++i != pth.end())
 		{
-			res += MakeMBCS<string>(*i);
-			res += delimiter;
+			res += i->GetMBCS();
+			res += sep;
 			ensure();
 		}
 		return success;
@@ -293,7 +277,7 @@ InstallDirectory(const string& dst, const string& src)
 {
 	TraverseTree([](const Path& dname, const Path& sname){
 		InstallFile(string(dname).c_str(), string(sname).c_str());
-	}, Path(dst), Path(src));
+	}, Path(dst, dst.get_allocator()), Path(src, src.get_allocator()));
 }
 
 void

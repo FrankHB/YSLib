@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015 FrankHB.
+	© 2012-2013, 2015, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.h
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r187
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:26:48 +0800
 \par 修改时间:
-	2015-05-29 21:22 +0800
+	2023-04-05 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,18 +28,19 @@
 #ifndef INC_YReader_ReaderSettingUI_h_
 #define INC_YReader_ReaderSettingUI_h_ 1
 
-#include "ReaderSetting.h"
-#include "ColorPicker.h"
+#include "ReaderSetting.h" // for String, ReaderSetting;
+#include "ColorPicker.h" // for MTextList, DialogPanel, DynamicWidget, Label,
+//	ColorBox, Color;
 
 namespace YReader
 {
 
 /*!
 \brief 取编码字符串。
-\since build 290
+\since build 971
 */
 String
-FetchEncodingString(MTextList::IndexType);
+FetchEncodingString(MTextList::IndexType, String::allocator_type = {});
 
 
 /*!

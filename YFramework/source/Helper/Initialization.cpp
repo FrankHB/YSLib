@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r4020
+\version r4103
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2023-03-26 10:59 +0800
+	2023-03-30 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,12 @@
 #include YFM_Helper_Initialization // for IO::Path, IO::FetchSeparator,
 //	FetchCurrentWorkingDirectory, IO::MaxPathLength, GeneralEvent,
 //	pmr::new_delete_resource_t, ystdex::nptr, pair, value_map, mutex,
-//	lock_guard, IO::EnsureDirectory, IO::VerifyDirectory, PerformKeyAction,
+//	lock_guard, IO::EnsureDirectory, IO::VerifyDirectories, PerformKeyAction,
 //	IO::TraverseChildren, NodeCategory, NativePathView, String;
 #if !(YCL_Win32 || YCL_Linux)
 #	include <ystdex/string.hpp> // for ystdex::rtrim;
 #	include YFM_YCLib_FileSystem // for platform::EndsWithNonSeperator;
 #endif
-#include <ystdex/range.hpp> // for ystdex::begin, ystdex::end;
-#include <ystdex/algorithm.hpp> // for ystdex::fast_all_of;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchModuleFileName,
 //	platform_ex::FetchDBCSOffset, platform_ex::WCSToUTF8,
@@ -73,8 +71,6 @@ bool ShowInitializedLog(true);
 namespace
 {
 
-//! \since build 551
-unique_ptr<ValueNode> p_root;
 //! \since build 450
 yconstexpr const char TU_MIME[]{R"NPLA1(
 (application
@@ -185,11 +181,19 @@ struct RootPathCache
 	}
 };
 
+//! \since build 971
+YB_ATTR_nodiscard YB_PURE pmr::new_delete_resource_t&
+FetchPMRResourceRef() ynothrow
+{
+	static pmr::new_delete_resource_t r;
+
+	return r;
+}
+
 YB_ATTR_nodiscard YB_PURE const RootPathCache&
 FetchRootPathCache()
 {
-	static pmr::new_delete_resource_t r;
-	static const RootPathCache cache(&r);
+	static const RootPathCache cache(&FetchPMRResourceRef());
 
 	return cache;
 }
@@ -204,17 +208,6 @@ FetchImagePathCache()
 }
 #endif
 
-template<class _tRange>
-YB_ATTR_nodiscard YB_PURE bool
-CheckLocalFHSLayoutOn(const _tRange& c)
-{
-	return ystdex::fast_all_of(ystdex::begin(c), ystdex::end(c),
-		[](const IO::Path& pth) ynothrow -> bool{
-		TryRet(IO::VerifyDirectory(pth))
-		CatchRet(..., {})
-	});
-}
-
 YB_ATTR_nodiscard YB_PURE bool
 CheckLocalFHSLayoutImpl(const IO::Path& prefix, IO::Path bin)
 {
@@ -223,7 +216,7 @@ CheckLocalFHSLayoutImpl(const IO::Path& prefix, IO::Path bin)
 		const IO::Path
 			paths[]{prefix, std::move(bin), prefix / u"lib", prefix / u"share"};
 
-		return CheckLocalFHSLayoutOn(paths);
+		return IO::VerifyDirectories(paths);
 	}
 	return {};
 }
@@ -271,26 +264,30 @@ FetchPreferredConfPath()
 #if YCL_DS
 #	define YF_Helper_Initialization_DataDirectory_ "/Data/"
 #	define YF_Helper_Initialization_FontDirectory_ "/Font/"
-#	define YF_Helper_Initialization_FontFile_ "/Font/FZYTK.TTF"
+//! \since build 971
+#	define YF_Helper_Initialization_FontFile_(...) "/Font/FZYTK.TTF"
 #elif YCL_Win32
 #	define YF_Helper_Initialization_DataDirectory_ FetchRootPathString()
-#	define YF_Helper_Initialization_FontFile_ \
-	(FetchSystemFontDirectory_Win32() + "SimSun.ttc")
-//! \since build 693
-inline PDefH(string, FetchSystemFontDirectory_Win32, )
+//! \since build 971
+#	define YF_Helper_Initialization_FontFile_(a) \
+	(FetchSystemFontDirectory_Win32(a) + "SimSun.ttc")
+//! \since build 971
+inline PDefH(string, FetchSystemFontDirectory_Win32, string::allocator_type a)
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
 	//	%CSIDL_FONTS. See https://msdn.microsoft.com/library/dd378457.aspx.
-	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath(), {})
-		+ "Fonts\\")
+	ImplRet(
+		platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath(a), a) + "Fonts\\")
 #elif YCL_Android
 #	define YF_Helper_Initialization_DataDirectory_ \
 	(FetchRootPathString() + "Data/")
 #	define YF_Helper_Initialization_FontDirectory_ "/system/fonts/"
-#	define YF_Helper_Initialization_FontFile_ \
+//! \since build 971
+#	define YF_Helper_Initialization_FontFile_(...) \
 	"/system/fonts/DroidSansFallback.ttf"
 #elif YCL_Linux
 #	define YF_Helper_Initialization_DataDirectory_ FetchRootPathString()
-#	define YF_Helper_Initialization_FontFile_ "./SimSun.ttc"
+//! \since build 971
+#	define YF_Helper_Initialization_FontFile_(...) "./SimSun.ttc"
 #else
 #	error "Unsupported platform found."
 #endif
@@ -330,7 +327,7 @@ private:
 public:
 	CMap(const string& data_dir)
 	{
-		const std::string mapping_name(to_std_string(data_dir) + "cp113.bin");
+		const auto mapping_name(to_std_string(data_dir) + "cp113.bin");
 
 		YTraceDe(Notice, "Loading character mapping file '%s' ...",
 			mapping_name.c_str());
@@ -362,8 +359,8 @@ public:
 			else
 #	endif
 			{
-				CHRLib::cp113_lkp = [] YB_LAMBDA_ANNOTATE(
-					(byte, byte), , noreturn) -> char16_t{
+				CHRLib::cp113_lkp = []
+					YB_LAMBDA_ANNOTATE((byte, byte), , noreturn) -> char16_t{
 					throw
 						LoggedEvent("Failed calling conversion for CHRMapEx.");
 				};
@@ -396,11 +393,12 @@ WriteNPLA1Stream(std::ostream& os, NPL::Configuration&& conf)
 	ystdex::write_literal(os, Text::BOM_UTF_8) << std::move(conf);
 }
 
-//! \since build 724
+//! \since build 971
+//!@{
 YB_ATTR_nodiscard ValueNode
-TryReadRawNPLStream(std::istream& is)
+TryReadRawNPLStream(std::istream& is, NPL::Configuration::allocator_type a)
 {
-	NPL::Configuration conf;
+	NPL::Configuration conf(a);
 
 	is >> conf;
 	YTraceDe(Debug, "Plain configuration loaded.");
@@ -410,10 +408,9 @@ TryReadRawNPLStream(std::istream& is)
 	throw GeneralEvent("Invalid stream found when reading configuration.");
 }
 
-//! \since build 899
-//!@{
 YB_ATTR_nodiscard YB_NONNULL(1, 2) ValueNode
-LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
+LoadNPLA1FileDirect(const char* disp, const char* path,
+	ValueNode::allocator_type a, bool show_info)
 {
 	yunused(disp);
 	if(show_info)
@@ -427,16 +424,16 @@ LoadNPLA1FileDirect(const char* disp, const char* path, bool show_info)
 	{
 		YTraceDe(Debug, "Accessible configuration file found.");
 		if(Text::CheckBOM(sifs, Text::BOM_UTF_8))
-			return TryReadRawNPLStream(sifs);
+			return TryReadRawNPLStream(sifs, a);
 		YTraceDe(Warning, "Wrong encoding of configuration file found.");
 	}
 	YTraceDe(Err, "Configuration corrupted.");
-	return {};
+	return ValueNode(a);
 }
 
 YB_ATTR_nodiscard YB_NONNULL(1, 2, 3) ValueNode
 LoadNPLA1FileCreate(const char* disp, const char* path,
-	ValueNode(*creator)(), bool show_info)
+	ValueNodeCreator creator, ValueNode::allocator_type a, bool show_info)
 {
 	if(show_info)
 		YTraceDe(Notice, "Creating %s '%s'...", disp, path);
@@ -446,7 +443,7 @@ LoadNPLA1FileCreate(const char* disp, const char* path,
 	// XXX: Failed on race condition detected.
 	if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
 		| std::ios_base::trunc | platform::ios_noreplace})
-		WriteNPLA1Stream(uofs, Nonnull(creator)());
+		WriteNPLA1Stream(uofs, Nonnull(creator)(a));
 	else
 	{
 		int err(errno);
@@ -455,23 +452,26 @@ LoadNPLA1FileCreate(const char* disp, const char* path,
 		YTraceDe(Warning, "Cannot create file, possible error"
 			" (from errno) = %d: %s.", err, std::strerror(err));
 		YTraceDe(Warning,"Creating default file failed.");
-		return {};
+		return ValueNode(a);
 	}
 	YTraceDe(Debug, "Created configuration.");
-	return LoadNPLA1FileDirect(disp, path, show_info);
+	return LoadNPLA1FileDirect(disp, path, a, show_info);
 }
 
 YB_ATTR_nodiscard YB_NONNULL(1) ValueNode
-LoadNPLA1MemoryFallback(ValueNode(*creator)())
+LoadNPLA1MemoryFallback(ValueNodeCreator creator, ValueNode::allocator_type a)
 {
 	YTraceDe(Notice, "Trying fallback in memory...");
 
 	std::stringstream ss;
 
-	ss << Nonnull(creator)();
-	return TryReadRawNPLStream(ss);
+	ss << Nonnull(creator)(a);
+	return TryReadRawNPLStream(ss, a);
 }
+//!@}
 
+//! \since build 899
+//!@{
 yconstexpr const char* ConfFileDisp("configuration file");
 
 #if YF_Helper_Initialization_UseFallbackConf_
@@ -483,8 +483,7 @@ mutex NPLA1PathVecRecordMutex;
 YB_ATTR_nodiscard YB_PURE VecRecordMap&
 FetchNPLA1PathVecRecordRef()
 {
-	static pmr::new_delete_resource_t r;
-	static VecRecordMap m(&r);
+	static VecRecordMap m(&FetchPMRResourceRef());
 
 	return m;
 }
@@ -495,9 +494,11 @@ AddNPLA1FileVecRecordItem(const char* disp, const string& conf_path)
 	FetchNPLA1PathVecRecordRef().emplace(disp, conf_path);
 }
 
+//! \since build 971
 YB_ATTR_nodiscard YB_NONNULL(1, 3, 4) ValueNode
 LoadNPLA1FileVec(const char* disp, const vector<string>& conf_paths,
-	const char* filename, ValueNode(*creator)(), bool show_info)
+	const char* filename, ValueNodeCreator creator, ValueNode::allocator_type a,
+	bool show_info)
 {
 	auto res(TryInvoke([=]() -> ValueNode{
 		for(const auto& conf_path : conf_paths)
@@ -508,7 +509,7 @@ LoadNPLA1FileVec(const char* disp, const vector<string>& conf_paths,
 			if(ufexists(path))
 			{
 				const lock_guard<mutex> gd(NPLA1PathVecRecordMutex);
-				auto r(LoadNPLA1FileDirect(disp, path, show_info));
+				auto r(LoadNPLA1FileDirect(disp, path, a, show_info));
 
 				if(r)
 					AddNPLA1FileVecRecordItem(disp, conf_path);
@@ -526,9 +527,9 @@ LoadNPLA1FileVec(const char* disp, const vector<string>& conf_paths,
 
 			const auto e(conf_path + filename);
 			const lock_guard<mutex> gd(NPLA1PathVecRecordMutex);
-			auto conf(LoadNPLA1FileCreate(disp, e.c_str(), creator, show_info));
-
-			if(conf)
+	
+			if(auto conf{
+				LoadNPLA1FileCreate(disp, e.c_str(), creator, a, show_info)})
 			{
 				AddNPLA1FileVecRecordItem(disp, conf_path);
 				return conf;
@@ -537,7 +538,7 @@ LoadNPLA1FileVec(const char* disp, const vector<string>& conf_paths,
 		return {};
 	}));
 
-	return res ? res : LoadNPLA1MemoryFallback(creator);
+	return res ? res : LoadNPLA1MemoryFallback(creator, a);
 }
 
 const vector<string>&
@@ -705,17 +706,17 @@ GetLocalFHSRootPathOf(const string& path_string)
 
 
 ValueNode
-LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
-	bool show_info)
+LoadNPLA1File(const char* disp, const char* path, ValueNodeCreator creator,
+	ValueNode::allocator_type a, bool show_info)
 {
 	auto res(TryInvoke([=]() -> ValueNode{
 		if(ufexists(path))
-			return LoadNPLA1FileDirect(disp, path, show_info);
+			return LoadNPLA1FileDirect(disp, path, a, show_info);
 		YTraceDe(Debug, "Path '%s' access failed.", path);
-		return LoadNPLA1FileCreate(disp, path, creator, show_info);
+		return LoadNPLA1FileCreate(disp, path, creator, a, show_info);
 	}));
 
-	return res ? std::move(res) : LoadNPLA1MemoryFallback(creator);
+	return res ? std::move(res) : LoadNPLA1MemoryFallback(creator, a);
 }
 
 void
@@ -742,21 +743,22 @@ LoadComponents(Application& app, const ValueNode& node)
 }
 
 ValueNode
-LoadConfiguration(bool show_info)
+LoadConfiguration(ValueNode::allocator_type a, bool show_info)
 {
-	ValueNode(*creator)()([]{
-		return ValueNode(NodeLiteral{"YFramework",
-			{{"DataDirectory", YF_Helper_Initialization_DataDirectory_},
-			{"FontFile", YF_Helper_Initialization_FontFile_},
-			{"FontDirectory", YF_Helper_Initialization_FontDirectory_}}});
+	ValueNode(*creator)(ValueNode::allocator_type)(
+		[](ValueNode::allocator_type al){
+		return ValueNode(NodeLiteral{{"YFramework", al},
+			{{{"DataDirectory", al}, YF_Helper_Initialization_DataDirectory_},
+			{{"FontFile", al}, YF_Helper_Initialization_FontFile_(al)},
+			{{"FontDirectory", al}, YF_Helper_Initialization_FontDirectory_}}});
 	});
 
 #if YF_Helper_Initialization_UseFallbackConf_
 	return LoadNPLA1FileVec(ConfFileDisp, FetchConfPaths(), "yconf.txt",
-		creator, show_info);
+		creator, a, show_info);
 #else
-	return LoadNPLA1File(ConfFileDisp,
-		(FetchPreferredConfPath() + "yconf.txt").c_str(), creator, show_info);
+	return LoadNPLA1File(ConfFileDisp, (FetchPreferredConfPath() + "yconf.txt")
+		.c_str(), creator, a, show_info);
 #endif
 #undef YF_Helper_Initialization_UseFallbackConf_
 }
@@ -855,9 +857,10 @@ FetchMIMEBiMapping()
 		return MIMEBiMapping(FetchAppInstance().get_allocator());
 	}, [](ValueNode& node, MIMEBiMapping& locked) -> MIMEBiMapping&{
 		AddMIMEItems(locked, LoadNPLA1File("MIME database", (AccessChild<string>
-			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
+			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(),
+			[](ValueNode::allocator_type){
 			return A1::NodeLoader(FetchEnvironment().Global).LoadNode(TU_MIME);
-		}, true));
+		}, node.get_allocator(), true));
 		return locked;
 	});
 }

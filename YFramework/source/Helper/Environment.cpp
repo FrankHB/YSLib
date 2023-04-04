@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2022 FrankHB.
+	© 2013-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r2005
+\version r2007
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2022-11-02 03:37 +0800
+	2023-03-29 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ Environment::Environment(Application& app)
 	//	begins.
 	YTraceDe(Notice, "Checking installation...");
 	PerformKeyAction([&]{
-		Root = LoadConfiguration(true);
+		Root = LoadConfiguration(Root.get_allocator(), true);
 		if(Root.GetName() == "YFramework")
 			Root = PackNodes(string(), std::move(Root));
 		LoadComponents(app, AccessNode(Root, "YFramework"));

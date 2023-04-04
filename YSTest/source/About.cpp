@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019, 2021-2022 FrankHB.
+	© 2012-2016, 2019, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r281
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2022-11-28 19:04 +0800
+	2023-04-05 04:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "About.h"
+#include "About.h" // for ColorSpace, FetchVCSRevisionString, String, G_APP_VER,
+//	YSL_SemVerStr_Short, FetchEvent, TouchHeld, Click, ValueNode, FetchRoot;
 
 namespace YReader
 {
@@ -61,6 +62,7 @@ AboutPanel::AboutPanel()
 	DeclDynWidgetNode(Label, lblCopyright)
 	DeclDynWidgetNode(Button, btnSysInfo)
 	DeclDynWidgetNode(Button, btnExit)
+	const auto p(FetchVCSRevisionString());
 
 	AddWidgetsZ(*this, 32, root),
 	lblTitle.Font.SetSize(20),
@@ -73,10 +75,12 @@ AboutPanel::AboutPanel()
 	lblTitle.ForeColor = ColorSpace::Blue,
 	lblVersion.Background = nullptr,
 	lblVersion.AutoWrapLine = true,
-	lblVersion.Text = G_APP_VER + String(u" 0.9"),
+	lblVersion.Text = String(G_APP_VER, lblVersion.Text.get_allocator())
+		+ u' ' + u"" YSL_SemVerStr_Short + u' '
+		+ String(p, lblVersion.Text.get_allocator()),
 	lblVersion.ForeColor = ColorSpace::Green,
 	lblCopyright.Background = nullptr,
-	lblCopyright.Text = String("(C)2009-2022 by ") + G_COMP_NAME,
+	lblCopyright.Text = String("(C)2009-2023 by ") + G_COMP_NAME,
 	lblCopyright.ForeColor = ColorSpace::Maroon,
 	btnSysInfo.Text = u"系统信息",
 	btnExit.Text = u"退出",
@@ -119,9 +123,9 @@ void
 SystemInformationPanel::UpdateContents()
 {
 	view.GetExtractText() = [](const ValueNode& nd) -> String{
-		const String& n(nd.GetName());
+		String n(nd.GetName(), nd.get_allocator());
 
-		TryRet(n + u": " + TreeList::DefaultExtractText(nd))
+		TryRet(std::move(n) + u": " + TreeList::DefaultExtractText(nd))
 		CatchIgnore(bad_any_cast&)
 		return n;
 	};

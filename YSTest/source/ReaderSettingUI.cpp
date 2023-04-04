@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019 FrankHB.
+	© 2012-2016, 2019, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r500
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2019-09-23 16:44 +0800
+	2023-04-04 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,14 +71,15 @@ const char TU_ReaderSettingUI[]{R"NPL(root
 using namespace Text;
 using std::chrono::milliseconds;
 
+//! \since build 971
 String
-FetchEncodingString(MTextList::IndexType i)
+FetchEncodingString(MTextList::IndexType i, String::allocator_type a)
 {
 	if(YB_LIKELY(i < size(Encodings)))
 	{
 		const auto& pr(Encodings[i]);
 
-		return String(to_string(pr.first) + ": ") + pr.second;
+		return String(to_string(pr.first) + ": ", a) + pr.second;
 	}
 	return u"---";
 }
@@ -180,7 +181,8 @@ SettingPanel::SettingPanel()
 	},
 	ddlEncoding.GetConfirmed() += [this](IndexEventArgs&& e){
 		yunseq(current_encoding = Encodings[e.Value].first,
-			lblAreaDown.Text = FetchEncodingString(e.Value)),
+			lblAreaDown.Text = FetchEncodingString(e.Value,
+			lblAreaDown.Text.get_allocator())),
 		Invalidate(lblAreaDown);
 	},
 	cbSmoothScroll.Ticked += [&, this](CheckBox::TickedArgs&& e){
@@ -239,7 +241,7 @@ SettingPanel::operator<<(const ReaderSetting& s)
 	lblAreaDown.ForeColor = s.FontColor,
 	lblAreaDown.Background = SolidBrush(s.DownColor),
 	lblAreaDown.Font = s.Font,
-	ddlFont.Text = s.Font.GetFamilyName(),
+	ddlFont.Text = String(s.Font.GetFamilyName()),
 	scroll_duration = s.ScrollDuration,
 	smooth_scroll_duration = s.SmoothScrollDuration
 	),

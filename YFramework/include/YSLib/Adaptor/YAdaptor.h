@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2022 FrankHB.
+	© 2010-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2464
+\version r2549
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2022-02-14 07:56 +0800
+	2023-04-01 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //	<set>, <stack>, <unordered_map>, <unordered_set>, <vector>,
 //	<ystdex/memory_resource.h>, platform::basic_types, YFM_YCLib_Container,
 //	platform::basic_utilities, platform::containers, '*string_view',
-//	MakePathString, uopen, 'uf*', 'up*', 'omode_conv*', StreamGet, StreamPut,
+//	MakePathString, uopen, 'uf*', 'up*', 'omode_conv', StreamGet, StreamPut,
 //	etc;
 #include YFM_YCLib_Reference // for YFM_YCLib_Reference, platform::references,
 //	<memory>, '*_ptr', 'make*_ptr', lref;
@@ -63,18 +63,18 @@ namespace YSLib
 \note 引入平台命名空间，并提供部分 std 替代。
 \since build 843
 */
-//@{
+//!@{
 //! \since build 644
 using namespace platform::basic_types;
 using namespace platform::basic_utilities;
 //! \note 引入的容器类型默认使用多态分配器。
 using namespace platform::containers;
 using namespace platform::references;
-//@}
+//!@}
 
 
 //! \note 替代较新版本的 std 对应接口，以不被当前实现模式支持的旧版 std 限制。
-//@{
+//!@{
 //! \since build 843
 namespace pmr = platform::pmr;
 
@@ -87,25 +87,25 @@ using platform::string;
 using platform::wstring;
 
 //! \since build 644
-//@{
+//!@{
 using platform::basic_string_view;
 using platform::string_view;
 //! \since build 646
 using platform::u16string_view;
 using platform::wstring_view;
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \note 替代标准库的类模板和类。
 \note 因为提供标准库同名接口不具备的功能，不能被 std 替代。
 */
-//@{
+//!@{
 //! \since build 861
 using namespace platform::ios;
 
 //! \since build 616
-//@{
+//!@{
 using platform::basic_filebuf;
 using platform::filebuf;
 using platform::wfilebuf;
@@ -124,8 +124,8 @@ using platform::wifstream;
 //! \since build 619
 using platform::wofstream;
 using platform::wfstream;
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \since build 650
@@ -144,15 +144,15 @@ using ystdex::trivial_swap_t;
 using platform::string_view_t;
 
 //! \since build 593
-//@{
+//!@{
 //! \note 假定不使用 ADL 。
-//@{
+//!@{
 using platform::sfmt;
 using platform::vsfmt;
-//@}
+//!@}
 
 // !\note 可能使用 ADL 。
-//@{
+//!@{
 //! \since build 861
 using ystdex::make_string_view;
 
@@ -163,8 +163,8 @@ using platform::to_std_string;
 
 using platform::to_string;
 using platform::to_wstring;
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -190,16 +190,16 @@ using namespace platform::Descriptions;
 \pre 允许对操作数使用 ADL 查找同名声明，但要求最终的表达式语义和调用这里的声明等价。
 \since build 553
 */
-//@{
+//!@{
 using platform::Nonnull;
 //! \since build 702
 using platform::FwdIter;
 using platform::Deref;
-//@}
+//!@}
 
 
 // !\note 可能使用 ADL 。
-//@{
+//!@{
 // XXX: Some declarations of overloads would defined elsewhere, so the following
 //	declarations is still needed, even though there are also introduced from the
 //	%platform namespace or a subnamespace thereby.
@@ -211,33 +211,33 @@ using platform::reset;
 \note 在标准库中提供默认实现。
 \since build 301
 */
-//@{
+//!@{
 //! \since build 850
 using std::abs;
 using std::round;
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \note 假定不使用 ADL 。
-//@{
+//!@{
 /*!
 \brief 调试接口和日志。
 \since build 510
 */
-//@{
+//!@{
 //! \since build 742
 using platform::Echo;
 using platform::Logger;
 using platform::FetchCommonLogger;
-//@}
+//!@}
 
 
 /*!
 \brief 基本实用例程和配置接口。
 \since build 704
 */
-//@{
+//!@{
 //! \since build 148
 using platform::terminate;
 
@@ -258,13 +258,13 @@ using platform::SetEnvironmentVariable;
 using platform::SystemOption;
 //! \since build 704
 using platform::FetchLimit;
-//@}
+//!@}
 
 /*!
 \brief 文件访问例程。
 \since build 299
 */
-//@{
+//!@{
 //! \since build 549
 using platform::uaccess;
 //! \since build 549
@@ -285,11 +285,11 @@ using platform::urmdir;
 using platform::uunlink;
 //! \since build 476
 using platform::uremove;
+//!@}
 
 //! \since build 713
 using platform::FetchCurrentWorkingDirectory;
-//@}
-//@}
+//!@}
 
 //! \since build 724
 using platform::MappedFile;
@@ -324,7 +324,7 @@ namespace IO
 \note 假定不使用 ADL 。
 \since build 639
 */
-//@{
+//!@{
 //! \since build 648
 using platform::MakePathString;
 using platform::mode_t;
@@ -340,47 +340,15 @@ using platform::use_openmode_t;
 using platform::StreamGet;
 //! \since build 901
 using platform::StreamPut;
-//! \since build 901
-using platform::FileTime;
-//! \since build 631
-using platform::GetFileAccessTimeOf;
-//! \since build 547
-using platform::GetFileModificationTimeOf;
-//! \since build 631
-using platform::GetFileModificationAndAccessTimeOf;
-//! \since build 901
-//@{
-using platform::SetFileAccessTimeOf;
-using platform::SetFileModificationTimeOf;
-using platform::SetFileModificationAndAccessTimeOf;
-//@}
-using platform::FetchNumberOfLinks;
+
 using platform::EnsureUniqueFile;
 //! \since build 659
-//@{
 using platform::HaveSameContents;
-using platform::IsNodeShared;
 
-//! \since build 474
-using platform::NodeCategory;
-
-//! \since build 707
-using platform::IsDirectory;
-
-using platform::CreateHardLink;
-using platform::CreateSymbolicLink;
-//@}
-//! \since build 707
-using platform::ReadLink;
-//! \since build 707
-using platform::IterateLink;
-//! \since build 411
-//@{
-using platform::DirectorySession;
-using platform::HDirectory;
-//@}
 //! \since build 706
 using platform::FetchSeparator;
+//! \since build 971
+using platform::FetchSeparatorString;
 //! \since build 706
 using platform::IsSeparator;
 //! \since build 171
@@ -391,9 +359,46 @@ using platform::FetchRootNameEnd;
 using platform::FetchRootNameLength;
 //! \since build 836
 using platform::FetchRootPathLength;
+
+//! \since build 901
+using platform::FileTime;
+//! \since build 631
+using platform::GetFileAccessTimeOf;
+//! \since build 547
+using platform::GetFileModificationTimeOf;
+//! \since build 631
+using platform::GetFileModificationAndAccessTimeOf;
+//! \since build 901
+//!@{
+using platform::SetFileAccessTimeOf;
+using platform::SetFileModificationTimeOf;
+using platform::SetFileModificationAndAccessTimeOf;
+//!@}
+
+//! \since build 474
+using platform::NodeCategory;
+
 //! \since build 707
-using platform::TrimTrailingSeperator;
-//@}
+using platform::IsDirectory;
+
+using platform::FetchNumberOfLinks;
+//! \since build 659
+using platform::CreateHardLink;
+//! \since build 659
+using platform::CreateSymbolicLink;
+//! \since build 707
+using platform::ReadLink;
+//! \since build 707
+using platform::IterateLink;
+
+//! \since build 411
+using platform::DirectorySession;
+//! \since build 411
+using platform::HDirectory;
+
+//! \since build 659
+using platform::IsNodeShared;
+//!@}
 
 //! \since build 919
 using platform::FetchNativeDynamicModuleExtension;
@@ -411,15 +416,15 @@ namespace Timers
 \note 假定不使用 ADL 。
 \since build 301
 */
-//@{
+//!@{
 using platform::GetTicks;
 using platform::GetHighResolutionTicks;
-//@}
+//!@}
 
 } // namespace Timers;
 
 //! \note UI 输入类型。
-//@{
+//!@{
 //! \since build 490
 using platform::KeyIndex;
 //! \since build 486
@@ -428,10 +433,10 @@ using platform::KeyInput;
 //! \since build 489
 namespace KeyCategory = platform::KeyCategory;
 namespace KeyCodes = platform::KeyCodes;
-//@}
+//!@}
 
 //! \note 假定不使用 ADL 。
-//@{
+//!@{
 //! \since build 486
 using platform::FindFirstKey;
 //! \since build 487
@@ -441,7 +446,7 @@ using platform::MapKeyChar;
 
 //! \note UI 基本输出接口。
 using platform::InitVideo;
-//@}
+//!@}
 
 } // namespace YSLib;
 

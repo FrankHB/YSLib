@@ -1,5 +1,5 @@
 ﻿/*
-	© 2021-2022 FrankHB.
+	© 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28364
+\version r28543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2022-06-24 02:19 +0800
+	2023-03-31 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,8 +88,9 @@
 // TODO: Exclude %__CRAYC and __CUDACC__?
 #	if __has_include(<quadmath.h>)
 // XXX: This is supported since GCC 4.6. Before GCC 4.8, it also requires
-//	'extern "C"'. Anyway the old compilers are not supported here, so no more
-//	inclusion conditions to detect. See https://stackoverflow.com/a/13781711.
+//	'extern "C"'. Anyway older compilers are not supported here (as
+//	%Documentation::Dependencies), so no more inclusion conditions to detect.
+//	See also https://stackoverflow.com/a/13781711.
 #		include <quadmath.h> // for ::floorq, ::scalbnq, ::finiteq, ::powq,
 //	::log2q;
 #		ifdef QUADMATH_H
@@ -125,7 +126,7 @@ namespace
 {
 
 //! \since build 938
-//@{
+//!@{
 template<typename _type>
 using has_special_value_t = ystdex::bool_<std::numeric_limits<
 	_type>::has_infinity && std::numeric_limits<_type>::has_quiet_NaN>;
@@ -136,7 +137,7 @@ static_assert(has_special_value_t<double>(),
 	"Unsupported implementation found.");
 static_assert(has_special_value_t<long double>(),
 	"Unsupported implementation found.");
-//@}
+//!@}
 
 
 YB_ATTR_nodiscard ValueObject
@@ -181,7 +182,7 @@ enum NumCode : size_t
 };
 
 //! \relates NumCode
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE NumCode
 MapTypeIdToNumCode(const type_info& ti) ynothrow
 {
@@ -223,17 +224,17 @@ YB_ATTR_nodiscard YB_PURE inline
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(NumCode, MapTypeIdToNumCode, const ResolvedArg<>& arg) ynothrow
 	ImplRet(MapTypeIdToNumCode(arg.get()))
-//@}
+//!@}
 
 /*!
 \ingroup transformation_traits
 \pre 参数是非 cv 限定的精确数表示类型。
 */
-//@{
+//!@{
 template<typename _type>
 struct ExtType : ystdex::identity<ystdex::conditional_t<ystdex::integer_width<
-	decltype(std::declval<_type>() + 1)>::value == ystdex::integer_width<
-	_type>::value, long long, int>>
+	decltype(std::declval<_type>() + 1)>() == ystdex::integer_width<_type>(),
+	long long, int>>
 {};
 
 template<>
@@ -255,8 +256,8 @@ struct ExtType<unsigned long long> : ystdex::identity<double>
 
 template<typename _type>
 struct NExtType : ystdex::cond_t<std::is_signed<_type>, ExtType<_type>,
-	ystdex::identity<ystdex::conditional_t<(ystdex::integer_width<_type>::value
-	<= ystdex::integer_width<int>::value), int, long long>>>
+	ystdex::identity<ystdex::conditional_t<(ystdex::integer_width<_type>()
+	<= ystdex::integer_width<int>()), int, long long>>>
 {};
 
 // TODO: Use bigint.
@@ -267,8 +268,8 @@ struct NExtType<long long> : ystdex::identity<double>
 
 // TODO: Use bigint.
 template<typename _type>
-struct MulExtType : ystdex::conditional_t<ystdex::integer_width<_type>::value
-	== 64, ystdex::identity<double>, ystdex::make_widen_int<_type>>
+struct MulExtType : ystdex::conditional_t<ystdex::integer_width<_type>() == 64,
+	ystdex::identity<double>, ystdex::make_widen_int<_type>>
 {};
 
 
@@ -280,7 +281,7 @@ using MakeNExtType = ystdex::_t<NExtType<_type>>;
 
 template<typename _type>
 using MakeMulExtType = ystdex::_t<MulExtType<_type>>;
-//@}
+//!@}
 
 
 //! \since build 937
@@ -376,7 +377,7 @@ QuotientOverflow(const _type& x)
 	YB_Diag_Ignore(4146)
 	// NOTE: Same to the %ystdex::fixed_point::operator- implementation in
 	//	%YStandardEx.Rational in YBase. A different reason to disable the
-	//	warning instead of a workaround with prefix '0 - ' is theat such case is
+	//	warning instead of a workaround with prefix '0 - ' is that such case is
 	//	guaranteed in 2's complement representation, and not even occurs
 	//	otherwise (plus all platforms supported by Microsoft VC++ imply it).
 #endif
@@ -388,7 +389,7 @@ QuotientOverflow(const _type& x)
 
 
 //! \since build 930
-//@{
+//!@{
 YB_NORETURN void
 AssertMismatch() ynothrowv
 {
@@ -413,7 +414,7 @@ ThrowTypeErrorForInteger(const std::string& val)
 #endif
 //! \since build 938
 template<typename _type>
-YB_NORETURN yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+YB_NORETURN yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}>
 ThrowTypeErrorForInteger(const _type& val)
 {
 	char buf[NumberStringBufferSize];
@@ -437,7 +438,7 @@ FloatIsInteger(const _type& x) ynothrow
 	YB_Diag_Pop
 #endif
 }
-//@}
+//!@}
 
 //! \since build 937
 YB_NORETURN ValueObject
@@ -448,7 +449,7 @@ ThrowDivisionByZero()
 
 
 //! \ingroup functors
-//@{
+//!@{
 //! \since build 930
 template<typename _tRet = void>
 struct GUAssertMismatch
@@ -637,7 +638,7 @@ struct EqZero
 
 
 //! \since build 930
-//@{
+//!@{
 struct Positive
 {
 	//! \since build 937
@@ -668,7 +669,7 @@ struct Odd
 	//! \since build 937
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline
-		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value, bool>
+		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}, bool>
 	operator()(const _type& x) const
 	{
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
@@ -703,7 +704,7 @@ struct Even
 	//! \since build 937
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline
-		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value, bool>
+		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}, bool>
 	operator()(const _type& x) const
 	{
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
@@ -750,7 +751,7 @@ struct BMin
 		return x < y ? x : y;
 	}
 };
-//@}
+//!@}
 
 
 struct AddOne
@@ -765,7 +766,7 @@ struct AddOne
 
 	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}>
 	operator()(_type& x) const ynothrow
 	{
 		x += _type(1);
@@ -796,7 +797,7 @@ struct SubOne
 
 	//! \since build 937
 	template<typename _type>
-	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}>
 	operator()(_type& x) const ynothrow
 	{
 		x -= _type(1);
@@ -819,7 +820,7 @@ struct SubOne
 struct BPlus
 {
 	//! \since build 937
-	//@{
+	//!@{
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline
 		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
@@ -829,7 +830,7 @@ struct BPlus
 		return x + y;
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
-		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+		std::is_integral<_type>, std::is_signed<_type>>{}, int> = 0)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -849,8 +850,8 @@ struct BPlus
 		return x + y;
 #endif
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
+	template<typename _type,
+		yimpl(ystdex::enable_if_t<std::is_unsigned<_type>{}, long> = 0L)>
 	inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -871,14 +872,14 @@ struct BPlus
 #endif
 		return MakeExtType<_type>(x) + MakeExtType<_type>(y);
 	}
-	//@}
+	//!@}
 };
 
 
 struct BMinus
 {
 	//! \since build 937
-	//@{
+	//!@{
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline
 		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
@@ -888,7 +889,7 @@ struct BMinus
 		return x - y;
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
-		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+		std::is_integral<_type>, std::is_signed<_type>>{}, int> = 0)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -910,8 +911,8 @@ struct BMinus
 		return x - y;
 #endif
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
+	template<typename _type,
+		yimpl(ystdex::enable_if_t<std::is_unsigned<_type>{}, long> = 0L)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -921,7 +922,7 @@ struct BMinus
 		// TODO: Support bigint with allocator?
 		return MakeExtType<_type>(x) - MakeExtType<_type>(y);
 	}
-	//@}
+	//!@}
 };
 
 
@@ -937,8 +938,8 @@ struct BMultiplies
 		return x * y;
 	}
 	//! \since build 937
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_integral<_type>::value, int> = 0)>
+	template<typename _type,
+		yimpl(ystdex::enable_if_t<std::is_integral<_type>{}, int> = 0)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -964,7 +965,7 @@ struct BMultiplies
 struct BDivides
 {
 	//! \since build 937
-	//@{
+	//!@{
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline
 		yimpl(ystdex::enable_if_t)<!std::is_integral<_type>::value, _type>
@@ -974,7 +975,7 @@ struct BDivides
 		return x / y;
 	}
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
-		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+		std::is_integral<_type>, std::is_signed<_type>>{}, int> = 0)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
@@ -984,14 +985,14 @@ struct BDivides
 			_type>::min() ? DoInt(x, y) : QuotientOverflow(x))
 			: ThrowDivisionByZero();
 	}
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
+	template<typename _type,
+		yimpl(ystdex::enable_if_t<std::is_unsigned<_type>{}, long> = 0L)>
 	YB_ATTR_nodiscard YB_PURE inline ValueObject
 	operator()(const _type& x, const _type& y) const
 	{
 		return y != 0 ? DoInt(x, y) : ThrowDivisionByZero();
 	}
-	//@}
+	//!@}
 
 private:
 	template<typename _type>
@@ -1033,7 +1034,7 @@ struct ReplaceAbs
 	}
 	//! \since build 937
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
-		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+		std::is_integral<_type>, std::is_signed<_type>>{}, int> = 0)>
 	inline void
 	operator()(_type& x) const
 	{
@@ -1045,8 +1046,8 @@ struct ReplaceAbs
 			Result.get() = QuotientOverflow(x);
 	}
 	//! \since build 937
-	template<typename _type, yimpl(ystdex::enable_if_t<
-		std::is_unsigned<_type>::value, long> = 0L)>
+	template<typename _type,
+		yimpl(ystdex::enable_if_t<std::is_unsigned<_type>{}, long> = 0L)>
 	inline void
 	operator()(_type&) const ynothrow
 	{}
@@ -1062,8 +1063,8 @@ struct GBDivRemBase
 	// XXX: See $2022-02 @ %Documentation::Workflow.
 	template<typename _type>
 	YB_ATTR_nodiscard YB_PURE inline result_type
-	operator()(const _type& x, const _type& y, yimpl(
-		ystdex::enable_if_t<std::is_unsigned<_type>::value, int> = 0)) const
+	operator()(const _type& x, const _type& y,
+		yimpl(ystdex::enable_if_t<std::is_unsigned<_type>{}, int> = 0)) const
 	{
 		if(y != 0)
 			return _tOpPolicy::DoInt(x, y);
@@ -1079,8 +1080,8 @@ struct GBDivRem : GBDivRemBase<_tOpPolicy>
 	using typename GBDivRemBase<_tOpPolicy>::result_type;
 
 	template<typename _type>
-	YB_ATTR_nodiscard YB_PURE inline yimpl(ystdex::enable_if_t)<
-		std::is_floating_point<_type>::value, result_type>
+	YB_ATTR_nodiscard YB_PURE inline
+		yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}, result_type>
 	operator()(const _type& x, const _type& y) const
 	{
 #if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
@@ -1100,7 +1101,7 @@ struct GBDivRem : GBDivRemBase<_tOpPolicy>
 	}
 	// TODO: Support bigint with allocator?
 	template<typename _type, yimpl(ystdex::enable_if_t<ystdex::and_<
-		std::is_integral<_type>, std::is_signed<_type>>::value, int> = 0)>
+		std::is_integral<_type>, std::is_signed<_type>>{}, int> = 0)>
 	YB_ATTR_nodiscard YB_PURE inline result_type
 	operator()(const _type& x, const _type& y) const
 	{
@@ -1122,7 +1123,7 @@ struct ReplaceInexact
 	// NOTE: All inexact numbers are flonums at current. The empty
 	//	implementation implies the idempodent requirement.
 	template<typename _type>
-	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>::value>
+	inline yimpl(ystdex::enable_if_t)<std::is_floating_point<_type>{}>
 	operator()(_type&) const ynothrow
 	{}
 	template<typename _type, yimpl(ystdex::enable_if_t<
@@ -1143,11 +1144,11 @@ struct ReplaceInexact
 		Result.get() = double(x);
 	}
 };
-//@}
+//!@}
 
 
 //! \since build 937
-//@{
+//!@{
 using DivRemResult = array<ValueObject, 2>;
 
 template<typename _type>
@@ -1159,7 +1160,7 @@ DividesOverflow(const _type& x)
 
 
 //! \brief 二元除法策略类。
-//@{
+//!@{
 struct BDividesPolicy final
 {
 	using result_type = DivRemResult;
@@ -1322,8 +1323,8 @@ struct BTruncatePolicy final
 		return x % y;
 	}
 };
-//@}
-//@}
+//!@}
+//!@}
 
 
 YB_ATTR_nodiscard YB_PURE ValueObject
@@ -1384,7 +1385,7 @@ NumBinaryOp(ResolvedArg<>& x, ResolvedArg<>& y)
 
 
 //! \since build 930
-//@{
+//!@{
 YB_NORETURN YB_NONNULL(1, 2) void
 ThrowForInvalidLiteralSuffix(const char* sfx, const char* id)
 {
@@ -1393,16 +1394,18 @@ ThrowForInvalidLiteralSuffix(const char* sfx, const char* id)
 		"Literal suffix '%s' is unsupported in identifier '%s'.", sfx, id));
 }
 
+//! \since build 971
 template<typename _type>
 YB_ATTR_nodiscard YB_STATELESS yconstfn _type
-DecimalCarryAddDigit(_type x, char c)
+DecimalCarryAddDigit(_type x, char c) ynothrowv
 {
 	return x * 10 + _type(c - '0');
 }
 
+//! \since build 971
 template<typename _tInt>
 YB_ATTR_nodiscard inline bool
-DecimalAccumulate(_tInt& ans, char c)
+DecimalAccumulate(_tInt& ans, char c) ynothrowv
 {
 	static yconstexpr const auto i_thr(std::numeric_limits<_tInt>::max() / 10);
 	static yconstexpr const char
@@ -1415,10 +1418,10 @@ DecimalAccumulate(_tInt& ans, char c)
 	}
 	return {};
 }
-//@}
+//!@}
 
 //! \since build 931
-//@{
+//!@{
 // XXX: Keeping the type of numeric literals without sign 'int' is also more
 //	compatible to old operations.
 using ReadIntType = int;
@@ -1443,10 +1446,10 @@ YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(bool, IsExponent, char c) ynothrow
 	ImplRet(c == 'e' || c == 'E' || c == 'd' || c == 'D' || c == 'f'
 		|| c == 'F' || c == 'l' || c == 'L' || c == 's' || c == 'S')
 
-// XXX: Some floating-point operations implemention may keep more precision as
+// XXX: Some floating-point operation implementions may keep more precision as
 //	expected in the internal represenatation leading to more imprecise results,
 //	e.g. x87 FPU produces 4.3683000000000004e25 for 43683.0 * 1e21 instead of
-//	4.3683e25.  See also https://arxiv.org/abs/cs/0701192 for a more detailed
+//	4.3683e25. See also https://arxiv.org/abs/cs/0701192 for a more detailed
 //	explaination. Although here specific dependencies on concrete floating-point
 //	formats are carefully prevented, better avoid on the excessive trailing
 //	digits as possible.
@@ -1534,7 +1537,7 @@ ReadDecimalExponent(string_view::const_iterator first, string_view id)
 	throw
 		InvalidSyntax(ystdex::sfmt("Empty exponent found in '%s'.", id.data()));
 }
-//@}
+//!@}
 
 //! \since build 931
 void
@@ -1633,7 +1636,7 @@ ReadDecimalExact(ValueObject& vo, string_view id,
 }
 
 //! \since build 932
-//@{
+//!@{
 // NOTE: IEC 60559 floating-point binary representation is preferred.
 #ifndef NPL_Impl_NPLAMath_IEC_60559_BFP
 #	if __STDC_IEC_60559_BFP__ >= yimpl(202000L) || __STDC_IEC_559__
@@ -1717,7 +1720,7 @@ YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline float128_t
 ldexp(float128_t x, int p) ynothrow
 {
 #if FLT_RADIX != 2
-#	error "Wrong implementation found."
+#	error "Unsupported implementation found."
 #else
 	// XXX: Only finite values are used here and no %error no is required as in
 	//	::ldexpq.
@@ -1745,6 +1748,63 @@ log2(float128_t x) ynothrow
 #endif
 
 } // namespace yimpl(fpq);
+
+// XXX: Precision specification is needed to shrink the value e.g. IEC 60559
+//	binary64 1.2, 1.2e-20 and 1.2e-308 (otherwise, there would be typically
+//	trailing digits, like 1.2000000000000002, 1.1999999999999998e-20 and
+//	1.2000000000000003e-308) in the final output. To make it precise, the
+//	internal conversion should also be precise, but not strictly guaranteed
+//	without table-assisted high-precision multiplcations. The concrete errors
+//	are unspecificed, but expected small enough. Without
+//	%NPL_Impl_NPLAMath_UseQuadMath, some values are known not precisely
+//	converted, e.g. binary64 1e-7 is in 9.999999999999996e-8 with exact IEC
+//	60559 binary 64 implementations (e.g. SSE), or still imprecise results
+//	with a slightly less error for other configurations (probably correctly
+//	rounded, e.g. for 1e-6 with x87). Even with %NPL_Impl_NPLAMath_UseQuadMath,
+//	some binary64 values are known not correctly rounded if 128-bit integer
+//	arithmetic is not used, e.g. 1e-11 is converted to 9.999999999999999e-12,
+//	due to the internal precision loss. On the other hand, 'long double'
+//	implemented by 'double' conversion are always imprecise and the error would
+//	be shown in some cases even the value is rounded. These imprecision results
+//	are tolerated.
+/*!
+\ingroup transformation_traits
+\since build 932
+*/
+//!@{
+//! \since build 971
+template<typename = long double>
+struct ExtFPConv
+{
+	// XXX: Without some arbitrary precision arithmetic or some tables, the
+	//	precision is not guaranteed. Use 'long double' to do the best effort. It
+	//	would still keep the right digits if it has more than 64 bit precision,
+	//	or it would be less precise when the type is just same to 'double'.
+	//	(Typically, 'double' is of IEC 60559 binary64 having 52 bit precision.)
+	//	Although there are unreliable trailing digits, the remaining algorithm
+	//	is not modified as all numbers being compared still have same magnitude
+	//	of the possible error from the same source, so it still works (mostly).
+#	if NPL_Impl_NPLAMath_UseQuadMath
+	using type = float128_t;
+#	else
+	using type = long double;
+#	endif
+};
+
+template<>
+struct ExtFPConv<float>
+{
+	// XXX: Not necessarily sufficient, but seems OK for IEC 60559 BFPs.
+	using type = double;
+};
+
+/*!
+\relates ExtFPConv
+\since build 971
+*/
+template<typename _type = long double>
+using ExtFPConv_t = ystdex::_t<ExtFPConv<_type>>;
+//!@}
 
 
 template<typename _type,
@@ -1854,7 +1914,7 @@ public:
 		: uint128_t(0, 0)
 	{}
 	template<typename _type,
-		yimpl(ystdex::enable_if_t<std::is_integral<_type>::value
+		yimpl(ystdex::enable_if_t<std::is_integral<_type>{}
 		&& std::numeric_limits<_type>::digits <= 64, int> = 0)>
 	YB_ATTR_always_inline yconstfn
 	uint128_t(_type x) ynothrow
@@ -1865,12 +1925,11 @@ public:
 	//	call site. Use %fp_to_int below instead for finite values.
 	template<typename _type,
 #	if NPL_Impl_NPLAMath_UseQuadMath
-		yimpl(typename = ystdex::enable_if_t<
-			std::is_floating_point<_type>::value
-			|| std::is_same<_type, float128_t>::value>)
+		yimpl(typename = ystdex::enable_if_t<std::is_floating_point<_type>()
+			|| std::is_same<_type, float128_t>()>)
 #	else
 		yimpl(typename
-			= ystdex::enable_if_t<std::is_floating_point<_type>::value>)
+			= ystdex::enable_if_t<std::is_floating_point<_type>{}>)
 #	endif
 	>
 	uint128_t(_type) = delete;
@@ -1933,7 +1992,7 @@ public:
 	// XXX: %operator/= and %operator%= are not implemented.
 
 	template<typename _type,
-		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>::value>,
+		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>{}>,
 		typename = ystdex::enable_if_convertible_t<_type, std::uint_fast8_t>)>
 	uint128_t&
 	operator<<=(_type n) ynothrowv
@@ -1943,7 +2002,7 @@ public:
 
 	//! \since build 934
 	template<typename _type,
-		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>::value>,
+		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>{}>,
 		typename = ystdex::enable_if_convertible_t<_type, std::uint_fast8_t>)>
 	uint128_t&
 	operator>>=(_type n) ynothrowv
@@ -1971,8 +2030,8 @@ public:
 
 	// XXX: Only integer types are supported. Assume there is no integral type
 	//	has a larger range than %low.
-	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		std::is_integral<_type>::value>,
+	template<typename _type,
+		yimpl(typename = ystdex::enable_if_t<std::is_integral<_type>{}>,
 		ystdex::enable_if_convertible_t<std::uint64_t, _type, int> = 0)>
 	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit yconstfn
 	operator _type() const ynoexcept_spec(_type(low))
@@ -1982,13 +2041,12 @@ public:
 	// XXX: Assume that %float has less than 64 bit precision so there is no
 	//	loss.
 	//! \since build 933
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
+	YB_ATTR_nodiscard YB_ATTR_always_inline explicit
 		DefCvt(const ynothrow, float, std::ldexp(float(high), 64) + float(low))
-#	if NPL_Impl_NPLAMath_UseQuadMath
-	YB_ATTR_nodiscard YB_STATELESS YB_ATTR_always_inline explicit
-		DefCvt(const ynothrow, float128_t,
-		yimpl(fpq)::ldexp(float128_t(high), 64) + float128_t(low))
-#	endif
+	//! \since build 971
+	YB_ATTR_nodiscard YB_ATTR_always_inline explicit
+		DefCvt(const ynothrow, ExtFPConv_t<>,
+			yimpl(fpq)::ldexp(ExtFPConv_t<>(high), 64) + ExtFPConv_t<>(low))
 
 private:
 	//! \since build 934
@@ -2033,7 +2091,7 @@ private:
 
 template<typename _tValue, typename _type = int>
 using enable_if_uint_t = ystdex::enable_if_t<ystdex::or_<
-	std::is_unsigned<_tValue>, std::is_same<_tValue, uint128_t>>::value, _type>;
+	std::is_unsigned<_tValue>, std::is_same<_tValue, uint128_t>>{}, _type>;
 
 template<typename _type,
 	yimpl(typename = ystdex::enable_if_convertible_t<_type, uint128_t>)>
@@ -2048,7 +2106,7 @@ to_uint128(_type x) ynothrow
 //	parameter.
 
 //! \since build 933
-//@{
+//!@{
 using ystdex::countr_zero_narrow;
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_PURE inline int
@@ -2060,7 +2118,7 @@ countr_zero_narrow(uint128_t x) ynothrow
 		: countr_zero_narrow(lo);
 }
 #endif
-//@}
+//!@}
 
 template<typename _type, yimpl(enable_if_uint_t<_type> = 0)>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn bool
@@ -2076,7 +2134,7 @@ template<typename _type, typename _type2>
 YB_ATTR_nodiscard YB_STATELESS yconstfn _type
 upow(_type x, _type2 e) noexcept
 {
-	static_assert(std::is_unsigned<_type2>::value, "Invalid power type found.");
+	static_assert(std::is_unsigned<_type2>(), "Invalid power type found.");
 
 	return e == 0 ? _type(1)
 		: e == 1 ? x : upow(x * x, e >> 1) * (is_odd(e) ? x : _type(1));
@@ -2086,7 +2144,7 @@ upow(_type x, _type2 e) noexcept
 \pre 浮点参数是有限值。
 \since build 933
 */
-//@{
+//!@{
 template<typename _tInt, typename _tFloat>
 YB_ATTR_nodiscard _tInt
 fp_to_int(_tFloat x, _tInt) ynothrow
@@ -2111,7 +2169,7 @@ fp_to_int(_tFloat x) ynothrowv
 {
 	return fp_to_int(x, _tInt());
 }
-//@}
+//!@}
 
 
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
@@ -2153,7 +2211,8 @@ u128_div_5(uint128_t v) ynothrow
 		* (uint128_t(0xCCCCCCCCCCCCCCCC) << 64 | 0xCCCCCCCCCCCCCCCD);
 }
 
-#	if true
+#	if LDBL_MANT_DIG == 64 || !NPL_Impl_NPLAMath_has_uint128
+#		if true
 // XXX: This should be more efficient in general.
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS yconstfn unsigned
 u128_mod_25(uint128_t v) ynothrow
@@ -2172,12 +2231,13 @@ u128_div_25(uint128_t v) ynothrow
 	return (v - u128_mod_25(v))
 		* (uint128_t(0x28F5C28F5C28F5C2) << 64 | 0x8F5C28F5C28F5C29);
 }
-#	else
+#		else
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline uint128_t
 u128_div_25(uint128_t v) ynothrow
 {
 	return u128_div_5(u128_div_5(v));
 }
+#		endif
 #	endif
 
 #	if LDBL_MANT_DIG == 64
@@ -2191,7 +2251,7 @@ u128_div_1e4(uint128_t v) ynothrow
 
 
 //! \ingroup traits
-//@{
+//!@{
 template<typename _type>
 struct fp_traits
 {
@@ -2235,7 +2295,7 @@ struct fp_traits<long double>
 		uint128_t>;
 };
 #endif
-//@}
+//!@}
 
 
 template<typename _type>
@@ -2262,7 +2322,7 @@ get_tz_2(std::uint_fast8_t idx) ynothrowv
 
 
 //! \since build 933
-//@{
+//!@{
 // XXX: Decimal values more than 38 digits are not supported.
 //! \ingroup transformation_traits
 template<size_t _vLen>
@@ -2485,7 +2545,7 @@ WriteDecimalDigitsIn<32>(char* buf, DigitsMinUInt<32> val) ynothrowv
 
 	return val < 100000000000000000 ? WriteDecimalDigitsIn<16>(buf,
 		DigitsMinUInt<16>(val)) : DecimalDigits<16>::Write(WriteDecimalDigitsIn<
-		16>(buf, DigitsMinUInt<16>(val / 10000000000000000))),
+		16>(buf, DigitsMinUInt<16>(val / 10000000000000000)),
 		DigitsMinUInt<16>(val % 10000000000000000));
 }
 template<>
@@ -2572,7 +2632,7 @@ WriteDecimal15To17Trimmed(char* buf, DigitsMinUInt<17> sig) ynothrowv
 	}
 	return buf + 4 - (cc != 0 ? 0 : get_tz_2(abb % 100)) - get_tz_2(cc);
 }
-//@}
+//!@}
 
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
@@ -2641,53 +2701,6 @@ WriteFPExponentSubnormal(char* buf, int exp) ynothrowv
 }
 
 
-// XXX: Precision specification is needed to shrink the value e.g. IEC 60559
-//	binary64 1.2, 1.2e-20 and 1.2e-308 (otherwise, there would be typically
-//	trailing digits, like 1.2000000000000002, 1.1999999999999998e-20 and
-//	1.2000000000000003e-308) in the finally output. To make it precise, the
-//	internal conversion should also be precise, but not strictly guaranteed
-//	without table-assisted high-precision multiplcations. The concrete errors
-//	are unspecificed, but expected small enough. Without
-//	%NPL_Impl_NPLAMath_UseQuadMath, some values are known not precisely
-//	converted, e.g. binary64 1e-7 is in 9.999999999999996e-8 with exact IEC
-//	60559 binary 64 implementations (e.g. SSE), or still imprecise results
-//	with a slightly less error for other configurations (probably correctly
-//	rounded, e.g. for 1e-6 with x87). Even with %NPL_Impl_NPLAMath_UseQuadMath,
-//	some binary64 values are known not correctly rounded if 128-bit integer
-//	arithmetic is not used, e.g. 1e-11 is converted to 9.999999999999999e-12,
-//	due to the internal precision loss. On the other hand, 'long double'
-//	implemented by 'double' conversion are always imprecise and the error would
-//	be shown in some cases even the value is rounded. These imprecision results
-//	are tolerated.
-//! \ingroup transformation_traits
-//@{
-template<typename>
-struct ExtFPConv
-{
-	// XXX: Without some arbitrary precision arithmetic or some tables, the
-	//	precision is not guaranteed. Use 'long double' to do the best effort. It
-	//	would still keep the right digits if it has more than 64 bit precision,
-	//	or it would be less precise when the type is just same to 'double'.
-	//	(Typically, 'double' is of IEC 60559 binary64 having 52 bit precision.)
-	//	Although there are unreliable trailing digits, the remaining algorithm
-	//	is not modified as all numbers being compared still have same magnitude
-	//	of the possible error from the same source, so it still works (mostly).
-#	if NPL_Impl_NPLAMath_UseQuadMath
-	using type = float128_t;
-#	else
-	using type = long double;
-#	endif
-};
-
-template<>
-struct ExtFPConv<float>
-{
-	// XXX: Not necessarily sufficient, but seems OK for IEC 60559 BFPs.
-	using type = double;
-};
-//@}
-
-
 /*!
 \brief 取指定十进制指数对应的 10 的幂的正规分解值的偏移量。
 \return 偏移量的值，作用相当于 Schubfach 算法实现中的参数 h - q 。
@@ -2695,7 +2708,7 @@ struct ExtFPConv<float>
 偏移量作用在二进制指数上，对应 Schubfach 算法的参数 h ，
 	但定义因为对应的查找表格式和支持的浮点数位宽不同而不同。
 */
-//@{
+//!@{
 template<typename>
 YB_ATTR_nodiscard YB_STATELESS yconstfn int
 FPBinaryToDecimal_GetOffset(int exp_dec) ynothrow
@@ -2730,12 +2743,12 @@ FPBinaryToDecimal_GetOffset<float>(int exp_dec) ynothrow
 {
 	// NOTE: This is less precise than binary64 case, by throwing the lower 64
 	//	bits away in the multiplication. The result is occasionally same to the
-	//	Schubfach paper §14 because both implementation assumes exactly one sign
+	//	Schubfach paper §14 because both implementations assume exactly one sign
 	//	bit in the entry of the powers of 10 table.
 	return
 		FPBinaryToDecimal_GetOffset<double>(exp_dec) + ((128 - 64) - (96 - 64));
 }
-//@}
+//!@}
 
 template<typename _type>
 YB_ATTR_nodiscard YB_ATTR_always_inline YB_STATELESS inline _type
@@ -2773,9 +2786,9 @@ Round96OddHi(std::uint64_t hi, std::uint32_t cp) ynothrow
 
 #if !NPL_Impl_NPLAMath_LongDoubleAsDouble
 YB_ATTR_nodiscard YB_STATELESS inline uint128_t
-RoundFPOddHi(ystdex::_t<ExtFPConv<long double>> v, uint128_t cp) ynothrow
+RoundFPOddHi(ExtFPConv_t<> v, uint128_t cp) ynothrow
 {
-	return fp_to_int<uint128_t>(v * ystdex::_t<ExtFPConv<long double>>(cp));
+	return fp_to_int<uint128_t>(v * ExtFPConv_t<>(cp));
 }
 #endif
 
@@ -2788,10 +2801,10 @@ FPBinaryToDecimal_1(unsigned lshift, int exp10, unsigned h, unsigned odd,
 {
 	YAssert(h >= 1 && h < 5, "Invalid shift value found.");
 
-	using ext_t = ystdex::_t<ExtFPConv<_type>>;
+	using ext_t = ExtFPConv_t<_type>;
 	// NOTE: Using ADL in declarations from the namespace.
 	using namespace yimpl(fpq);
-	// NOTE: The following are equivalent when %FLT_RADIX is a diviso of 10
+	// NOTE: The following are equivalent when %FLT_RADIX is a divisor of 10
 	//	(otherwise, there will be some additional precision loss) except that
 	//	the base 10 variants may overflow for valid inputs. For example, with
 	//	IEC 60559 binary64 it cannot compute %pow10d correctly for any input
@@ -2807,7 +2820,7 @@ FPBinaryToDecimal_1(unsigned lshift, int exp10, unsigned h, unsigned odd,
 #if false
 	// XXX: Ignored.
 	int ed;
-	// XXX: Assume %frepx works for proper %ext_t.
+	// XXX: Assume %frexp works for proper %ext_t.
 	auto pow10d(frexp(pow(ext_t(10), ext_t(exp10)), &ed));
 
 	pow10d = ldexp(pow10d, 128);
@@ -2838,7 +2851,7 @@ FPBinaryToDecimal_1<float>(unsigned lshift, int exp10, unsigned h, unsigned odd,
 {
 	YAssert(h >= 33 && h <= 37, "Invalid shift value found.");
 
-	using ext_t = ystdex::_t<ExtFPConv<float>>;
+	using ext_t = ExtFPConv_t<float>;
 	auto pow10hi(std::uint64_t(std::ldexp(std::pow(ext_t(5), ext_t(exp10)),
 		-int(std::floor(exp10 * std::log2(ext_t(5)))) + 63)));
 
@@ -2860,7 +2873,7 @@ FPBinaryToDecimal_1<long double>(unsigned lshift, int exp10, unsigned h,
 {
 	YAssert(h >= 1 && h <= 6, "Invalid shift value found.");
 
-	using ext_t = ystdex::_t<ExtFPConv<long double>>;
+	using ext_t = ExtFPConv_t<>;
 	using namespace yimpl(fpq);
 	// XXX: Shift less than 64 bits to double.
 	auto pow10d(ldexp(pow(ext_t(5), ext_t(exp10)),
@@ -2982,7 +2995,7 @@ FPBinaryToDecimal(bool shorter, typename fp_traits<_type>::carrier_type sig_bin,
 	//	requirement, since the sign bit and the exponent bits shall be no less
 	//	than 2 bits.
 	static_assert(size_t(std::numeric_limits<_type>::digits + 2) <=
-		ystdex::integer_width<carrier_type>::value,
+		ystdex::integer_width<carrier_type>(),
 		"Invalid carrier type found.");
 
 	// NOTE: Ditto.
@@ -3131,7 +3144,7 @@ using CarrierArgOf = ystdex::cond_t<std::is_integral<_type>,
 	const typename fp_traits<_type>::carrier_type&>;
 
 //! \ingrouop functors
-//@{
+//!@{
 template<typename _type>
 struct FPWriterTraits
 {
@@ -3245,7 +3258,7 @@ template<>
 struct FPWriterTraits<long double> : FPWriterTraits<double>
 {};
 #endif
-//@}
+//!@}
 
 //! \pre 已输出的字符数不为零。
 YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
@@ -3519,7 +3532,7 @@ WriteFPSubnormal(char* buf, long double val, char e, size_t prec) ynothrowv
 }
 #	endif
 #endif
-//@}
+//!@}
 
 } // unnamed namespace
 
@@ -3832,7 +3845,7 @@ ReadDecimal(ValueObject& vo, string_view id, string_view::const_iterator first)
 }
 
 //! \since build 932
-//@{
+//!@{
 template<typename _type>
 YB_NONNULL(1) char*
 WriteFPString(char* buf, _type val, char e, size_t prec,
@@ -3918,7 +3931,7 @@ FPToString(long double x, string::allocator_type a)
 	return string(&buf[0],
 		WriteFPString(buf, x, FPCharTraits<long double>::Exponent), a);
 }
-//@}
+//!@}
 
 #undef NPL_Impl_NPLAMath_PrintLargeSignificant
 #undef NPL_Impl_NPLAMath_HasSubnorm

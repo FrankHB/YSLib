@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4423
+\version r4556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2023-03-26 02:57 +0800
+	2023-04-01 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,14 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Debug // for Nonnull, Deref, basic_string_view,
-//	ystdex::is_null, string_view_t, ystdex::exclude_self_t, std::wint_t,
-//	ystdex::to_array, ystdex::string_traits, ystdex::rtrim, string, u16string,
-//	ystdex::retry_for_vector, std::FILE, std::uint8_t, std::uint32_t,
-//	std::memcmp, pair, size, tuple;
-#include YFM_YCLib_Reference // for unique_ptr_from, tidy_ptr;
+//	ystdex::is_null, string_view_t, ystdex::exclude_self_t, std::wint_t, string,
+//	u16string, basic_string, ystdex::retry_for_vector, errno, ERANGE,
+//	ystdex::throw_error, std::FILE, std::uint8_t, std::uint32_t, std::memcmp,
+//	pair, size, tuple;
+#include YFM_YCLib_Reference // for allocator_delete, default_allocator,
+//	unique_ptr_from, tidy_ptr;
 #include <system_error> // for std::system_error;
-#include <ystdex/base.h> // for ystdex::deref_self;
+#include <ystdex/base.h> // for ystdex::deref_self, yfsig;
 #include <ystdex/function.hpp> // for ystdex::function;
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
@@ -96,6 +97,49 @@ FetchSeparator() ynothrow
 {
 	return FetchSeparator_P<_tChar>(IDTag<YF_Platform>());
 }
+//!@}
+
+//! \since build 971
+//!@{
+template<typename _tChar>
+struct yimpl(SeparatorHolder) final
+{
+	static yconstexpr const _tChar Separator[]
+		= {_tChar('\\'), _tChar('/'), _tChar()};
+};
+
+#if __cpp_inline_variables < 201606L
+template<typename _tChar>
+yconstexpr const _tChar yimpl(SeparatorHolder)<_tChar>::Separator[];
+#endif
+
+/*!
+\brief 取平台分隔符字符串。
+\return 包含所有平台识别为分隔符的字符构成的非空字符串，其中第一个元素是首选字符。
+\sa FetchSeparator_P
+*/
+//!@{
+template<typename _tChar>
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE YCL_Tag_constfn const _tChar*
+FetchSeparatorString_P(IDTag<YF_Platform_Win32>) ynothrow
+{
+	return &yimpl(SeparatorHolder)<_tChar>::Separator[0];
+}
+template<typename _tChar>
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE YCL_Tag_constfn const _tChar*
+FetchSeparatorString_P(IDTagBase) ynothrow
+{
+	// NOTE: Ditto.
+	return &yimpl(SeparatorHolder)<_tChar>::Separator[1];
+}
+
+template<typename _tChar>
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE yconstfn const _tChar*
+FetchSeparatorString() ynothrow
+{
+	return platform::FetchSeparatorString_P<_tChar>(IDTag<YF_Platform>());
+}
+//!@}
 //!@}
 
 //! \note 判断字符是否为平台支持的路径分隔符。
@@ -314,8 +358,8 @@ FetchRootNameLength_P(IDTag<YF_Platform_Win32> tag,
 			if(l >= 3 && platform::IsSeparator_P(tag, path[1])
 				&& !platform::IsSeparator_P(tag, path[2]))
 				// XXX: Use %platform::IsSeparator_P?
-				return std::min(path.find_first_of(&ystdex::to_array<_tChar>(
-					"/\\")[0], 3), path.length());
+				return std::min(path.find_first_of(
+					FetchSeparatorString_P<_tChar>(tag), 3), path.length());
 		}
 	}
 	return 0;
@@ -422,7 +466,7 @@ FetchRootPathLength_P(IDTag<YF_Platform_Win32> tag,
 	{
 		// XXX: Use %platform::IsSeparator_P?
 		const auto
-			n(path.find_first_not_of(&ystdex::to_array<_tChar>("/\\")[0], l));
+			n(path.find_first_not_of(FetchSeparatorString_P<_tChar>(tag), l));
 
 		return n != basic_string_view<_tChar>::npos ? n : path.length();
 	}
@@ -465,29 +509,6 @@ EndsWithNonSeperator_P(IDTagBase tag, const _tString& path) ynothrow
 }
 
 YCL_DefPlatformFwdTmpl(EndsWithNonSeperator, EndsWithNonSeperator_P)
-//!@}
-
-//! \since build 707
-//!@{
-template<class _tString>
-YCL_Tag_constfn _tString&&
-TrimTrailingSeperator_P(IDTag<YF_Platform_Win32>, _tString&& path, typename
-	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
-	typename ystdex::string_traits<_tString>::value_type>("/\\")[0]) ynothrow
-{
-	return ystdex::rtrim(yforward(path), tail);
-}
-
-template<class _tString>
-YCL_Tag_constfn _tString&&
-TrimTrailingSeperator_P(IDTagBase, _tString&& path, typename
-	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
-	typename ystdex::string_traits<_tString>::value_type>("/")[0]) ynothrow
-{
-	return ystdex::rtrim(yforward(path), tail);
-}
-
-YCL_DefPlatformFwdTmpl(TrimTrailingSeperator, TrimTrailingSeperator_P)
 //!@}
 //!@}
 
@@ -682,6 +703,14 @@ IterateLink(u16string&, size_t&);
 class YF_API DirectorySession
 {
 public:
+	//! \since build 971
+	using NativeChar =
+#if YCL_Win32
+		char16_t
+#else
+		char
+#endif
+		;
 #if YCL_Win32
 	//! \since build 669
 	class Data;
@@ -698,12 +727,23 @@ private:
 	*/
 	class YF_API Deleter
 #if YCL_Win32
-		: private default_delete<Data>
+		: public allocator_delete<default_allocator<Data>>
 #endif
 	{
 	public:
+#if YCL_Win32
+		//! \since build 971
+		using allocator_delete<default_allocator<Data>>::allocator_delete;
+		//! \since build 971
+		Deleter(const allocator_delete& a)
+			: allocator_delete(a)
+		{}
+#else
 		using pointer = NativeHandle;
+#endif
 
+		// XXX: This is out-of-line to allow incomplete %Data coexisting with
+		//	in-class definition of destructor of %DirectorySession.
 		//! \since build 671
 		void
 		operator()(pointer) const ynothrowv;
@@ -735,15 +775,34 @@ public:
 	\note Win32 平台："/" 可能也被作为分隔符支持。
 	\note Win32 平台：前缀 "\\?\" 关闭非结束的 "/" 分隔符支持，
 		且无视 MAX_PATH 限制。
-	\since build 699
+	\since build 971
 	*/
 	//!@{
-	//! \note 使用当前目录。
-	DirectorySession();
+	//! \note 使用当前目录和分配器。
+	DirectorySession(basic_string<NativeChar>::allocator_type = {});
+	//! \note 使用参数指定的路径和分配器。
+	//!@{
 	explicit YB_NONNULL(2)
-	DirectorySession(const char*);
+	DirectorySession(const char*, string::allocator_type = {});
 	explicit YB_NONNULL(2)
-	DirectorySession(const char16_t*);
+	DirectorySession(const char16_t*, u16string::allocator_type = {});
+#if YCL_Win32
+	// XXX: Only Win32 supports %wchar_t strings with the chance of optimization
+	//	while not violation the strict aliasing rules.
+	explicit YB_NONNULL(2)
+	DirectorySession(const wchar_t* path, wstring::allocator_type a = {})
+		: DirectorySession(wstring(Nonnull(path), a))
+	{}
+	explicit
+	DirectorySession(wstring&&);
+#endif
+	//!@}
+	//! \note 使用参数指定的路径和参数隐含的分配器。
+	template<typename _tChar>
+	explicit
+	DirectorySession(const basic_string<_tChar>& path)
+		: DirectorySession(path.c_str(), path.get_allocator())
+	{}
 	//!@}
 	/*!
 	\post \c !GetNativeHandle() 。
@@ -785,13 +844,7 @@ class YF_API HDirectory final
 
 public:
 	//! \since build 648
-	using NativeChar =
-#if YCL_Win32
-		char16_t
-#else
-		char
-#endif
-		;
+	using DirectorySession::NativeChar;
 	//! \since build 713
 	using iterator = ystdex::indirect_input_iterator<HDirectory*>;
 
@@ -838,20 +891,25 @@ public:
 	\since build 561
 	*/
 #if YCL_Win32
-	YB_PURE DefBoolNeg(YB_PURE explicit, !dirent_str.empty())
+	YB_ATTR_nodiscard
+		DefBoolNeg(YB_ATTR_nodiscard explicit, !dirent_str.empty())
 #else
-	YB_PURE DefBoolNeg(YB_PURE explicit, bool(p_dirent))
+	YB_ATTR_nodiscard DefBoolNeg(YB_ATTR_nodiscard explicit, bool(p_dirent))
 #endif
 
 	//! \since build 648
-	YB_ATTR_nodiscard YB_PURE
+	YB_ATTR_nodiscard
 		DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())
+	//! \since build 971
+	YB_ATTR_nodiscard YB_PURE explicit
+	operator std::string() const;
 	//! \since build 593
-	YB_ATTR_nodiscard YB_PURE
-	operator string() const;
+	YB_ATTR_nodiscard explicit DefCvt(const, string, ConvertToMBCS())
+	//! \since build 971
+	YB_ATTR_nodiscard YB_PURE explicit
+	operator std::u16string() const;
 	//! \since build 648
-	YB_ATTR_nodiscard YB_PURE
-	operator u16string() const;
+	YB_ATTR_nodiscard explicit DefCvt(const, u16string, ConvertToUCS2())
 
 	/*!
 	\brief 取节点状态信息确定的文件系统节点类别。
@@ -869,6 +927,15 @@ public:
 	*/
 	YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_PURE const NativeChar*
 	GetNativeName() const ynothrow;
+
+	//! \since build 971
+	//!@{
+	YB_ATTR_nodiscard YB_PURE string
+	ConvertToMBCS(string::allocator_type = {}) const;
+
+	YB_ATTR_nodiscard YB_PURE u16string
+	ConvertToUCS2(u16string::allocator_type = {}) const;
+	//!@}
 
 	//! \brief 复位。
 	using DirectorySession::Rewind;
@@ -937,7 +1004,7 @@ ugetcwd(char16_t* buf, size_t size) ynothrowv;
 
 /*!
 \return 操作是否成功。
-\note errno 在出错时会被设置，具体值除以上明确的外，由实现定义。
+\note \c errno 在出错时会被设置，具体值除以上明确的外，由实现定义。
 \note 参数表示路径，使用 UTF-8 编码。
 \note DS 使用 newlib 实现。MinGW32 使用 MSVCRT 实现。Android 使用 bionic 实现。
 	其它 Linux 使用 GLibC 或兼容 libc 实现。
@@ -1078,7 +1145,7 @@ GetFileNodeIDOf(const FileDescriptor&) ynothrow;
 
 /*!
 \brief 判断参数是否表示共享的文件节点。
-\note 可能设置 errno 。
+\note 可能设置 \c errno 。
 \since build 638
 */
 //!@{

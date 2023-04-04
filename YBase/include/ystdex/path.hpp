@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016, 2018-2022 FrankHB.
+	© 2013-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1700
+\version r1816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2022-10-01 11:35 +0800
+	2023-04-02 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,21 +53,21 @@
 #define YB_INC_ystdex_path_hpp_ 1
 
 #include "string.hpp" // for basic_string, string_view, nested_allocator_base,
-//	enable_if_t, ystdex::erase_all_if, to_array, string_traits,
-//	is_bitwise_swappable;
+//	enable_if_constructible_t, enable_if_t, is_constructible,
+//	std::initializer_list, ystdex::erase_all_if, enable_if_inconvertible_t,
+//	string_traits, is_bitwise_swappable, std::uses_allocator;
 #include "operators.hpp" // for dividable, totally_ordered;
-#include "type_op.hpp" // for cond_or_t;
 
 namespace ystdex
 {
 
 //! \since build 647
-//@{
+//!@{
 /*!
 \note 允许被按路径语义特化。
 \note 要求用户特化提供 \c void 特化相同的签名的成员（包括一致的异常规范）。
 */
-//@{
+//!@{
 /*!
 \ingroup customization_points
 \brief 路径特征。
@@ -197,7 +197,7 @@ struct path_traits<basic_string<_tChar, _tTraits, _tAlloc>>
 	using path_traits<view_type>::is_parent;
 
 	//! \since build 836
-	//@{
+	//!@{
 	using path_traits<view_type>::is_absolute;
 
 	using path_traits<view_type>::is_self;
@@ -207,9 +207,9 @@ struct path_traits<basic_string<_tChar, _tTraits, _tAlloc>>
 	using path_traits<view_type>::has_root_path;
 
 	using path_traits<view_type>::have_same_root_names;
-	//@}
+	//!@}
 };
-//@}
+//!@}
 
 
 /*!
@@ -307,7 +307,7 @@ class path : private _tSeqCon, yimpl(public) nested_allocator_base<_tSeqCon>,
 {
 private:
 	//! \since build 473
-	//@{
+	//!@{
 	using base = _tSeqCon;
 
 public:
@@ -328,37 +328,38 @@ public:
 	//! \since build 647
 	path() = default;
 	//! \since build 844
-	//@{
-	template<typename _tParam, yimpl(typename
-		= enable_if_t<is_constructible<base, const base&, _tParam>::value>)>
+	//!@{
+	template<typename _tParam,
+		yimpl(typename = enable_if_constructible_t<base, const base&, _tParam>)>
 	path(const path& pth, _tParam&& arg)
 		: base(pth, yforward(arg))
 	{}
-	template<typename _tParam, yimpl(typename
-		= enable_if_t<is_constructible<base, base, _tParam>::value>)>
+	template<typename _tParam,
+		yimpl(typename = enable_if_constructible_t<base, base, _tParam>)>
 	path(path&& pth, _tParam&& arg)
 		: base(std::move(pth), yforward(arg))
 	{}
 	path(std::initializer_list<value_type> il)
 		: base(il)
 	{}
-	template<typename... _tParams, yimpl(typename
-		= enable_if_t<sizeof...(_tParams) != 0 && is_constructible<base,
-		std::initializer_list<value_type>, _tParams&&...>::value>)>
+	template<typename... _tParams, yimpl(
+		typename = enable_if_t<sizeof...(_tParams) != 0 && is_constructible<
+		base, std::initializer_list<value_type>, _tParams&&...>()>)>
 	path(std::initializer_list<value_type> il, _tParams&&... args)
 		: base(il, yforward(args)...)
 	{}
-	template<typename... _tParams, yimpl(typename
-		= enable_if_t<is_constructible<base, _tParams...>::value>)>
+	template<typename... _tParams,
+		yimpl(typename = enable_if_constructible_t<base, _tParams...>)>
+	explicit
 	path(_tParams&&... args)
 		: base(yforward(args)...)
 	{}
-	template<class _tAlloc, typename... _tParams, yimpl(typename = enable_if_t<
-		is_constructible<base, _tParams..., const _tAlloc&>::value>)>
+	template<class _tAlloc, typename... _tParams, yimpl(typename
+		= enable_if_constructible_t<base, _tParams..., const _tAlloc&>)>
 	path(std::allocator_arg_t, const _tAlloc& a, _tParams&&... args)
 		: base(yforward(args)..., a)
 	{}
-	//@}
+	//!@}
 	path(const path&) = default;
 	path(path&&) = default;
 
@@ -392,7 +393,7 @@ public:
 	处理 is_parent 谓词的路径时，可能修改现有无根路径中的部分元素，而不仅如
 		std::filesystem::path::operator/= 修改全部的相对路径。
 	*/
-	//@{
+	//!@{
 	path&
 	operator/=(const value_type& s)
 	{
@@ -429,7 +430,7 @@ public:
 			push_back(std::move(s));
 		return *this;
 	}
-	//@}
+	//!@}
 	/*!
 	\brief 追加路径。
 	\sa root_diverged
@@ -438,7 +439,7 @@ public:
 		否则，顺序追加路径中的每个元素。
 	若需要特征以外的其它比较操作，可由用户代码单独根据根的判断。
 	*/
-	//@{
+	//!@{
 	/*!
 	\warning 不完全强异常安全：只保证非替换时。
 	\since build 600
@@ -463,10 +464,10 @@ public:
 			*this = std::move(pth);
 		return *this;
 	}
-	//@}
+	//!@}
 
 	//! \since build 600
-	//@{
+	//!@{
 	YB_PURE friend bool
 	operator==(const path& x, const path& y)
 	{
@@ -478,7 +479,7 @@ public:
 	{
 		return static_cast<const base&>(x) < static_cast<const base&>(y);
 	}
-	//@}
+	//!@}
 
 	using base::begin;
 
@@ -489,7 +490,7 @@ public:
 	using base::cend;
 
 	//! \since build 844
-	//@{
+	//!@{
 	using base::rbegin;
 
 	using base::rend;
@@ -497,7 +498,7 @@ public:
 	using base::crbegin;
 
 	using base::crend;
-	//@}
+	//!@}
 
 	using base::size;
 
@@ -586,9 +587,9 @@ public:
 	}
 
 	//! \since build 837
-	//@{
+	//!@{
 	//! \brief 判断移除最后元素是否保持根路径不变。
-	//@{
+	//!@{
 	YB_ATTR_nodiscard bool
 	has_leaf() const ynothrow
 	{
@@ -602,14 +603,14 @@ public:
 		yconstraint(!empty());
 		return 1U < size() || !traits_type::has_root_path(front());
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 重定向路径
 
 	同以路径为参数的 \c operator/= ，但若不替换路径，先调用 remove_leaf 。
 	*/
-	//@{
+	//!@{
 	path&
 	redirect(const path& pth)
 	{
@@ -636,7 +637,7 @@ public:
 			*this = std::move(pth);
 		return *this;
 	}
-	//@}
+	//!@}
 
 	//! \brief 若移除最后元素不会改变根路径，则移除最后的元素。
 	bool
@@ -649,7 +650,7 @@ public:
 		}
 		return {};
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 判断参数指定的路径是否和 \c *this 不同而无法直接作为相对路径追加。
@@ -678,7 +679,7 @@ public:
 	{
 		base::swap(static_cast<base&>(pth));
 	}
-	//@}
+	//!@}
 	/*!
 	\brief 交换。
 	\since build 844
@@ -689,13 +690,13 @@ public:
 		x.swap(y);
 	}
 };
-//@}
+//!@}
 
 /*!
 \relates path
 \since build 473
 */
-//@{
+//!@{
 //! \brief 正规化。
 template<class _tSeqCon, class _tTraits>
 inline void
@@ -708,11 +709,12 @@ normalize(path<_tSeqCon, _tTraits>& pth)
 namespace details
 {
 
-template<class _tSeqCon, class _tTraits>
+//! \since build 971
+template<class _tSeqCon, class _tTraits, typename _tSep>
 void
-to_string_impl(const path<_tSeqCon, _tTraits>& pth, const typename
-	_tSeqCon::value_type& seperator, typename path<_tSeqCon,
-	_tTraits>::const_iterator& i, typename _tSeqCon::value_type& res)
+to_string_impl(const path<_tSeqCon, _tTraits>& pth, const _tSep& sep,
+	typename path<_tSeqCon, _tTraits>::const_iterator& i,
+	typename _tSeqCon::value_type& res)
 {
 	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
@@ -729,38 +731,41 @@ to_string_impl(const path<_tSeqCon, _tTraits>& pth, const typename
 	}
 	while(++i != pth.end())
 	{
-		res += seperator;
+		res += sep;
 		res += *i;
 	}
 }
 
-template<class _tSeqCon, class _tTraits>
+//! \since build 971
+template<class _tSeqCon, class _tTraits, typename _tSep>
 void
-to_string_d_impl(const path<_tSeqCon, _tTraits>& pth, typename string_traits<
-	typename _tSeqCon::value_type>::value_type delimiter, typename path<
-	_tSeqCon, _tTraits>::const_iterator& i, typename _tSeqCon::value_type& res)
+to_string_d_impl(const path<_tSeqCon, _tTraits>& pth, const _tSep& sep,
+	typename path<_tSeqCon, _tTraits>::const_iterator& i,
+	typename _tSeqCon::value_type& res)
 {
 	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
 
 	if(!_tTraits::has_root_path(res))
-		res += delimiter;
+		res += sep;
 	while(++i != pth.end())
 	{
 		res += *i;
-		res += delimiter;
+		res += sep;
 	}
 }
 
 } // namespace details;
 
+//! \since build 971
+//!@{
 //! \brief 取字符串表示。
-//@{
-template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
-to_string(const path<_tSeqCon, _tTraits>& pth,
-	const typename _tSeqCon::value_type& seperator = &to_array<
-	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
+//!@{
+template<class _tSeqCon, class _tTraits, typename _tSep,
+	yimpl(typename = enable_if_inconvertible_t<_tSep,
+	typename _tSeqCon::value_type::allocator_type>)>
+YB_ATTR_nodiscard YB_PURE typename _tSeqCon::value_type
+to_string(const path<_tSeqCon, _tTraits>& pth, const _tSep& sep)
 {
 	if(pth.empty())
 		return typename _tSeqCon::value_type();
@@ -768,16 +773,20 @@ to_string(const path<_tSeqCon, _tTraits>& pth,
 	auto i(pth.begin());
 	typename _tSeqCon::value_type res(*i);
 
-	details::to_string_impl(pth, seperator, i, res);
+	details::to_string_impl(pth, sep, i, res);
 	return res;
 }
-//! \since build 957
 template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
+YB_ATTR_nodiscard YB_PURE inline typename _tSeqCon::value_type
+to_string(const path<_tSeqCon, _tTraits>& pth)
+{
+	return ystdex::to_string(pth,
+		typename string_traits<typename _tSeqCon::value_type>::value_type('/'));
+}
+template<class _tSeqCon, class _tTraits, typename _tSep>
+YB_ATTR_nodiscard YB_PURE typename _tSeqCon::value_type
 to_string(const path<_tSeqCon, _tTraits>& pth,
-	typename _tSeqCon::value_type::allocator_type a,
-	const typename _tSeqCon::value_type& seperator = &to_array<
-	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
+	typename _tSeqCon::value_type::allocator_type a, const _tSep& sep)
 {
 	if(pth.empty())
 		return typename _tSeqCon::value_type(a);
@@ -785,45 +794,68 @@ to_string(const path<_tSeqCon, _tTraits>& pth,
 	auto i(pth.begin());
 	typename _tSeqCon::value_type res(*i, a);
 
-	details::to_string_impl(pth, seperator, i, res);
+	details::to_string_impl(pth, sep, i, res);
 	return res;
 }
-//@}
+template<class _tSeqCon, class _tTraits>
+YB_ATTR_nodiscard YB_PURE inline typename _tSeqCon::value_type
+to_string(const path<_tSeqCon, _tTraits>& pth,
+	typename _tSeqCon::value_type::allocator_type a)
+{
+	return ystdex::to_string(pth, a,
+		typename string_traits<typename _tSeqCon::value_type>::value_type('/'));
+}
+//!@}
 
 //! \brief 取以分隔符结束的字符串表示。
-//@{
-template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
-to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
-	_tSeqCon::value_type>::value_type delimiter = '/')
+//!@{
+template<class _tSeqCon, class _tTraits, typename _tSep,
+	yimpl(typename = enable_if_inconvertible_t<_tSep,
+	typename _tSeqCon::value_type::allocator_type>)>
+YB_ATTR_nodiscard YB_PURE typename _tSeqCon::value_type
+to_string_d(const path<_tSeqCon, _tTraits>& pth, const _tSep& sep)
 {
 	auto i(pth.begin());
 	typename _tSeqCon::value_type res(*i);
 
-	details::to_string_d_impl(pth, delimiter, i, res);
+	details::to_string_d_impl(pth, sep, i, res);
 	return res;
 }
-//! \since build 957
 template<class _tSeqCon, class _tTraits>
-typename _tSeqCon::value_type
+YB_ATTR_nodiscard YB_PURE inline typename _tSeqCon::value_type
+to_string_d(const path<_tSeqCon, _tTraits>& pth)
+{
+	return ystdex::to_string_d(pth,
+		typename string_traits<typename _tSeqCon::value_type>::value_type('/'));
+}
+template<class _tSeqCon, class _tTraits, typename _tSep>
+YB_ATTR_nodiscard YB_PURE typename _tSeqCon::value_type
 to_string_d(const path<_tSeqCon, _tTraits>& pth, typename
-	_tSeqCon::value_type::allocator_type a,typename string_traits<typename
-	_tSeqCon::value_type>::value_type delimiter = '/')
+	_tSeqCon::value_type::allocator_type a, const _tSep& sep)
 {
 	auto i(pth.begin());
 	typename _tSeqCon::value_type res(*i, a);
 
-	details::to_string_d_impl(pth, delimiter, i, res);
+	details::to_string_d_impl(pth, sep, i, res);
 	return res;
 }
-//@}
+template<class _tSeqCon, class _tTraits>
+YB_ATTR_nodiscard YB_PURE inline typename _tSeqCon::value_type
+to_string_d(const path<_tSeqCon, _tTraits>& pth, typename
+	_tSeqCon::value_type::allocator_type a)
+{
+	return ystdex::to_string_d(pth, a,
+		typename string_traits<typename _tSeqCon::value_type>::value_type('/'));
+}
+//!@}
+//!@}
 
 //! \since build 927
 template<class _tSeqCon, class _tTraits>
 struct is_bitwise_swappable<path<_tSeqCon, _tTraits>>
 	: is_bitwise_swappable<_tSeqCon>
 {};
-//@}
+//!@}
 
 } // namespace ystdex;
 

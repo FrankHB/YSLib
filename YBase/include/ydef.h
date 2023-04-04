@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2022 FrankHB.
+	© 2009-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 语言实现和系统环境相关特性及公用类型和宏的基础定义。
-\version r4421
+\version r4510
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2022-11-28 19:03 +0800
+	2023-04-02 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 \brief 语言实现的版本。
 \since build 373
 */
-//@{
+//!@{
 
 /*!
 \def YB_IMPL_GNUC
@@ -153,15 +153,17 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define _SILENCE_CXX23_ALIGNED_UNION_DEPRECATION_WARNING
 #	endif
 #endif
-//@}
+//!@}
 
 /*!
 \brief 特性检测宏补充定义：若不可用则替换为预处理记号 0 。
 \since build 484
 */
-//@{
+//!@{
 /*!
+\note 检测的属性不是标准属性。
 \see http://clang.llvm.org/docs/LanguageExtensions.html#has-attribute 。
+\see https://github.com/cplusplus/nbballot/issues/128 。
 \since build 628
 */
 #ifndef __has_attribute
@@ -179,6 +181,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 
 /*!
 \see http://clang.llvm.org/docs/LanguageExtensions.html#has-cpp-attribute 。
+\see https://releases.llvm.org/10.0.0/tools/clang/docs/LanguageExtensions.html 。
 \since build 591
 */
 #ifndef __has_cpp_attribute
@@ -186,7 +189,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #endif
 
 //! \see http://clang.llvm.org/docs/LanguageExtensions.html#has-feature-and-has-extension 。
-//@{
+//!@{
 #ifndef __has_extension
 #	define __has_extension(...) __has_feature(__VA_ARGS__)
 #endif
@@ -194,7 +197,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #ifndef __has_feature
 #	define __has_feature(...) 0
 #endif
-//@}
+//!@}
 
 /*!
 \see http://clang.llvm.org/docs/LanguageExtensions.html#has-include 。
@@ -203,31 +206,31 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #ifndef __has_include
 #	define __has_include(...) 0
 #endif
-//@}
+//!@}
 
 /*!
 \see ISO C++20 [version.syn] 。
 \see WG21 P0941R2 2.2 。
 \see https://docs.microsoft.com/cpp/visual-cpp-language-conformance 。
 */
-//@{
+//!@{
 /*!
 \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 935
 */
-//@{
+//!@{
 #ifndef __cpp_aligned_new
 #	if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606L) \
 	|| __cplusplus >= 201606L
 #		define __cpp_aligned_new 201606L
 #	endif
 #endif
-//@}
+//!@}
 /*!
 \brief \c constexpr 特性测试宏。
 \since build 628
 */
-//@{
+//!@{
 #ifndef __cpp_constexpr
 #	if __has_feature(cxx_relaxed_constexpr) || __cplusplus >= 201304L
 #		define __cpp_constexpr 201304L
@@ -236,11 +239,11 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_constexpr 200704L
 #	endif
 #endif
-//@}
+//!@}
 //! \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
-//@{
+//!@{
 //! \since build 930
-//@{
+//!@{
 #ifndef __cpp_if_constexpr
 // NOTE: Microsoft Visual C++ has an extension in '/std:c++14' with warning
 //	C4984.
@@ -249,7 +252,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_constexpr 201606L
 #	endif
 #endif
-//@}
+//!@}
 /*!
 \see WG21 P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
@@ -257,7 +260,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 \see https://msdn.microsoft.com/library/hh409293.aspx 。
 \since build 833
 */
-//@{
+//!@{
 #ifndef __cpp_inheriting_constructors
 #	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511L) \
 	|| __cplusplus >= 201511L
@@ -267,14 +270,14 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_inheriting_constructors 200802L
 #	endif
 #endif
-//@}
-//@}
+//!@}
+//!@}
 /*!
 \see https://reviews.llvm.org/D32950 。
 \see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/ 。
 \since build 831
 */
-//@{
+//!@{
 // NOTE: Microsoft VC++ compiler has support the feature since version 15.5.
 //	However,  the %__cplusplus can only work after 15.7 Preview 3 with
 //	additional option It can be more precise when %_MSC_FULL_VER is
@@ -287,13 +290,13 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_inline_variables 201606L
 #	endif
 #endif
-//@}
+//!@}
 /*!
 \see WG21 P0012R1 。
 \see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/ 。
 \since build 845
 */
-//@{
+//!@{
 // NOTE: Ditto about Microsoft VC++ support as %__cpp_inline_variables.
 #ifndef __cpp_noexcept_function_type
 #	if __has_feature(cxx_noexcept_function_type) \
@@ -302,8 +305,8 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #		define __cpp_noexcept_function_type 201510L
 #	endif
 #endif
-//@}
-//@}
+//!@}
+//!@}
 
 #include <cstdlib> // for std::abort;
 #include <utility> // for std::forward;
@@ -312,7 +315,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 \brief 预处理器通用助手宏。
 \since build 454
 */
-//@{
+//!@{
 /*!
 \brief 替换列表。
 \note 通过括号保护，可用于传递带逗号的参数。
@@ -357,7 +360,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 \since build 880
 */
 #define YPP_Stringize(_x) YPP_Stringify(_x)
-//@}
+//!@}
 
 
 /*!
@@ -378,7 +381,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 \see https://reviews.llvm.org/rL69560 。
 \since build 880
 */
-//@{
+//!@{
 /*!
 \def YPP_Diag_Push
 \brief 保存现有的诊断状态。
@@ -417,7 +420,7 @@ Clang 在 LLVM 2.7 默认启用 C++ ，在 LLVM 2.8 完全支持 ISO C++03（除
 #	define YB_Diag_Pop
 #	define YB_Diag_Ignore
 #endif
-//@}
+//!@}
 
 
 /*!	\defgroup YBase_replacement_features YBase Replacement Features
@@ -442,7 +445,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \see http://clang.llvm.org/docs/LanguageExtensions.html 。
 \since build 294
 */
-//@{
+//!@{
 /*!
 \def YB_HAS_ALIGNAS
 \brief 内建 alignas 支持。
@@ -500,7 +503,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 #define YB_HAS_THREAD_LOCAL \
 	(__has_feature(cxx_thread_local) || (__cplusplus >= 201103L \
 		&& (!YB_IMPL_GNUCPP || _GLIBCXX_HAVE_TLS)) || YB_IMPL_MSCPP >= 1900)
-//@}
+//!@}
 
 
 /*!
@@ -530,7 +533,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 
 保证忽略时不导致运行时语义差异的提示，主要用于便于实现可能的优化。
 */
-//@{
+//!@{
 /*!
 \def YB_ATTR
 \brief GNU 风格属性。
@@ -547,7 +550,7 @@ YBase 提供的替代 ISO C++ 扩展特性的接口。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89640 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333 。
 */
-//@{
+//!@{
 /*!
 \def YB_ATTR_LAMBDA
 \brief 允许在 lambda 表达式的参数列表后使用的属性。
@@ -665,7 +668,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #define YB_LAMBDA_ANNOTATE(_arglist, _q, ...) \
 	YB_ATTR_LAMBDA_PFX(__VA_ARGS__) _arglist \
 		YB_ATTR_LAMBDA_QUAL(_q, YB_ATTR_LAMBDA(__VA_ARGS__))
-//@}
+//!@}
 
 
 /*!
@@ -717,11 +720,11 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 
 /*!
 \def YB_ATTR_fallthrough
-\brief 用于 switch 语句的 fallthrough 属性。
+\brief 用于在 \c switch 内部的空语句的 \c fallthrough 属性。
 \since build 793
 \see WG21 P0188R1 。
 */
-#if __has_cpp_attribute(fallthrough) \
+#if __has_cpp_attribute(fallthrough) >= 201603L\
 	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
 // XXX: This is ruled out for [-Wc++17-extensions] in Clang++.
 #	define YB_ATTR_fallthrough YB_ATTR_STD(fallthrough)
@@ -759,7 +762,9 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \see https://clang.llvm.org/docs/AttributeReference.html#maybe-unused-unused-gnu-unused 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 */
-#if __has_cpp_attribute(maybe_unused)
+#if __has_cpp_attribute(maybe_unused) >= 201603L \
+	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
+// XXX: This is ruled out for [-Wc++17-extensions] in Clang++.
 #	define YB_ATTR_maybe_unused YB_ATTR_STD(maybe_unused)
 #elif __has_cpp_attribute(gnu::unused)
 #	define YB_ATTR_maybe_unused YB_ATTR_STD(gnu::unused)
@@ -778,7 +783,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 \see https://docs.microsoft.com/cpp/code-quality/annotating-function-behavior 。
 */
-#if __has_cpp_attribute(nodiscard) \
+#if __has_cpp_attribute(nodiscard) >= 201603L \
 	&& (!YB_IMPL_CLANGPP || __cplusplus >= 201703L)
 // XXX: This is ruled out for [-Wc++17-extensions] in Clang++.
 #	define YB_ATTR_nodiscard YB_ATTR_STD(nodiscard)
@@ -788,8 +793,8 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #	define YB_ATTR_nodiscard YB_ATTR_STD(gnu::warn_unused_result)
 #elif __has_attribute(__warn_unused_result__)
 #	define YB_ATTR_nodiscard YB_ATTR(__warn_unused_result__)
-#elif YB_IMPL_MSCPP >= 1700
 // XXX: Assume SAL is available.
+#elif defined(_Check_return_)
 #	define YB_ATTR_nodiscard _Check_return_
 #else
 #	define YB_ATTR_nodiscard
@@ -869,6 +874,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \def YB_ASSUME(_expr)
 \brief 假定表达式的求值总是为真。
 \note 未指定表达式是否被求值。
+\note 若参数被求值为常量表达式，则 YB_ASSUME 表达式也是常量表达式。
 \note 可作为优化提示。可能影响控制流预测，一般接近对应条件被求值的位置局部使用。
 \note 一般应避免表达式求值的副作用。预期的求值性质和被 YB_PURE 的函数调用相同。
 \warning 若假定不成立则行为未定义。
@@ -879,11 +885,13 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 */
 #if YB_IMPL_MSCPP >= 1200
 #	define YB_ASSUME(_expr) __assume(_expr)
-#elif YB_IMPL_CLANGPP >= 30501
+#elif YB_IMPL_CLANGPP >= 50000
 // NOTE: The warning [-Wassume] is largely useless with misleading diagnostics.
 // NOTE: The warning [-Wpointer-ignore] is available since Clang 3.4.1. Ignoring
 //	the warning makes it usable in cases like variable in %_expr having nonnull
 //	attributes.
+// XXX: Clang++ has supported '__builtin_assume' since 3.5.1, however, not
+//	working in the contexts requiring constant expressions before 5.0.
 #	define YB_ASSUME(_expr) \
 	YB_Diag_Push YB_Diag_Ignore(pointer-bool-conversion) \
 		YB_Diag_Ignore(assume) __builtin_assume(_expr) YB_Diag_Pop
@@ -897,10 +905,10 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 //	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60875.
 #		if false
 #			define YB_ASSUME(_expr) \
-	((YB_Diag_Push YB_Diag_Ignore(nonnull-compare) _expr \
-		YB_Diag_Pop) ? void() : __builtin_unreachable())
+	((YB_Diag_Push YB_Diag_Ignore(nonnull-compare) _expr YB_Diag_Pop) ? void() \
+		: __builtin_unreachable())
 #		endif
-// NOTE: To work the problem avoie around, the warning is disabled globally.
+// NOTE: To work the problem around, the warning is disabled globally.
 #		if YB_IMPL_GNUCPP >= 60000
 #			pragma GCC diagnostic ignored "-Wnonnull-compare"
 #		endif
@@ -968,9 +976,9 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \see https://msdn.microsoft.com/library/hh567368.aspx 。
 \since build 396
 */
-#if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_MSCPP >= 1900 \
-	|| YB_IMPL_GNUCPP >= 40800 || __cplusplus >= 201103L
-#	define YB_NORETURN [[noreturn]]
+#if (__has_cpp_attribute(noreturn) >= 200809L || YB_IMPL_MSCPP >= 1900 \
+	|| YB_IMPL_GNUCPP >= 40800) && (!YB_IMPL_CLANGPP || __cplusplus >= 201103L)
+#	define YB_NORETURN YB_ATTR_STD(noreturn)
 #elif __has_attribute(__noreturn__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_NORETURN YB_ATTR(__noreturn__)
 #elif YB_IMPL_MSCPP >= 1200
@@ -1000,7 +1008,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \note 当前对 virtual 关键字的行为不是实现公开的接口，由分析具体实现保证。
 \see WG21 P0078R0 。
 */
-//@{
+//!@{
 /*!
 \def YB_PURE
 \brief 指示函数或函数模板实例为纯函数。
@@ -1046,15 +1054,15 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #else
 #	define YB_STATELESS
 #endif
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!	\defgroup lib_options Library Options
 \brief 库选项。
 \since build 373
 */
-//@{
+//!@{
 /*!
 \def YB_DLL
 \brief 使用 YBase 动态链接库。
@@ -1131,14 +1139,14 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #ifndef YB_Use_YTrace
 #	define YB_Use_YTrace true
 #endif
-//@}
+//!@}
 
 
 /*!	\defgroup YBase_pseudo_keyword YBase Specified Pseudo-Keywords
 \brief YBase 指定的替代关键字。
 \since build 362
 */
-//@{
+//!@{
 /*!
 \def yalignas
 \brief 指定特定类型的对齐。
@@ -1280,7 +1288,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \see CWG 2355 。
 \see https://developercommunity.visualstudio.com/t/vc-2017-rejects-dependent-noexcept-specifier-in-te/441268 。
 */
-//@{
+//!@{
 // XXX: See archived YSLib issues 39.
 /*!
 \def ynoexcept_param
@@ -1292,7 +1300,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \brief 影响函数类型的 noexcept 限定符表达式。
 \since build 845
 */
-//@}
+//!@}
 #if __cpp_noexcept_function_type >= 201510L && !YB_IMPL_MSCPP
 #	if !YB_HAS_NOEXCEPT
 #		error "Invalid language implementation found."
@@ -1312,15 +1320,31 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #define ynoexcept_spec(...) ynoexcept(noexcept(__VA_ARGS__))
 
 /*!
+\sa ynothrowv
+\sa ynoexcept
+\see WG21 N3248 。
+\see WG21 N3279 。
+\see WG21 P0884R0 。
+\see WG21 P1656R2 。
+*/
+//!@{
+// XXX: WG21 P1656R2 looses the interface having narrow contract to marked as
+//	'noexcept', which grants LEWG and LWG to change the design in the standard
+//	library. This should have nothing to do with the definitions and no impact
+//	on the user code. This has also no effects on the working draft as of
+//	2023-01.
+/*!
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，
 	指定特定的 noexcept 异常规范。
 \note YB_IMPL_MSCPP >= 1200 时支持 __declspec(nothrow) 行为和 throw() 基本一致，
 	但语法（顺序）不同。
-\note 指定 ynothrow 的函数具有 wide constraint ，
-	即保证违反前置条件不引起未定义行为。
-\sa ynothrowv
-\sa ynoexcept
+
+按 WG21 N3248 要求，表示 wide contract 形式的约束条件的无异常抛出接口。
+对应接口违反约束不引起未定义行为。
+指定 ynothrow 的函数或函数模板具有 wide contract 形式的约束条件，
+	即保证仅因违反前置条件不引起未定义行为。
+若输入自身具有未定义的状态（如违反不变量假设），则可能仍具有未定义行为。
 */
 #if YB_HAS_NOEXCEPT
 #	define ynothrow ynoexcept
@@ -1333,13 +1357,13 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 /*!
 \def ynothrowv
 \brief YSLib 无异常抛出保证验证：有条件地使用无异常抛出规范。
-\note 指定 ynothrowv 的函数具有 narrow contract 形式的约束条件，
-	即不保证违反前置条件时不引起未定义行为。
 \sa ynothrow
 \since build 461
 
 按 WG21 N3248 要求，表示 narrow contract 形式的约束条件的无异常抛出接口。
 对应接口违反约束可引起未定义行为。
+指定 ynothrowv 的函数或函数模板具有 narrow contract 形式的约束条件，
+	即不保证违反前置条件时不引起未定义行为。
 因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
 除非能静态验证不抛出异常，一般只应直接或间接调用 ynothrow 安全修饰的函数。
 验证结束后，确保不存在未定义行为时可以启用以提升性能。
@@ -1349,6 +1373,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 #else
 #	define ynothrowv
 #endif
+//!@}
 
 /*!
 \def ythread
@@ -1393,7 +1418,7 @@ G++ 9.0 起的一些版本中，YB_ATTR_LAMBDA 中的属性被忽略；
 \since build 435
 */
 #define yunused(...) static_cast<void>(__VA_ARGS__)
-//@}
+//!@}
 
 
 namespace ystdex
@@ -1414,7 +1439,7 @@ namespace ystdex
 
 用于用户代码定制的调用接口。
 和标准库的概念类似，但适用于 ystdex 和相关的命名空间；
-	且外延除函数模板外，还包含类模板。
+	且外延除函数模板外，还包含允许提供对程序定义的类型的特化的类模板。
 */
 
 /*!	\defgroup helper_functions Helper Functions
@@ -1425,7 +1450,7 @@ namespace ystdex
 */
 
 //! \warning 其中的类类型一般可被继承但非虚析构。
-//@{
+//!@{
 /*!	\defgroup tags Tags
 \brief 标签。
 \note 可能是类型或元类型。
@@ -1440,7 +1465,7 @@ namespace ystdex
 
 具有特定成员，提供翻译时确定的信息的类型或模板。
 */
-//@}
+//!@}
 
 
 /*!
@@ -1484,7 +1509,7 @@ unsequenced(_type&& arg, _tParams&&...) ynothrow -> decltype(yforward(arg))
 \ingroup YBase_pseudo_keyword
 \brief 无序列依赖表达式组求值。
 \note 由于实现限制，无法用于 void 类型表达式组。
-\note 使用一元形式 <tt>yunsequenced((_expr))</tt> 的形式标记表达式组
+\note 使用一元形式 \c yunsequenced((_expr)) 的形式标记表达式组
 	但不取消序列关系。
 \note 支持嵌套使用。
 \warning 非一元形式禁止用于产生对同一对象的未序列化的(unsequenced) 副作用

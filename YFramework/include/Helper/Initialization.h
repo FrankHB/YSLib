@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 框架初始化。
-\version r904
+\version r915
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2023-02-20 07:39 +0800
+	2023-03-30 02:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,17 +104,20 @@ GetLocalFHSRootPathOf(const string&);
 //!@}
 
 
+//! \since build 971
+using ValueNodeCreator = ValueNode(*)(ValueNode::allocator_type);
+
 /*!
 \brief 载入 NPLA1 配置文件。
 \param show_info 是否在标准输出中显示信息。
 \pre 间接断言：指针参数非空。
 \return 读取的配置。
 \note 预设行为、配置文件和配置项参考 Documentation::YSLib 。
-\since build 450
+\since build 971
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1, 2) ValueNode
-LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
-	bool show_info = {});
+LoadNPLA1File(const char*, const char*, ValueNodeCreator,
+	ValueNode::allocator_type, bool show_info = {});
 
 /*!
 \brief 初始化应用程序组件。
@@ -128,10 +131,15 @@ LoadComponents(Application&, const ValueNode&);
 \brief 载入默认配置。
 \return 读取的配置。
 \sa LoadNPLA1File
-\since build 344
+\sa YTraceDe
+\since build 971
+
+从框架预定义的位置加载默认配置。
+关于预定义的位置，参见 Documentation::YFramework 。
+最后一个参数指定是否输出消息。若输出消息，使用 YTraceDe 。
 */
 YF_API ValueNode
-LoadConfiguration(bool = {});
+LoadConfiguration(ValueNode::allocator_type a, bool = {});
 
 /*!
 \brief 保存默认配置。

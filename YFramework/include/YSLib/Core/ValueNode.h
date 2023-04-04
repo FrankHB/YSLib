@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2022 FrankHB.
+	© 2012-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4369
+\version r4544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2022-11-20 22:13 +0800
+	2023-03-31 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,9 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject // for pmr, ystdex::is_interoperable,
 //	ystdex::enable_if_t, std::allocator_arg_t, std::allocator_arg, ystdex::and_,
-//	ystdex::remove_cvref_t, in_place_type, ystdex::end, to_string,
-//	to_pmr_string;
+//	ystdex::enable_if_same_t, ystdex::remove_cvref_t, in_place_type,
+//	ystdex::enable_if_inconstructible_t, ystdex::end,
+//	ystdex::enable_if_interoperable_t, to_string, to_pmr_string;
 #include <ystdex/container.hpp> // for ystdex::has_mem_key_type;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
@@ -49,13 +50,13 @@ namespace YSLib
 {
 
 //! \since build 674
-//@{
+//!@{
 //! \brief 标记列表构造容器。
 yconstexpr const struct ListContainerTag{} ListContainer{};
 
 //! \brief 标记不使用容器。
 yconstexpr const struct NoContainerTag{} NoContainer{};
-//@}
+//!@}
 
 
 /*!
@@ -63,7 +64,7 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 \sa NoContainer
 \since build 960
 */
-//@{
+//!@{
 template<class _tSeqCon, typename... _tParams>
 inline auto
 AddValueTo(_tSeqCon& con, _tParams&&... args)
@@ -85,7 +86,7 @@ AddValueTo(typename _tSeqCon::const_iterator position, _tSeqCon& con,
 template<class _tAssocCon, typename _tKey, typename... _tParams>
 inline auto
 AddValueTo(_tAssocCon& con, _tKey&& k, _tParams&&... args)
-	-> ystdex::enable_if_t<yimpl(ystdex::has_mem_key_type<_tAssocCon>::value),
+	-> ystdex::enable_if_t<yimpl(ystdex::has_mem_key_type<_tAssocCon>{}),
 	decltype(ystdex::try_emplace(con, k, NoContainer,
 	yforward(args)...).second)>
 {
@@ -96,13 +97,13 @@ template<class _tAssocCon, typename _tKey, typename... _tParams>
 inline auto
 AddValueTo(typename _tAssocCon::const_iterator hint, _tAssocCon& con, _tKey&& k,
 	_tParams&&... args) -> ystdex::enable_if_t<yimpl(ystdex::has_mem_key_type<
-	_tAssocCon>::value), decltype(ystdex::try_emplace_hint(con, hint, k,
+	_tAssocCon>{}), decltype(ystdex::try_emplace_hint(con, hint, k,
 	NoContainer, yforward(args)...).second)>
 {
 	return ystdex::try_emplace_hint(con, hint, k, NoContainer,
 		yforward(args)...).second;
 }
-//@}
+//!@}
 
 
 /*!
@@ -122,7 +123,7 @@ class YF_API ValueNode : private ystdex::totally_ordered<ValueNode>,
 {
 public:
 	//! \since build 844
-	//@{
+	//!@{
 	/*!
 	\brief 分配器类型。
 	\note 支持 uses-allocator 构造并适合直接传递对象的值。
@@ -131,10 +132,10 @@ public:
 	template<typename _type>
 	using is_key_t = ystdex::is_interoperable<const _type&, const string&>;
 	template<typename _tKey>
-	using enable_if_key_t = ystdex::enable_if_t<is_key_t<_tKey>::value>;
+	using enable_if_key_t = ystdex::enable_if_t<is_key_t<_tKey>{}>;
 	template<typename _tOther>
 	using enable_not_key_t = ystdex::enable_if_t<!is_key_t<_tOther>::value>;
-	//@}
+	//!@}
 
 private:
 	//! \since build 844
@@ -150,7 +151,7 @@ public:
 	struct YF_API MappedSetTraits
 	{
 		//! \since build 844
-		//@{
+		//!@{
 		template<typename _tKey, class _tCon>
 		YB_ATTR_nodiscard YB_PURE static inline auto
 		extend_key(_tKey&& k, _tCon& con) ynothrow -> decltype(
@@ -162,7 +163,7 @@ public:
 		}
 
 		//! \note 这些重载和构造函数中可能由参数确定键的值的情形匹配。
-		//@{
+		//!@{
 		YB_ATTR_nodiscard YB_PURE static inline
 			PDefH(string, get_value_key, allocator_type = {}) ynothrow
 			ImplRet({})
@@ -173,7 +174,7 @@ public:
 			ValueNode&& nd, allocator_type = {}) ynothrow
 			ImplRet(std::move(nd.name))
 		//! \since build 845
-		//@{
+		//!@{
 		template<typename _tParam, typename _tOther, typename... _tParams,
 			yimpl(typename = enable_not_key_t<_tOther>)>
 		static PDefH(string, get_value_key, _tOther&&, allocator_type = {})
@@ -230,8 +231,8 @@ public:
 		{
 			return ystdex::make_from_tuple<string>(args2);
 		}
-		//@}
-		//@}
+		//!@}
+		//!@}
 
 		/*!
 		\sa ystdex::restore_key
@@ -244,7 +245,7 @@ public:
 		static PDefH(ValueNode, set_value_move, ValueNode& nd)
 			ImplRet({std::move(nd.GetContainerRef()),
 				nd.GetName(), std::move(nd.Value)})
-		//@}
+		//!@}
 	};
 	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>,
 		MappedSetTraits, allocator_type>;
@@ -274,7 +275,7 @@ public:
 	//! \note 因为 Container 对实现无要求，不显式保证无异常抛出。
 	DefDeCtor(ValueNode)
 	//! \since build 844
-	//@{
+	//!@{
 	//! \brief 构造：使用分配器。
 	explicit
 	ValueNode(allocator_type a)
@@ -287,7 +288,7 @@ public:
 	复制或转移第一参数指定的容器对象作为节点的内容。
 	若指定了分配器参数，使用指定的分配器；否则，复制或转移容器中的分配器。
 	*/
-	//@{
+	//!@{
 	ValueNode(const Container& con)
 		: ValueNode(con, con.get_allocator())
 	{}
@@ -300,7 +301,7 @@ public:
 	ValueNode(Container&& con, allocator_type a)
 		: container(std::move(con), a)
 	{}
-	//@}
+	//!@}
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
 	\note 不使用容器。
@@ -323,7 +324,7 @@ public:
 		: name(yforward(str)), container(a), Value(yforward(args)...)
 	{}
 	//! \brief 构造：使用容器对象引用、字符串引用和值类型对象构造参数。
-	//@{
+	//!@{
 	template<typename _tString, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(const Container& con, _tString&& str, _tParams&&... args)
@@ -336,9 +337,9 @@ public:
 		: name(yforward(str)), container(std::move(con)),
 		Value(yforward(args)...)
 	{}
-	//@}
+	//!@}
 	//! \brief 构造：使用容器对象引用、字符串引用、值类型对象构造参数和分配器。
-	//@{
+	//!@{
 	template<typename _tString, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
@@ -354,7 +355,7 @@ public:
 		: name(yforward(str)), container(std::move(con), a),
 		Value(yforward(args)...)
 	{}
-	//@}
+	//!@}
 	//! \brief 构造：使用输入迭代器对和可选的分配器。
 	template<typename _tIn>
 	inline
@@ -369,7 +370,7 @@ public:
 		: name(yforward(str)), container(pr.first, pr.second, a)
 	{}
 	//! \brief 原地构造：使用容器、名称、值的参数元组和可选的分配器。
-	//@{
+	//!@{
 	template<typename... _tParams1>
 	inline
 	ValueNode(tuple<_tParams1...> args1, allocator_type a = {})
@@ -391,7 +392,7 @@ public:
 		container(ystdex::make_from_tuple<Container>(args1), a),
 		Value(ystdex::make_from_tuple<ValueObject>(args3))
 	{}
-	//@}
+	//!@}
 	/*!
 	\brief 复制构造：使用参数和参数的分配器。
 	\since build 879
@@ -408,10 +409,10 @@ public:
 		: name(std::move(nd.name)), container(std::move(nd.container), a),
 		Value(std::move(nd.Value))
 	{}
-	//@}
+	//!@}
 
 	//! \since build 768
-	//@{
+	//!@{
 	//! \brief 复制赋值：使用参数副本和交换操作。
 	PDefHOp(ValueNode&, =, const ValueNode& nd)
 		ImplRet(ystdex::copy_and_swap(*this, nd))
@@ -420,10 +421,10 @@ public:
 	\warning 违反前置条件的转移可能引起循环引用。
 	*/
 	DefDeMoveAssignment(ValueNode)
-	//@}
+	//!@}
 
 	//! \since build 730
-	//@{
+	//!@{
 	PDefHOp(const ValueNode&, +=, const ValueNode& nd)
 		ImplRet(Add(nd), *this)
 	PDefHOp(const ValueNode&, +=, ValueNode&& nd)
@@ -437,27 +438,28 @@ public:
 	\brief 替换同名子节点。
 	\return 自身引用。
 	*/
-	//@{
+	//!@{
 	PDefHOp(ValueNode&, /=, const ValueNode& nd)
 		ImplRet(*this %= nd, *this)
 	PDefHOp(ValueNode&, /=, ValueNode&& nd)
 		ImplRet(*this %= std::move(nd), *this)
-	//@}
+	//!@}
 	/*!
 	\brief 替换同名子节点。
 	\return 子节点引用。
 	\since build 792
 	*/
-	//@{
+	//!@{
 	ValueNode&
 	operator%=(const ValueNode&);
 	ValueNode&
 	operator%=(ValueNode&&);
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	//! \since build 336
-	DefBoolNeg(explicit, bool(Value) || !container.empty())
+	YB_ATTR_nodiscard DefBoolNeg(YB_ATTR_nodiscard explicit,
+		bool(Value) || !container.empty())
 
 	//! \since build 673
 	friend PDefHOp(bool, ==, const ValueNode& x, const ValueNode& y) ynothrow
@@ -537,24 +539,25 @@ public:
 	\brief 取子节点容器引用。
 	\since build 664
 	*/
-	DefGetter(const ynothrow, const Container&, Container, container)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const Container&, Container, container)
 	/*!
 	\brief 取子节点容器引用。
 	\since build 667
 	*/
-	DefGetter(ynothrow, Container&, ContainerRef, container)
-	DefGetter(const ynothrow, const string&, Name, name)
+	YB_ATTR_nodiscard DefGetter(ynothrow, Container&, ContainerRef, container)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const string&, Name, name)
 
 	/*!
 	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
 	\warning 违反前置条件的转移可能引起循环引用。
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 设置子节点容器内容。
 	\since build 774
 	*/
-	//@{
+	//!@{
 	PDefH(void, SetChildren, const Container& con)
 		ImplExpr(container = con)
 	PDefH(void, SetChildren, Container&& con)
@@ -562,19 +565,18 @@ public:
 	//! \since build 776
 	PDefH(void, SetChildren, ValueNode&& nd)
 		ImplExpr(container = std::move(nd.container))
-	//@}
+	//!@}
 	/*!
 	\pre 断言：分配器相等。
 	\note 设置子节点容器和值的内容。
 	\note 除转移外非强异常安全。
 	\since build 734
 	*/
-	//@{
+	//!@{
 	//! \since build 776
 	template<class _tCon, class _type>
-	yimpl(ystdex::enable_if_t)<
-		ystdex::and_<std::is_assignable<Container, _tCon&&>,
-		std::is_assignable<ValueObject, _type&&>>::value>
+	yimpl(ystdex::enable_if_t)<ystdex::and_<std::is_assignable<Container,
+		_tCon&&>, std::is_assignable<ValueObject, _type&&>>{}>
 	SetContent(_tCon&& con, _type&& val) ynoexcept(ystdex::and_<
 		std::is_nothrow_assignable<Container, _tCon&&>,
 		std::is_nothrow_assignable<ValueObject, _type&&>>())
@@ -587,8 +589,8 @@ public:
 	//! \pre 间接断言：容器分配器和参数的容器分配器相等。
 	PDefH(void, SetContent, ValueNode&& nd)
 		ImplExpr(SwapContainer(nd), Value = std::move(nd.Value))
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	//! \since build 667
 	PDefH(bool, Add, const ValueNode& nd)
@@ -601,11 +603,11 @@ public:
 	\brief 添加参数节点指定容器和值的子节点。
 	\since build 845
 	*/
-	//@{
+	//!@{
 	//! \sa try_emplace
 	template<typename _tKey, typename _tNode,
-		yimpl(typename = ystdex::enable_if_t<
-		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
+		yimpl(typename = ystdex::enable_if_same_t<
+		ValueNode&, ystdex::remove_cvref_t<_tNode>&>)>
 	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
 	AddChild(_tKey&& k, _tNode&& nd)
 	{
@@ -614,22 +616,22 @@ public:
 	}
 	//! \sa try_emplace_hint
 	template<typename _tKey, typename _tNode,
-		yimpl(typename = ystdex::enable_if_t<
-		std::is_same<ValueNode&, ystdex::remove_cvref_t<_tNode>&>::value>)>
+		yimpl(typename = ystdex::enable_if_same_t<
+		ValueNode&, ystdex::remove_cvref_t<_tNode>&>)>
 	bool
 	AddChild(const_iterator hint, _tKey&& k, _tNode&& nd)
 	{
 		return try_emplace_hint(hint, k, yforward(nd).container, yforward(k),
 			yforward(nd).Value);
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 添加参数指定值的子节点。
 	\sa AddValueTo
 	\since build 757
 	*/
-	//@{
+	//!@{
 	template<typename _tKey, typename... _tParams>
 	inline
 		yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator, bool>
@@ -643,10 +645,10 @@ public:
 	{
 		return AddValueTo(hint, container, k, yforward(k), yforward(args)...);
 	}
-	//@}
+	//!@}
 
 	//! \note 清理容器和修改值的操作之间的顺序未指定。
-	//@{
+	//!@{
 	/*!
 	\brief 清除节点。
 	\post <tt>!Value && empty()</tt> 。
@@ -654,7 +656,7 @@ public:
 	*/
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
-	//@}
+	//!@}
 
 	/*!
 	\brief 清除节点容器。
@@ -668,7 +670,7 @@ public:
 	\note 允许被参数中被复制的对象直接或间接地被目标引用。
 	\since build 913
 	*/
-	//@{
+	//!@{
 	PDefH(void, CopyContainer, const ValueNode& nd)
 		ImplExpr(GetContainerRef() = Container(nd.GetContainer()))
 
@@ -677,18 +679,17 @@ public:
 
 	PDefH(void, CopyValue, const ValueNode& nd)
 		ImplExpr(Value = ValueObject(nd.Value))
-	//@}
+	//!@}
 
 	//! \brief 递归创建容器副本。
-	//@{
+	//!@{
 	//! \since build 767
-	static Container
+	YB_ATTR_nodiscard YB_PURE static Container
 	CreateRecursively(const Container&, IValueHolder::Creation);
 	//! \since build 845
-	template<class _tCon, typename _fCallable,
-		yimpl(typename = ystdex::enable_if_t<
-		std::is_same<Container&, ystdex::remove_cvref_t<_tCon>&>::value>)>
-	static Container
+	template<class _tCon, typename _fCallable, yimpl(typename
+		= ystdex::enable_if_same_t<Container&, ystdex::remove_cvref_t<_tCon>&>)>
+	YB_ATTR_nodiscard YB_PURE static Container
 	CreateRecursively(_tCon&& con, _fCallable f)
 	{
 		Container res(con.get_allocator());
@@ -701,43 +702,44 @@ public:
 	}
 
 	//! \since build 767
-	PDefH(Container, CreateWith, IValueHolder::Creation c) const
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(Container, CreateWith, IValueHolder::Creation c) const
 		ImplRet(CreateRecursively(container, c))
 	//! \since build 834
-	//@{
+	//!@{
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) &
 	{
 		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) const&
 	{
 		return CreateRecursively(container, f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) &&
 	{
 		return CreateRecursively(std::move(container), f);
 	}
 	template<typename _fCallable>
-	Container
+	YB_ATTR_nodiscard YB_PURE Container
 	CreateWith(_fCallable f) const&&
 	{
 		return CreateRecursively(std::move(container), f);
 	}
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	/*!
 	\pre 断言：参数不是 \c *this 。
 	\note 允许被参数中被转移的对象直接或间接地被目标引用。
 	\since build 913
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 转移容器。
 	\pre 间接断言：容器分配器和参数的容器分配器相等。
@@ -767,15 +769,15 @@ public:
 	*/
 	void
 	MoveValue(ValueNode&&);
-	//@}
+	//!@}
 
 	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。
 	\since build 781
 	*/
-	//@{
+	//!@{
 	//! \return 按指定名称查找的指定类型的子节点的值的引用。
-	//@{
+	//!@{
 	/*!
 	\sa ValueObject::Access
 	\since build 681
@@ -799,7 +801,7 @@ public:
 		return PlaceValue<_type>(yforward(str), yforward(args)...).template
 			GetObject<_type>();
 	}
-	//@}
+	//!@}
 
 	//! \brief 初始化的值对象引用。
 	template<typename _type, typename _tString, typename... _tParams>
@@ -809,7 +811,7 @@ public:
 		return try_emplace(str, NoContainer, yforward(str),
 			in_place_type<_type>, yforward(args)...).first->Value;
 	}
-	//@}
+	//!@}
 
 	PDefH(bool, Remove, const ValueNode& nd)
 		ImplRet(erase(nd) != 0)
@@ -841,7 +843,7 @@ public:
 	}
 
 	//! \since build 667
-	//@{
+	//!@{
 	//! \brief 转移满足条件的子节点。
 	template<typename _func>
 	Container
@@ -866,7 +868,7 @@ public:
 	\warning 不检查容器之间的所有权关系，可能引起循环引用。
 	\since build 844
 	*/
-	//@{
+	//!@{
 	//! \brief 交换容器。
 	PDefH(void, SwapContainer, ValueNode& nd) ynothrowv
 		ImplExpr(YAssert(get_allocator() == nd.get_allocator(),
@@ -875,8 +877,8 @@ public:
 	//! \brief 交换容器和值。
 	void
 	SwapContent(ValueNode&) ynothrowv;
-	//@}
-	//@}
+	//!@}
+	//!@}
 
 	/*!
 	\brief 抛出索引越界异常。
@@ -896,7 +898,7 @@ public:
 	ThrowWrongNameFound(string_view);
 
 	//! \since build 460
-	//@{
+	//!@{
 	PDefH(iterator, begin, )
 		ImplRet(GetContainerRef().begin())
 	PDefH(const_iterator, begin, ) const
@@ -918,7 +920,7 @@ public:
 		ImplRet(GetContainerRef().end())
 	PDefH(const_iterator, end, ) const
 		ImplRet(GetContainer().end())
-	//@}
+	//!@}
 
 	//! \since build 761
 	DefFwdTmpl(-> decltype(container.erase(yforward(args)...)), auto,
@@ -934,7 +936,7 @@ public:
 		insert, container.insert(yforward(args)...))
 
 	//! \since build 681
-	//@{
+	//!@{
 	template<typename _tKey, class _tParam>
 	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator,
 		std::pair<iterator, bool>>
@@ -950,10 +952,10 @@ public:
 		return ystdex::insert_or_assign_hint(container, hint, yforward(k),
 			yforward(arg));
 	}
-	//@}
+	//!@}
 
 	//! \since build 696
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE PDefH(reverse_iterator, rbegin, )
 		ImplRet(GetContainerRef().rbegin())
 	YB_ATTR_nodiscard YB_PURE PDefH(const_reverse_iterator, rbegin, ) const
@@ -963,7 +965,7 @@ public:
 		ImplRet(GetContainerRef().rend())
 	YB_ATTR_nodiscard YB_PURE PDefH(const_reverse_iterator, rend, ) const
 		ImplRet(GetContainer().rend())
-	//@}
+	//!@}
 
 	//! \since build 598
 	YB_ATTR_nodiscard YB_PURE PDefH(size_t, size, ) const ynothrow
@@ -1006,14 +1008,14 @@ public:
 };
 
 //! \relates ValueNode
-//@{
+//!@{
 //! \since build 666
-//@{
+//!@{
 /*!
 \brief 访问节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败。
 */
-//@{
+//!@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline _type&
 Access(ValueNode& nd)
@@ -1026,12 +1028,12 @@ Access(const ValueNode& nd)
 {
 	return nd.Value.Access<_type>();
 }
-//@}
+//!@}
 
 //! \since build 670
-//@{
+//!@{
 //! \brief 访问节点的指定类型对象指针。
-//@{
+//!@{
 template<typename _type>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessPtr(ValueNode& nd) ynothrow
@@ -1044,12 +1046,12 @@ AccessPtr(const ValueNode& nd) ynothrow
 {
 	return nd.Value.AccessPtr<_type>();
 }
-//@}
+//!@}
 /*!
 \brief 访问节点的指定类型对象指针。
 \since build 749
 */
-//@{
+//!@{
 template<typename _type, typename _tNodeOrPointer>
 YB_ATTR_nodiscard YB_PURE inline auto
 AccessPtr(observer_ptr<_tNodeOrPointer> p) ynothrow
@@ -1057,12 +1059,12 @@ AccessPtr(observer_ptr<_tNodeOrPointer> p) ynothrow
 {
 	return p ? YSLib::AccessPtr<_type>(*p) : nullptr;
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 //! \since build 749
-//@{
+//!@{
 //! \brief 取指定名称指称的值。
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 GetValueOf(observer_ptr<const ValueNode>);
@@ -1070,12 +1072,12 @@ GetValueOf(observer_ptr<const ValueNode>);
 //! \brief 取指定名称指称的值的指针。
 YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const ValueObject>
 GetValuePtrOf(observer_ptr<const ValueNode>);
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \since build 730
-//@{
+//!@{
 template<typename _tKey>
 YB_ATTR_nodiscard YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container*, const _tKey&) ynothrow;
@@ -1087,7 +1089,7 @@ AccessNodePtr(const ValueNode::Container*, const _tKey&) ynothrow;
 \brief 访问节点。
 \throw std::out_of_range 未找到对应节点。
 */
-//@{
+//!@{
 //! \since build 670
 YB_ATTR_nodiscard YF_API YB_PURE ValueNode&
 AccessNode(ValueNode::Container*, const string&);
@@ -1138,12 +1140,12 @@ AccessNode(const ValueNode::Container& con, const _tKey& name)
 \note 时间复杂度 O(n) 。
 \since build 670
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_PURE ValueNode&
 AccessNode(ValueNode&, size_t);
 YB_ATTR_nodiscard YF_API YB_PURE const ValueNode&
 AccessNode(const ValueNode&, size_t);
-//@}
+//!@}
 template<typename _tKey,
 	yimpl(typename = ValueNode::enable_if_key_t<_tKey>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode&
@@ -1159,7 +1161,7 @@ AccessNode(const ValueNode& nd, const _tKey& name)
 	return YSLib::AccessNode(nd.GetContainer(), name);
 }
 //! \since build 670
-//@{
+//!@{
 //! \note 使用 ADL AccessNode 。
 template<class _tNode, typename _tIn>
 YB_ATTR_nodiscard YB_PURE _tNode&&
@@ -1171,20 +1173,19 @@ AccessNode(_tNode&& nd, _tIn first, _tIn last)
 	});
 }
 //! \note 使用 ADL begin 和 end 指定范围迭代器。
-template<class _tNode, typename _tRange,
-	yimpl(typename = typename ystdex::enable_if_t<
-	!std::is_constructible<const string&, const _tRange&>::value>)>
+template<class _tNode, typename _tRange, yimpl(typename = typename
+	ystdex::enable_if_inconstructible_t<const string&, const _tRange&>)>
 YB_ATTR_nodiscard YB_PURE inline auto
 AccessNode(_tNode&& nd, const _tRange& c)
 	-> decltype(YSLib::AccessNode(yforward(nd), begin(c), end(c)))
 {
 	return YSLib::AccessNode(yforward(nd), begin(c), end(c));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 //! \brief 访问节点指针。
-//@{
+//!@{
 //! \since build 670
 YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container&, const string&) ynothrow;
@@ -1235,28 +1236,28 @@ AccessNodePtr(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
 \note 时间复杂度 O(n) 。
 \since build 670
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<ValueNode>
 AccessNodePtr(ValueNode&, size_t);
 YB_ATTR_nodiscard YF_API YB_PURE observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode&, size_t);
-//@}
-template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
+//!@}
+template<typename _tKey, yimpl(typename = typename
+	ystdex::enable_if_interoperable_t<const _tKey&, const string&>)>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<ValueNode>
 AccessNodePtr(ValueNode& nd, const _tKey& name)
 {
 	return YSLib::AccessNodePtr(nd.GetContainerRef(), name);
 }
-template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
+template<typename _tKey, yimpl(typename = typename
+	ystdex::enable_if_interoperable_t<const _tKey&, const string&>)>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode& nd, const _tKey& name)
 {
 	return YSLib::AccessNodePtr(nd.GetContainer(), name);
 }
 //! \since build 670
-//@{
+//!@{
 //! \note 使用 ADL AccessNodePtr 。
 template<class _tNode, typename _tIn>
 YB_ATTR_nodiscard YB_PURE auto
@@ -1269,31 +1270,30 @@ AccessNodePtr(_tNode&& nd, _tIn first, _tIn last)
 	return first;
 }
 //! \note 使用 ADL begin 和 end 指定范围迭代器。
-template<class _tNode, typename _tRange,
-	yimpl(typename = typename ystdex::enable_if_t<
-	!std::is_constructible<const string&, const _tRange&>::value>)>
+template<class _tNode, typename _tRange, yimpl(typename = typename
+	ystdex::enable_if_inconstructible_t<const string&, const _tRange&>)>
 YB_ATTR_nodiscard YB_PURE inline auto
 AccessNodePtr(_tNode&& nd, const _tRange& c)
 	-> decltype(YSLib::AccessNodePtr(yforward(nd), begin(c), end(c)))
 {
 	return YSLib::AccessNodePtr(yforward(nd), begin(c), end(c));
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 //! \since build 670
-//@{
+//!@{
 /*!
 \exception std::bad_cast 空实例或类型检查失败 。
 \relates ValueNode
 */
-//@{
+//!@{
 /*!
 \brief 访问子节点的指定类型对象。
 \note 使用 ADL AccessNode 。
 */
-//@{
+//!@{
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline _type&
 AccessChild(ValueNode& nd, _tParams&&... args)
@@ -1306,10 +1306,10 @@ AccessChild(const ValueNode& nd, _tParams&&... args)
 {
 	return Access<_type>(AccessNode(nd, yforward(args)...));
 }
-//@}
+//!@}
 
 //! \brief 访问指定名称的子节点的指定类型对象的指针。
-//@{
+//!@{
 template<typename _type, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline observer_ptr<_type>
 AccessChildPtr(ValueNode& nd, _tParams&&... args) ynothrow
@@ -1336,22 +1336,24 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, yforward(args)...) : nullptr;
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 //! \since build 867
-//@{
+//!@{
 //! \note 结果不含子节点。
-//@{
+//!@{
 //! \since build 852
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(const ValueNode&, AsNode, const ValueNode& nd) ynothrow
 	ImplRet(nd)
+//! \since build 971
+//!@{
 //! \brief 传递指定名称和值参数构造值类型节点。
-//@{
-template<typename _tString, typename... _tParams,
+//!@{
+template<typename _tString = string, typename... _tParams,
 	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
 	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
@@ -1359,18 +1361,18 @@ AsNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), yforward(args)...};
 }
-template<typename _tString, typename... _tParams>
+template<typename _tString = string, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 AsNode(const ValueNode::allocator_type& a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
 		yforward(args)...};
 }
-//@}
+//!@}
 
 //! \brief 传递指定名称和退化值参数构造值类型节点。
-//@{
-template<typename _tString, typename... _tParams,
+//!@{
+template<typename _tString = string, typename... _tParams,
 	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
 	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
@@ -1378,23 +1380,25 @@ MakeNode(_tString&& str, _tParams&&... args)
 {
 	return {NoContainer, yforward(str), ystdex::decay_copy(args)...};
 }
-template<typename _tString, typename... _tParams>
+template<typename _tString = string, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 MakeNode(const ValueNode::allocator_type& a, _tString&& str, _tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
 		ystdex::decay_copy(args)...};
 }
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 /*!
 \brief 取指定名称和转换为字符串的值类型节点。
 \note 使用 ADL to_string 和 ADL to_pmr_string 转换。
+\since build 971
 \todo 对特定的已被 std::to_string 支持的类型使用更高效的字符串转换算法实现。
 */
-//@{
-template<typename _tString, typename... _tParams,
+//!@{
+template<typename _tString = string, typename... _tParams,
 	yimpl(typename = ystdex::enable_if_inconvertible_t<_tString&&,
 	const ValueNode::allocator_type&>)>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
@@ -1403,30 +1407,30 @@ StringifyToNode(_tString&& str, _tParams&&... args)
 	return {NoContainer, yforward(str),
 		to_pmr_string(to_string(yforward(args)...))};
 }
-template<typename _tString, typename... _tParams>
+template<typename _tString = string, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ValueNode
 StringifyToNode(const ValueNode::allocator_type& a, _tString&& str,
 	_tParams&&... args)
 {
 	return {std::allocator_arg, a, NoContainer, yforward(str),
-		to_pmr_string(to_string(yforward(args)...))};
+		to_pmr_string(to_string(yforward(args)...), a)};
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
 \brief 从引用参数取值类型节点：返回自身。
 \since build 338
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(const ValueNode&, UnpackToNode, const ValueNode& arg)
 	ImplRet(arg)
 YB_ATTR_nodiscard YB_PURE inline
 	PDefH(ValueNode&&, UnpackToNode, ValueNode&& arg)
 	ImplRet(std::move(arg))
-//@}
+//!@}
 /*!
 \brief 从参数取以指定分量为初始化参数的值类型节点。
 \note 取分量同 std::get ，但使用 ADL 。仅取前两个分量。
@@ -1444,7 +1448,7 @@ UnpackToNode(_tPack&& pk)
 \brief 取指定值类型节点为成员的节点容器。
 \since build 598
 */
-//@{
+//!@{
 template<typename _tElem>
 YB_ATTR_nodiscard YB_PURE inline ValueNode::Container
 CollectNodes(std::initializer_list<_tElem> il)
@@ -1457,7 +1461,7 @@ CollectNodes(_tParams&&... args)
 {
 	return {yforward(args)...};
 }
-//@}
+//!@}
 
 /*!
 \brief 取以指定分量为参数对应初始化得到的值类型节点为子节点的值类型节点。
@@ -1472,7 +1476,7 @@ PackNodes(_tString&& name, _tParams&&... args)
 
 
 //! \since build 674
-//@{
+//!@{
 //! \brief 移除空子节点。
 YF_API void
 RemoveEmptyChildren(ValueNode::Container&) ynothrow;
@@ -1481,13 +1485,13 @@ RemoveEmptyChildren(ValueNode::Container&) ynothrow;
 \brief 移除第一个子节点。
 \pre 断言：节点容器非空。
 */
-//@{
+//!@{
 YF_API void
 RemoveHead(ValueNode::Container&) ynothrowv;
 inline PDefH(void, RemoveHead, ValueNode& nd) ynothrowv
 	ImplExpr(RemoveHead(nd.GetContainerRef()))
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
@@ -1529,7 +1533,7 @@ YB_ATTR_nodiscard YF_API YB_PURE string
 MakeIndex(size_t);
 
 //! \throw std::invalid_argument 存在子节点但名称不是前缀索引。
-//@{
+//!@{
 /*!
 \brief 解码节点名称的前缀索引。
 \pre 断言：参数的数据指针非空。
@@ -1538,7 +1542,7 @@ MakeIndex(size_t);
 */
 YB_ATTR_nodiscard YF_API size_t
 DecodeIndex(string_view);
-//@}
+//!@}
 
 
 /*!
@@ -1588,11 +1592,11 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(NodeLiteral)
 
-	DefCvt(ynothrow, ValueNode&, node)
-	DefCvt(const ynothrow, const ValueNode&, node)
+	YB_ATTR_nodiscard DefCvt(ynothrow, ValueNode&, node)
+	YB_ATTR_nodiscard DefCvt(const ynothrow, const ValueNode&, node)
 
 	//! \since build 853
-	DefGetter(ynothrow, ValueNode&, NodeRef, node)
+	YB_ATTR_nodiscard DefGetter(ynothrow, ValueNode&, NodeRef, node)
 };
 
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2015, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r279
+\version r293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 21:37:51 +0800
 \par 修改时间:
-	2015-05-29 21:23 +0800
+	2023-04-04 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "ColorPicker.h"
+#include "ColorPicker.h" // for Size, String;
 #include YFM_YSLib_UI_Border
 
 namespace YSLib
@@ -36,9 +36,19 @@ namespace UI
 
 namespace
 {
-	yconstexpr const Size track_size(112, 16);
-	yconstexpr const Size label_size(44, 20);
+
+yconstexpr const Size track_size(112, 16);
+yconstexpr const Size label_size(44, 20);
+
+//! \since build 971
+template<typename _tComp>
+YB_ATTR_nodiscard YB_PURE inline String
+ColorToString(_tComp c, const String& str)
+{
+	return String(to_string(c), str.get_allocator());
 }
+
+} // unnamed namespace;
 
 ColorBox::ColorBox(const Point& pt, Color c)
 	: DialogPanel({pt, 200, 96}),
@@ -84,9 +94,9 @@ ColorBox::SetColor(Color c)
 	trRed.SetValue(c.GetR()),
 	trGreen.SetValue(c.GetG()),
 	trBlue.SetValue(c.GetB());
-	yunseq(lblRed.Text = "R: " + to_string(c.GetR()),
-		lblGreen.Text = "G: " + to_string(c.GetG()),
-		lblBlue.Text = "B: " + to_string(c.GetB()));
+	yunseq(lblRed.Text = u"R: " + ColorToString(c.GetR(), lblRed.Text),
+		lblGreen.Text = u"G: " + ColorToString(c.GetG(), lblGreen.Text),
+		lblBlue.Text = u"B: " + ColorToString(c.GetB(), lblGreen.Text));
 	Invalidate(ctlColorArea),
 	Invalidate(trRed), Invalidate(trGreen), Invalidate(trBlue),
 	Invalidate(lblRed), Invalidate(lblGreen), Invalidate(lblBlue);

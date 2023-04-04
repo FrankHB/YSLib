@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r16109
+\version r16612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 900
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-03-26 13:37 +0800
+	2023-04-05 04:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,510 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			/ DD @ "macros %(ynothrow, ynothrowv)" @ "Doxygen comment"
+			(
+				/ "detailed descriptions",
+				+ "more '\see' commands to reference WG21 papers"
+			),
+			/ "guaranteed usable for constant expressions" @ "macro %YB_ASSMUE"
+				$=
+			(
+				/ 'YB_IMPL_CLANGPP >= 30501' @ "inclusion condition"
+					@ "macro %YB_ASSUME" -> 'YB_IMPL_CLANGPP >= 50000';
+				+ DD "'\note' command" @ "Doxygen comment"
+			),
+			/ $dev "assumed SAL available by 'defined' check regardless of \
+				Microsoft VC++ version" @ "macro %YB_ATTR_nodiscard",
+			/ DLI "macro %YB_NORETURN" $=
+			(
+				/ ^ "%YB_ATTR_STD(noreturn)" ~ '[[noreturn]]',
+					// To be more consistent to other standard attribute macros.
+				/ $design "ensured suffix 'L'" @ '200809'
+			),
+			/ $dev $lib "excluded Clang++ extension" $effective
+				@ "macros %(YB_NORETURN, YB_ATTR_maybe_unused)"
+				// To eliminate Clang++ warning in pre C++17 modes: \
+					[-Wc++17-extensions].
+			/ $dev $lib "refined condition for %__has_cpp_attribute with \
+				versions" $effective
+				@ "macros %(YB_ATTR_maybe_unused, YB_ATTR_nodiscard)"
+				// To be consistent with %YB_NORETURN.
+		),
+		/ %YStandardEx $=
+		(
+			* $comp "unusable when 'YB_ASSUME' not supporting to evaluate to \
+				constant expression" @ "macros %(yassume, yconstraint)"
+				@ 'defined(NDEBUG)' @ %CAssert $mismatch $since b832
+				$dep_from ("guaranteed usable for constant expressions"
+				@ "%YB_ASSMUE" @ %YDefinition),
+			/ %Path $=
+			(
+				/ @ "function templates %(to_string, to_string_d)" $=
+				(
+					+ $dev $lib 'YB_ATTR_nodiscard YB_PURE',
+					/ "split overloads with support of separator type and \
+						default '/'";
+						// Separator type shall support %operator+= on the \
+							result.
+					/ DLI "implicit default argument" @ "function templates \
+						%to_string" -> "character" ~ "character array poiner"
+						// This is more efficient as well as consistent to \
+							%to_string_d.
+				),
+				- DLDI "header inclusion %TypeOperation",
+				+ 'explicit' @ "constructor template with parameter pack"
+					@ "class template %path"
+					// Although looking like an overkill, it prevents \
+						container constructed implicitly from an allocator \
+						value.
+			)
+		)
+	),
+	+ $dev $lib 'YB_ATTR_nodiscard' @ ($re_add(b969) "all definitions with \
+		%DefBoolNeg" @ %YFramework.(YCLib.FileSystem, YSLib.Core.ValueNode,
+		NPL.SContext), $re_add(b970) ("all definitions with %DefCvt"
+		@ %YSLib.Core.ValueNode, "all definitions with %DefGetter"
+		@ %(YFramework.NPL.SContext, YSLib.Core.ValueNode,
+		YReader.ReaderSetting), "all definitions with %DefPred"
+		@ %YFramework.NPL.SContext)),
+	- DLDI 'YB_PURE' @ "definitions with one of %(DefCvt, DefNeg, DefBoolNeg)"
+		$dep_from "implied pure conversion functions"
+		$effective @ %YFramework.(YCLib.FileSystem, NPL.SContext),
+		// Actually no %DefNeg is used, and %DefCvt with 'YB_PURE' is only \
+			used in %YCLib.FileSystem.
+	/ DLI "explicitly constructed %String for %string results" $effective
+		@ ("static member functions %(DefaultExtractText, ExtractNodeName)"
+		@ %UI.TreeList, ("member function %SettingPanel::operator<<"
+		@ %ReaderSettingUI, "member function %ColorBox::SetColor"
+		@ %ColorPicker, ("label text" @ "event handler %HexArea.ViewChanged"
+		@ "constructor %ShlHexBrowser", "member function \
+		%TextInfoBox::UpdateData") @ %ShlReader, "member fuction \
+		%SystemInformationPanel::UpdateContents" @ %About) @ %YReader)
+		$dep_to "explicit string conversion",
+	/ %YFramework $=
+	(
+		/ DLDI %Reference $=
+		(
+			/ $re_add(b965) DLDI "type-parameter-key for deleter" -> 'typename'
+				~ 'class' $effective @ "class template %unique_ptr_from",
+			- "header inclusion %YBase.YStandardEx.Pointer"
+				// %YBase.YStandardEx.Memory has implied it.
+		),
+		/ DLDI "avoided unscoped use of enum of %platform_ex::FileAttributes"
+			$effective @ "platform %Win32" @ %(YCLib.FileSystem,
+			'YCLib_(Win32)'.MinGW32) $dep_to "scoped FileAttributes",
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ "inserted 1st parameter 'wstring::allocator_type = {}'"
+				@ "functions %(FetchSystemPath, FetchWindowsPath)",
+			/ @ "class %DirectoryFindData" $=
+			(
+				/ "3 constructors" -> "4 constructors with \
+					conditonally proper allocator support",
+				- DLDI "redundant 'YB_PURE'" @ "function %GetEntryName"
+					// This has been already implied in %DefGetter.
+			),
+			(
+			+ 'DefBitmaskEnum(FileAttributes)';
+			/ "enum %FileAttributes" -> "enum class"
+				$dep_from "scoped FileAttributes",
+				// Also to eliminate Clang++ warning: [-Wshadow] of \
+					%WConsole::Normal in %Consoles.
+			),
+			(
+			+ 'DefBitmaskEnum(FileAttributesAndFlags)';
+			/ "enum %FileAttributesAndFlags" -> "enum class"
+				// To be consistent to %FileAttributes
+			),
+			/ DLDI ^ "one more '{}' for unnamed struct" @ "::OVERLAPPED value \
+				initializer" @ "functions %(TryLockFile, UnlockFile)"
+				// To eliminate Clang++ warning: [-Wmissing-brace].
+		),
+		/ %YCLib $=
+		(
+			/ %Reference $=
+			(
+				+ 'using ystdex::allocator_delete;',
+				+ 'using ystdex::allocator_guard_delete;'
+			),
+			/ %FileSystem $=
+			(
+				/ @ "class %HDirectory" $=
+				(
+					+ "functions %operator std::(string, u16string)",
+					+ "functions %(ConvertToMBCS, ConvertToUCS2)",
+					/ @ "functions %operator (string, u16string)" $=
+					(
+						/ "simplified functions with allocator support"
+							^ $dep_from "%(ConvertToMBCS, ConvertToUCS2)",
+						+ 'explicit'
+					)
+				),
+				/ @ "platform %Win32" @ "function %ugetcwd#1" $=
+				(
+					(
+					/ $impl ^ "%::(GetCurrentDirectoryW, WideCharToMultiByte)"
+						~ "%::_wgetcwd";
+						// This is more lightweight and now all overloads are \
+							consistent to %std::filesystem::current_path \
+							implementation in Microsoft STL. Notice ISO C++20 \
+							[fs.op.current.path]/1 states it is equivalent to \
+							POSIX %::getcwd.
+					* $comp "missing check of 2nd parameter not in the range \
+						of %int" $orig
+						(@ "function %u16getcwd_n" @ %YCLib.YCommon $since b304)
+						// This is actually a narrow contract and the behavior \
+							of the CRT invalid parameter handler.
+					),
+					/ DLI "simplified" ^ "%CallNothrow"
+				),
+				/ DLI "simplified" @ !"platform %Win32" @ "function %ugetcwd#2"
+					^ "%CallNothrow",
+				/ @ "class %DirectorySession"
+				(
+					(
+					+ "alias %NativeChar";
+					+ "last parameter of allocator type with default argument \
+						'{}'" @ "constructors#(1, 2, 3)" $dep_from
+						("constructors %DirectoryFindData"
+						@ %'YCLib_(Win32)'.MinGW32)
+					),
+					/ DLI "data deleter" @ "platform %Win32" ^ $dep_from
+						("%allocator_delete" @ %Reference) ~ "%default_delete",
+					(
+					+ "additional 2 constructors for 'wchar_t' string"
+						@ "platform %Win32" $dep_from ("constructors \
+						%DirectoryFindData" @ %'YCLib_(Win32)'.MinGW32);
+					/ DLI "optimized" @ "platform %Win32" @ "consructor#(1, 2)"
+					),
+					+ "constructor template with parameter of %basic_string \
+						instances"
+				),
+				/ DLDI "simplified member alias %HDirectory::NativeChar"
+					^ $dep_from "%DirectorySession",
+				(
+				+ "function templates %(2 FetchSeparatorString_P, \
+					FetchSeparatorString)";
+				/ DLI "function template %((FetchRootNameLength_P, \
+					FetchRootPathLength_P)#4)"
+					^ "%FetchSeparatorString_P" ~ "%ystdex::to_array"
+					// The string is a bit different in layout.
+				),
+				- $revert(b707) "function templates %(TrimTrailingSeperator; \
+					TrimTrailingSeperator_P)" $dep_from
+					("%IO::TrimTrailingSeperator" @ %YSLib.Adaptor.YAdaptor)
+			)
+		),
+		/ %YBaseMacro $=
+		(
+			+ 'YB_ATTR_nodiscard' @ "macro %DefClone",
+				// Now attributes are limited to other standard attributes.
+			/ DLDI "simplified macro %DefCvt" ^ "%PDefCvt",
+			+ 'YB_PURE' @ "macros %(DefNeg, DefCvt)"
+				$dep_to "implied pure conversion functions"
+		),
+		/ %NPL $=
+		(
+			/ $dev $lib %SContext $=
+			(
+				+ "header inclusions %YBase.YStandardEx.(Utilities, Invoke, \
+					Functor, Compose)",
+				- $design $impl "'YSLib::' before 'default_allocator'"
+					$effective @ "member alias %Session::allocator_type"
+			),
+			/ %NPLAMath $=
+			(
+				/ DLB $impl "'#error' message" @ 'FLT_RADIX != 2',
+				/ $re_add(b962) DLDI "adjusted minor comments",
+				* "invalid 'YB_STATELESS'" @ "conversion to floating-point \
+					number functions" @ $impl "%uint128_t"
+					@ !'NPL_Impl_NPLAMath_has_uint128' $since b932
+					// Also to eliminate G++ warning: [-Wattributes] after the \
+						change of %DefCvt.
+				+ DLI 'ynothrowv' @ "internal decimal accumulating functions",
+				(
+				+ "default template argument 'long double'"
+					@ "transformation trait %ExtFPConv"
+				+ "transformation trait %ExtFPConv_t";
+				* "missing support of extended floating-pointer conversion type"
+					@ !'NPL_Impl_NPLAMath_UseQuadMath' @ "class %uint128_t"
+					@ !'NPL_Impl_NPLAMath_has_uint128' $since b933,
+					// This is required for the default compiler (Clang++) on \
+						platform %MinGW_Clang32 which has no libquadmath \
+						available as GCC.
+				/ DLDI "simplified" ^ "%ExtFPConv_t"
+					~ "%(ystdex::_t, ExtFPConv)"
+				),
+				* "invalid implementation" @ "function template specialization \
+					%WriteDecimalDigitsIn<32>"
+					@ !'NPL_Impl_NPLAMath_LongDoubleAsDouble' $since b933,
+					// This broke build in Termux but not Android NDK.
+				/ DLI "conditional inclusion for function definition \
+					%u128_div_25"
+					// To eliminate Termux Clang++ warning: [-Wunused-function].
+			)
+		),
+		/ $re_add(b970) DLDI "all '::value' not forming an operand to an \
+			operator and not after a qualified type-id" @ "non-type argument \
+			of some metafunctions" -> '{}' @ ($effective @ ("function template \
+			%AddValueTo#(3, 4)", ("metafunction %enable_if_key_t",
+			"function template %SetContent#1") @ "class %ValueNode"
+			@ %YSLib.Core.ValueNode, ($effective "member function template \
+			%TermNode::SetContent" @ %SContext, $effectie @ "function template \
+			%ThrowTypeErrorForInteger" @ $impl %NPLAMath) @ %NPL),
+		/ $re_add(b970) DLDI "all '::value' not forming an operand to an \
+			operator and not after a qualified type-id in class scope"
+			@ "other value contexts"
+			@ ($impl %NPL.NPLAMath, 'YCLib_(Win32)'.DSIO) -> '()',
+		/ $dev $lib @ ("class %ValueNode" @ %YSLib.Core.ValueNode,
+			"class %TermNode" @ %NPL.SContext) $=
+		(
+			+ 'YB_ATTR_nodiscard' @ "all %(CreateRecursively, CreateWith)",
+			/ $design $impl "simplified function template %CreateRecursively"
+				^ "%ystdex::enable_if_same_t"
+				~ "%ystdex::(enable_if_t, std::is_same)"
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor $=
+			(
+				/ DD $impl "adjusted group for \
+					'using platform::FetchCurrentWorkingDirectory;'",
+				/ @ "namespace %IO" $=
+				(
+					+ 'using platform::FetchSeparatorString;' $dep_from
+						("%platform::FetchSeparatorString" @ %YCLib.FileSystem),
+					- $revert(b707) 'using platform::TrimTrailingSeperator'
+						$dep_from
+						("%NormalizeDirectoryPathTail" @ %Service.FileSystem),
+					/ DLDI "reordered declarations as order of %YCLib.(FileIO, \
+						FileSystem)"
+				)
+			),
+			/ %Service.FileSystem $=
+			(
+				/ @ "namespace %IO" $=
+				(
+					+ "function template %VerifyDirectories",
+					/ $lib "all decayed string return type"
+						^ "%ystdex::remove_cvref" ~ "%ystdex::decay_t"
+						$effective @ "function templates \
+						%(NormalizeDirectoryPathTail, VerifyDirectoryPathTail)",
+						// The changes only affect ill-formed instantiations.
+					/ DLI "enabled allocator for variable converted from the \
+						string view" @ "function template %TraverseTree",
+					/ @ "class %Path" $=
+					(
+						+ "function %operator/= with 'Path&&' parameter",
+						+ "function %operator/= with 'ypath&&' parameter",
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE'
+							@ ("functions %(GetLeafString, GetString)",
+							"friend function %to_string"),
+						/ DLI "enabled allocator"
+							@ "friend function %to_string",
+						/ DLI "simplified function %(GetLeafString, GetString)"
+							!^ ('{', '}') $dep_from $forced
+							("%to_string" @ %YBase.YStandardEx.Path),
+						/ DLDI @ "(constructor, %operator/=) with templated \
+							string value parameter" $=
+						(
+							// This keeps the compatibility because only types \
+								having unabiguous conversion to exact one of \
+								the targets are supported.
+							/ "selected conversion to %String over \
+								%u16string_view" @ "%operator/=";
+							/ "simplified SFINAE"
+						),
+						(
+						+ 'explicit' @ "constructor with only one parameter of \
+							%Path or %ypath" $dep_from ("constructor template \
+							%path" @ %YBase.YStandardEx.Path);
+							// This relies on the change of %ystdex::path to \
+								avoid the potential ambiuity for the case of a \
+								single argument converting to allocator (as \
+								the ill-formed examples in WG21 P1518R2). This \
+								also makes them more consistent to \
+								constructors of %String with changes below.
+						/ "split constructors with 'ypath' parameter"
+							-> "constructors with 'const ypath&' and 'ypath&&' \
+							parameter with condional allocator propagation",
+							// This should be more efficient in spite of \
+								allocator propagation due to less %ypath \
+								objects need to be constructed and destroyed \
+								immediately.
+						),
+						+ "friend function %operator/ with %(ypath, \
+							string_view) parameter"
+							^ "private bases %ystdex::dividable<Path, (ypath, \
+							string_view)>",
+						(
+						+ "friend function %to_string_d";
+						/ DLDI "simplified function %GetString"
+						),
+						+ "friend function templates %(to_string, to_string_d)"
+							$dep_from %YBase.YStandardEx.Path
+					),
+					/ @ "function %MakeNormalizedAbsolute" $=
+					(
+						+ $lib $dev 'YB_ATTR_nodiscard YB_PURE',
+						(
+						+ "overload with 'Path&&' parameter";
+							// This optimized against prvalues.
+						/ DLI "simplified overload with 'const Path&' parameter"
+							// It is more efficient than unifying to 'Path'.
+						)
+					),
+					/ DLI "simplified function template \
+						%NormalizeDirectoryPathTail" ^ $dep_from
+						(("%IO::FetchSeparatorString" @ %Adaptor.YAdaptor),
+						"%ystdex::rtrim") ~ "%TrimTrailingSeperator",
+					/ DLI "enabled allocator for internal path values"
+						@ "function %(InstallDirectory, EnsureDirectory)",
+					(
+					/ @ "function templates %(Traverse; TraverseChildren)" $=
+					(
+						+ "trailing parameter 'string::allocator_type = {}'"
+							@ "overload with 'const char*' parameter"
+							$dep_from ("constructors %DirectorySession"
+							@ %YCLib.FileSystem);
+						/ DLI "enabled allocator from 1st parameter"
+							@ ("overloads with %string parameter";
+							$comp "overload with %Path parameter")
+					);
+					/ $comp DLI "eanbled allocator from source path"
+						@ "function template %TraverseTree"
+					),
+					/ @ "%VerifyDirectory" $=
+					(
+						+ $dev $lib 'YB_ATTR_nodiscard YB_PURE',
+						/ "%overloads#(1, 2, 3, 4, 5)" -> "3 function templates"
+							^ $dep_from ("constructors %DirectorySession"
+							@ %YCLib.FileSystem)
+					)
+				),
+				* "missing inclusion %YBase.YStandardEx.Operators" $since b600
+					// For %ystdex::(totally_ordered, dividable).
+			),
+			/ %Core $=
+			(
+				/ DLI %ValueNode $=
+				(
+					/ "converted PMR string" @ "function %StringifyToNode#2"
+						^ "allocator",
+					/ $design "simplified" ^ $re_add(b969)
+						(^ "%ystdex::enable_if_inconstructible_t"
+						~ "%(ystdex::enable_if_t, std::is_constructible)"
+						$effective @ "function templates %(AccessNode#6, \
+						AccessNodePtr#14)", ^ "%ystdex::enable_if_same_t"
+						~ "%(ystdex::enable_if_t, std::is_same)" $effective
+						"all 2 member function templates %AddChild" @ "class \
+						%ValueNode", ^ "%ystdex::enable_if_interoperable_t"
+						~ "%(ystdex::enable_if_t, ystdex::is_interoperable)"),
+					+ "default template argument %string" @ "all function \
+						templates %(AsNode, MakeNode, StringifyToNode)"
+				),
+				/ %YString $=
+				(
+					+ DD $re_add(b969) "several '\c' before C++ names"
+						@ "Doxygen comments"
+						$effective @ "constructors %Text::String",
+					/ @ "class %String" @ "namespace %Text" @ %Core.YString $=
+					(
+						/ "type %std_u16string" >> "namespace %Text",
+						/ @ "constructors with parameter of %std::basic_string \
+							instances" $=
+						(
+							/ "enabled incompatible allocators" @ "all 2 \
+								constructor templates with parameter of \
+								%std::basic_string instances but no allocator \
+								parameter"
+								^ "%ystdex::make_obj_using_allocator";
+							+ "'explicit' on overload with only one parameter"
+								$dep_from ("private bases" @ "class %Path"
+								@ %Service.FileSystem,
+								"explicit string conversion"),
+							/ "enabled allocator from the string parameter"
+								@ "overloades not having the allocator"
+								// This is a kind of allocator propagation.
+						),
+						+ "allocator-aware (copy, move) consructors",
+						/ "propagated allocator"
+							@ "copy (constructor, %operator=)",
+						+ DLI 'inline' @ "all 16 constructor templates",
+						+ "(4 functions, 3 function templates) %operator(=, +=)"	
+							// For adjusted return type and allocator \
+								propagation.
+					)
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				+ "alias %ValueNodeCreator";
+				/ "3rd parameter type" @ "function %LoadNPLA1File"
+					-> "%ValueNodeCreator" ~ "%ValueNode(*)()",
+				/ "inserted parameter 'ValueNode::allocator_type' before the \
+					last parameter" @ "functions %(LoadNPLA1File, \
+					LoadConfiguration)" ^ $dep_from
+					"%platform_ex::FetchWindowsPath" @ %'YCL_(Win32)'.MinGW,
+				* DLI "redundant unused variable" $since b688,
+				/ DLDI "simplified functions %(CheckLocalFHSLayout, \
+					FetchLocalFHSRootPath)" ^ $dep_from
+					("%IO::VerifyDirectories" @ %YSLib.Service.FileSystem),
+				/ "function %CheckLocalFHSLayout" >> %YSLib.Service.FileSystem
+			),
+			/ $forced DLDI "constructor %Environment" @ %Environment
+				$dep_from $forced ("%LoadConfiguration" @ %Initialization)
+		)
+	),
+	/ %YReader $=
+	(
+		/ %ReaderSetting $=
+		(
+			* "dangling pointer used" @ "fetching %Color settings"
+				@ "constructor %ReaderSetting#2" $since b334,
+				// Also to eliminate Clang++ 15.0 warning: [-Wdangling-gsl].
+			/ "function %operator ValueNode" @ "class %ReaderSetting"
+				-> "function %ToNodeContainer" ^ $dep_from ("%(AsNode, \
+				StringifyToNode)" @ %YFramework.YSLib.Core.ValueNode),
+		),
+		+ "2nd parameter 'allocator_type = {}'"
+			@ "function %FetchEncodingString" @ %ReaderSettingUI,
+		/ DLI "enabled allocator on the string operand" @ ("event handler \
+			%ddlEncoding.GetConfirmed()" @ "label text" @ "constructor \
+			%SettingPanel" @ %ReaderSettingUI $dep_from "%FetchEncodingString",
+			("label text" @ "event handler %HexArea.ViewChanged"
+			@ "constructor %ShlHexBrowser, "member function \
+			%TextInfoBox::UpdateData") @ %ShlReader, ("label text"
+			@ "constructor %AboutPanel",
+			"member function %UpdateContents::UpdateContents") @ %About),
+		/ %ShlReader $=
+		(
+			/ DLDI "member function %ShlReader::LoadGlobalConfiguration"
+				$dep_from $forced ("function %LoadConfiguration"
+				@ %YFramework.Helper.Initialization),
+			/ DLI "enabled allocator from the root node" @ "function \
+				%SaveGlobalConfiguration" $dep_from $forced %ReaderSetting,
+			- "trailing space" @ "label text" @ "event handler \
+				%HexArea.ViewChanged" @ "constructor %ShlHexBrowser"
+		),
+		/ "label text" @ "constructor %AboutPanel" @ %About $=
+		(
+			/ $re_add(b962) "updated copyright year"
+			/ $re_ex(b962) "version"
+				^ ("%YSL_SemVerStr_Short", "%FetchVCSRevison"),
+		)
+	)
+),
+
+b970
 (
 	/ %Documentation.NPL $=
 	(
