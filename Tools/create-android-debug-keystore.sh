@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# (C) 2014-2015, 2020 FrankHB.
+# (C) 2014-2015, 2020, 2023 FrankHB.
 # Script to create Android debug keystore.
 
 set -e
@@ -13,15 +13,16 @@ is_in_path()
 	echo "$cmd"
 	echo "$path"
 
-	old_IFS="$IFS"
-	IFS=":"
+	saved_IFS="$IFS"
+
+	IFS=:
 	for dir in $path
 	do
-		if [ -x "$dir/$cmd" ]; then
+		if test -x "$dir/$cmd"; then
 			result=0
 		fi
 	done
-	IFS="$old_IFS"
+	IFS="$saved_IFS"
 	return $result
 }
 

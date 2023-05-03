@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24724
+\version r24836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2023-03-24 23:01 +0800
+	2023-04-19 59:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2782,76 +2782,74 @@ QueryTypeName(const type_info& ti)
 }
 
 void
-TraceBacktrace(const ContextNode::ReducerSequence& backtrace,
-	YSLib::Logger& trace) ynothrow
+TraceAction(const Reducer& act, YSLib::Logger& trace)
 {
-	if(!backtrace.empty())
+	using YSLib::Notice;
+	const auto name(A1::QueryContinuationName(act));
+	const auto p(name.data() ? name.data() :
+#if NDEBUG
+		"?"
+#else
+		// XXX: This is enabled for debugging only because the name is not
+		//	guaranteed steady.
+		ystdex::call_value_or([](const Continuation& cont) -> const type_info&{
+			return cont.Handler.target_type();
+		}, act.target<Continuation>(), act.target_type()).name()
+#endif
+	);
+	const auto print_cont([&]{
+		trace.TraceFormat(Notice, "#[continuation (%s)]", p);
+	});
+#if NPL_Impl_NPLA1_Enable_TCO
+	if(const auto p_act = act.target<TCOAction>())
+	{
+		for(const auto& r : p_act->GetFrameRecordList())
+		{
+			const auto& op(NPL::get<ActiveCombiner>(r));
+
+			if(IsTyped<TokenValue>(op))
+			{
+				// XXX: No %NPL::TryAccessValue is needed, since %op comes from
+				//	operators from the record list of %TCOAction, which is not a
+				//	term value.
+				if(const auto p_opn_t = op.AccessPtr<TokenValue>())
+				{
+					const auto p_o(p_opn_t->data());
+					// XXX: This clause relies on the source information for
+					//	meaningful output. Assume it is used.
+#	if true
+					if(const auto p_si = QuerySourceInformation(op))
+						trace.TraceFormat(Notice, "#[continuation: %s (%s) @ %s"
+							" (line %zu, column %zu)]", p_o, p, p_si->first
+							? p_si->first->c_str() : "<unknown>",
+							p_si->second.Line + 1, p_si->second.Column + 1);
+					else
+#	endif
+						trace.TraceFormat(Notice, "#[continuation: %s (%s)]",
+							p_o, p);
+				}
+				else
+					print_cont();
+			}
+			else
+				print_cont();
+		}
+	}
+#endif
+	print_cont();
+}
+
+void
+TraceBacktrace(ContextNode::ReducerSequence::const_iterator first,
+	ContextNode::ReducerSequence::const_iterator last, YSLib::Logger& trace)
+	ynothrow
+{
+	if(first != last)
 	{
 		YSLib::FilterExceptions([&]{
-			using YSLib::Notice;
-
-			trace.TraceFormat(Notice, "Backtrace:");
-			for(const auto& act : backtrace)
-			{
-				const auto name(QueryContinuationName(act));
-				const auto p(name.data() ? name.data() :
-#if NDEBUG
-					"?"
-#else
-					// XXX: This is enabled for debugging only because the name
-					//	is not guaranteed steady.
-					ystdex::call_value_or([](const Continuation& cont)
-						-> const type_info&{
-						return cont.Handler.target_type();
-					}, act.target<Continuation>(), act.target_type()).name()
-#endif
-				);
-				const auto print_cont([&]{
-					trace.TraceFormat(Notice, "#[continuation (%s)]", p);
-				});
-#if NPL_Impl_NPLA1_Enable_TCO
-				if(const auto p_act = act.target<TCOAction>())
-				{
-					for(const auto& r : p_act->GetFrameRecordList())
-					{
-						const auto& op(NPL::get<ActiveCombiner>(r));
-
-						if(IsTyped<TokenValue>(op))
-						{
-							// XXX: No %NPL::TryAccessValue is needed, since %op
-							//	comes from operators from the record list of
-							//	%TCOAction, which is not a term value.
-							if(const auto p_opn_t = op.AccessPtr<TokenValue>())
-							{
-								const auto p_o(p_opn_t->data());
-								// XXX: This clause relies on the source
-								//	information for meaningful output. Assume it
-								//	is used.
-#	if true
-								if(const auto p_si = QuerySourceInformation(op))
-									trace.TraceFormat(Notice, "#[continuation:"
-										" %s (%s) @ %s (line %zu, column %zu)]",
-										p_o, p, p_si->first
-										? p_si->first->c_str() : "<unknown>",
-										p_si->second.Line + 1,
-										p_si->second.Column + 1);
-								else
-#	endif
-									trace.TraceFormat(Notice,
-										"#[continuation: %s (%s)]", p_o, p);
-							}
-							else
-								print_cont();
-						}
-						else
-							print_cont();
-					}
-				}
-				print_cont();
-#else
-				print_cont();
-#endif
-			}
+			trace.TraceFormat(YSLib::Notice, "Backtrace:");
+			for(; first != last; ++first)
+				TraceAction(NPL::Deref(first), trace);
 		}, "guard unwinding for backtrace");
 	}
 }

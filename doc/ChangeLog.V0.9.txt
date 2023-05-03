@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r16612
+\version r16846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 900
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-04-05 04:18 +0800
+	2023-05-04 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,240 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLDI %ExpandedFunction $=
+		(
+			/ $re_add(b967) "simplified" ^ "%enable_if_constructible_t"
+				~ "%(enable_if_t, is_constructible)"
+				$effective @ "2 constructor templates %expanded_function \
+				with sole callable parameter",
+			/ "all '::value' not forming an operand to an operator and not \
+				after a qualified type-id" $=
+			(
+				$re_add(b968) @ "operand of %noexcept operator" -> '()'
+					$effective "2 constructors %expanded_function with \
+					pointer to member parameter",
+				$re_add(b971) @ "non-type argument of some metafunctions"
+					-> '{}' $effective @ ("default template argument"
+					@ "class template %expand_proxy",
+					"%operator=#2" @ "class template %expanded_function"),
+				$re_add(b971) "in class scope" @ "other value contexts"
+					-> '()' $effective
+					@ "class template specialization %expanded_function"
+			)
+		),
+		/ %Meta $=
+		(
+			* DD "incorrect description" @ "'\note' command" @ "unary type \
+				trait %is_throwing_move_copyable" $since b865,
+				// This was the opposite to what it actually did.
+			/ $re_add(b971) DLDI "all '::value' not forming an operand to an \
+				operator and not after a qualified type-id"
+				@ "non-type argument of some metafunctions" -> '{}' $effective
+				("default template argument" @ $impl "metafunction \
+				%is_same_or_convertible", "metafunctions \
+				%(enable_if_constructible_t, enable_if_constructible_r_t, \
+				enable_if_convertible_t, enable_if_interoperable_t, \
+				enable_if_same_t, enable_if_same_param_t, \
+				enable_if_unsigned_t)"),
+			/ $re_add(b968) DD "updated outdated URL" @ "3rd '\see' command"
+				@ "Doxygen comment" @ "functor %id",
+			/ $re_add(b968) DD "all accessible URLs" ^ 'https://' ~ 'http://'
+				$effective @ "Doxygen comment" @ "functor %id",
+			/ $re_add(b968) DD "shortened URLs of stackoverflow.com"
+				$effective @ "Doxygen comment" @ "metafunction %well_formed_t",
+			+ "unary type trait %is_array_of_unqualified_object"
+		),
+		/ %Allocator $=
+		(
+			/ $lib $impl "excluded arguments not constructible for %base"
+				@ "constructor template with 1 parameter"
+				@ "class template %(allocator_guard_delete, allocate_delete)",
+				// This is an enhancement but not a bug, since no SFINAE has \
+					been relied on yet.
+			+ "function templates %(call_using_allocator, \
+				invoke_using_allocator),
+			(
+			+ "2 function templates %(forward_with_allocator; \
+				pass_with_allocator)";
+			+ "function templates %(call_with_allocator, \
+				invoke_with_allocator)"
+			)
+		),
+		/ %TypeOperation $=
+		(
+			/ $re_add(b971) "all '::value' not forming an operand to an \
+				operator and not after a qualified type-id when appropriate"
+				@ "non-type argument of some metafunctions" -> '{}' $effective
+				@ "type trait %exclude_self_params_t",
+				// Note %(has_nonempty_virtual_base, \
+					have_common_nonempty_virtual_base) are not changed since \
+					their implementations only have %value data member and no \
+					base characters or conversion functions can be used for \
+					'{}' or '()'.
+			* "missing %empty_base wrapping for parameter pack"
+				@ "metafunction %nonempty_pack_or_t" $since b942,
+			* "wrong access of incomplete type" @ "metafunction %head_of_t"
+				$since b942 $dep_from $forced "%nonempty_pack_or_t"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %YCommon $=
+			(
+				/ "function template %RetryOnError" -> ("%retry_on_error"
+					@ %YBase.YStandardex.ExpandedFunction),
+				+ 'ynothrow' @ "all 3 functions %IsPrint",
+				+ $re_add(b971) $dev $lib 'YB_ATTR_nodiscard'
+					@ "all definitions with %DefGetter"
+					$effective @ "class %CommandArguments",
+				+ "function template %CallSysNothrow"
+			),
+			* "order of 'YB_ATTR_nodiscard' and 'YB_ATTR_returns_nonnull'"
+				@ "function %AndroidLogSender::GetTag" @ %Debug $since b969
+				// This does not build with Clang++.
+		),
+		/ %YSLib.Core.ValueNode $=
+		(
+			/ @ "class %ValueNode" $=
+			(
+				+ $re_add(b971) "default argument %string" @ "template \
+					parameter %_tString" @ "all 7 constructor templates with \
+					'_tString' template parameter and function templates \
+					%(Place, PlaceUnchecked, PlaceValue)"
+					// This enables the support of initalizer-lists for \
+						constructing a %string value.
+				/ "enabled allocator for name string% copies"
+					^ $dep_from ("%ystdex::pass_with_allocator"
+					@ %YBase.YStandardEx.Allocator) ~ 'ynothrow'
+					"enabled allocator for ValueNode name copies"
+			),
+			/ @ "class %NodeLiteral" $=
+			(
+				/ "constuctors#(3, 4)" -> "2 constructor templates"
+					^ $dep_from ("%ystdex::head_of_t"
+					@ %YBase.YStandardEx.TypeOperation),
+				(
+				+ $re_add(b971) "default template argument %string"
+					@ "template parameter %_tString" @ "all constructor \
+					templates with '_tString' template parameter";
+				/ DLI $comp "enabled allocator on name %string copies"
+					$dep_from "enabled allocator for ValueNode name copies"
+				),
+				+ "function %get_allocator"
+			),
+			/ $re_add(b967) DLDI "simplified"
+				^ "%ystdex::enable_if_constructible_t"
+				~ "%(ystdex::enable_if_t, std::is_constructible)"
+				$effective @ "class %ValueNode",
+			/ @ "function %MakeIndex" $=
+			(
+				+ "trailing paramete 'string::allocator_type = {}'",
+				+ $re_add(b970) DLI
+					"'YB_ASSUME(false)' after 'YAssert' with false condition"
+					// Also as constructor %Terminal::Terminal#2 @ %Host.
+			)
+		),
+		/ %NPL $=
+		(
+			+ $re_add(b971) $dev $lib 'YB_ATTR_nodiscard'
+				@ ("all definitions with %DefGetter" %(NPLA1, $impl NPLA),
+				"all definitions with %DefPred" @ %NPLA1)),
+			/ %NPLA $=
+			(
+				+ 'const' @ "parameter type" @ "function %TraceException",
+				(
+				+ $re_add(b876) "configurable macro \
+					%NPL_NPLA_CheckResolvedEnvironment",
+				/ "enabled check against empty environment pointer"
+					@ 'NPL_NPLA_CheckResolvedEnvironment'
+					@ ("all 2 functions %ResolveEnvironmentValue";
+					$comp "all 2 functions %(ResolveEnvironmentReferent; \
+					ResolveEnvironment)")
+				),
+				/ DLI "prevented redundant copy of environment pointer"
+					@ "member function %SingleWeakParent::TryRedirect",
+				+ $re_add(b970) DLDI 'const' @ "pair local variable"
+					@ "functions %(MoveResolved, ResolveIdentifier)"
+			),
+			/ %NPLA1 $=
+			(
+				+ ('\ingroup tags', '\relates LoadOption') @ "Doxygen comment"
+					@ "alias template %LoadOptionTag" @ "class %GlobalState",
+				(
+				+ "function %TraceAction";
+				+ "function %TraceBacktrace with 2 iterator parameters";
+				/ $src DLDI "function %TraceBacktrace#2"
+					-> "inline function"
+				),
+				+ DLDI "'A1::' before 'AddTypeNameTableEntry'"
+					@ "function template %InitializeTypeNameTableEntry"
+			)
+		)
+	),
+	/ DLI %Tools $=
+	(
+		/ "variable %old_IFS" @ "function %is_in_path"
+			@ "create-android-debug-keystore.sh" >> "%saved_IFS",
+		/ "quoted uses of %SHBuild_CXX_Style_" @ "%SHBuild-common-options.sh"
+			@ %Scripts
+			// This makes no difference at current since the name always \
+				has no spaces. '[[]]' can also make it free to quotes.
+	),
+	/ DLI "simplified shell comparation to empty string" $=
+	(
+		// By avoiding '[[' and ']]', this is also compatible to POSIX rather \
+			than being specific to GNU bash.
+		^ 'test -z' ~ ('[[', "== '' ]]") $effective @ ((("%GenerateProject.sh",
+			"%PatchRevision.sh", ("top-level", "functions %(SHBuild_Puts, \
+			SHBuild_InitReadonly, SHBuild_CheckPCH)") @ "%SHBuild-common.sh",
+			"%SHBuild-common-options.sh", "%SHBuild-YSLib.sh") @ %Scripts,
+			"%install-sysroot.sh") @ %Tools),
+		^ 'test -n' ~ ('[[', "!= '' ]]") $effective @ (("%PatchRevision.sh"
+			"%SHBuild-build.sh", "%SHBuild-BuildPkg.sh", "functions \
+			%(SHBuild_AssertNonempty, SHBuild_InitReadonly, \
+			SHBuild_CheckUName, SHBuild_GetTempDir, SHBuild_PrepareBuild)"
+			@ "%SHBuild-common.sh", "%SHBuild-common-options.sh",
+			"functions %(SHBuild_CC_Test, SHBuild_CXX_Test)"
+			@ "%SHBuild-common-toolchain.sh") @ %Tools.Scripts,
+			"%SHBuild-YSTest.sh" @ %YSTest, "%biuld-all.sh" @ %YDE),
+		^ 'test -f' ~ ('[[', '-f', ']]') $effective @ ("%PatchRevision.sh"
+			@ %Tools.Scripts),
+		^ 'test -t' ~ ('[[', '-t', ']]') $effective @ ("function \
+			%SHBuild_EchoEscape" @ "%SHBuild-common.sh" @ %Tools.Scripts),
+		^ 'test -x' ~ ('[[', '-x', ']]') $effective
+			@ ("functions %(SHBuild_CC_GetVersion, SHBuild_CXX_GetVersion)"
+			@ "%SHBuild-common-toolchain.sh" @ %Tools.Scripts),
+		^ 'test -x' ~ ('[', '-x', ']') $effective @ ("function %is_in_path"
+			@ "create-android-debug-keystore.sh" @ %Tools),
+		^ ('test', '=') ~ ('[[', '==', ']]') @ ((("%SHBuild-common-options.sh",
+			"%SHBuild-bootstrap.sh", "%SHBuild-build.sh", "functions \
+			%(SHBuild_Platform_Detect, SHBuild_PrepareBuild_Init_Host_Arch_, \
+			SHBuild_GetSystemPrefix)" @ "%SHBuild-common.sh",
+			"%SHBuild-common-options.sh", "functions %(SHBuild_CheckCC, \
+			SHBuild_CheckCXX, SHBuild_CC_GetVersion, SHBuild_CXX_GetVersion, \
+			SHBuild_GetAR_)" @ "%SHBuild-common-toolchain.sh",
+			"%SHBuild-self-host.sh") @ %Scripts, "%install-sysroot.sh")
+			@ %Tools),
+		^ ('test', '!=') ~ ('[[', '!=', ']]')
+			@ ("%SHBuild-common-options.sh" @ %Tools.Scripts)
+	),
+	- DLDI "redundant quotes" @ "nonempty fixed string literals without spaces \
+		except as arguments" @ "shell scripts"
+		$effective @ ("%(SHBuild-bootstrap.sh, SHBuild-build.sh, \
+		SHBuild-common.sh, SHBuild-common-options.sh, SHBuild-self-host.sh)"
+		@ %Scripts, "%install-sysroot.sh") @ %Tools,
+	/ $dev $repo "applied 'chmod +x' for hg on all shell scripts"
+		$effective "22 '.sh' files",
+	* $comp "build failure" @ "platform %Android" $since b969
+		$dep_from %YFramework.YCLib.Debug
+),
+
+b971
 (
 	/ %YBase $=
 	(
@@ -275,7 +509,7 @@ $now
 					@ !'NPL_Impl_NPLAMath_LongDoubleAsDouble' $since b933,
 					// This broke build in Termux but not Android NDK.
 				/ DLI "conditional inclusion for function definition \
-					%u128_div_25"
+					%u128_div_25",
 					// To eliminate Termux Clang++ warning: [-Wunused-function].
 			)
 		),

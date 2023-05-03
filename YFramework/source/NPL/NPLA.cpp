@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4538
+\version r4584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2023-01-23 21:55 +0800
+	2023-04-19 06:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,11 +44,11 @@
 //	YSLib::ExtractException;
 
 //! \since build 903
-//@{
+//!@{
 using YSLib::Warning;
 using YSLib::Err;
 using YSLib::RecordLevel;
-//@}
+//!@}
 
 namespace NPL
 {
@@ -167,22 +167,49 @@ TransformToSyntaxNode(ValueNode&& node)
 namespace
 {
 
-//! \since build 963
-YB_ATTR_nodiscard const shared_ptr<Environment>&
-RedirectToShared(const shared_ptr<Environment>& p_env)
+#if NPL_NPLA_CheckParentEnvironment || NPL_NPLA_CheckResolvedEnvironment
+// NOTE: This is for checked implementation but not interoperations, so
+//	different message and different exception type is issued compared to
+//	%Environment::ThrowForInvalidValue. For checked implementation, this may be
+//	performed immediately before the call to %Environment::ThrowForInvalidValue
+//	indirectly (e.g. by %ContextNode::SwitchEnvironment), so the bahvior can be
+//	different. This is allowed by the object language rules.
+//! \since build 972
+//!@{
+template<class _tParam>
+YB_ATTR_nodiscard inline _tParam&&
+CheckReferencedEnvironment(_tParam&& p_env) ythrow(InvalidReference)
 {
-#if NPL_NPLA_CheckParentEnvironment
 	if(p_env)
-#else
-	YAssertNonnull(p_env);
-#endif
-		return p_env;
-#if NPL_NPLA_CheckParentEnvironment
+		return yforward(p_env);
 	// XXX: Consider use more concrete semantic failure exception.
 	throw InvalidReference(ystdex::sfmt("Invalid reference found for name,"
 		" probably due to invalid context access by a dangling reference."));
+}
+#endif
+
+template<class _tParam>
+YB_ATTR_nodiscard inline _tParam&&
+RedirectToShared(_tParam&& p_env)
+{
+#if NPL_NPLA_CheckParentEnvironment
+	return CheckReferencedEnvironment(yforward(p_env));
+#else
+	return yforward(p_env);
 #endif
 }
+
+template<class _tParam>
+YB_ATTR_nodiscard inline _tParam&&
+ResolveToShared(_tParam&& p_env)
+{
+#if NPL_NPLA_CheckResolvedEnvironment
+	return CheckReferencedEnvironment(yforward(p_env));
+#else
+	return yforward(p_env);
+#endif
+}
+//!@}
 
 //! \since build 869
 // XXX: Use other type without overhead of check on call of %operator()?
@@ -252,7 +279,7 @@ public:
 	DefDeMoveAssignment(AnchorData)
 
 #if NPL_NPLA_CheckEnvironmentReferenceCount
-	DefGetter(const ynothrow, size_t, Count, env_count)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, Count, env_count)
 
 	/*!
 	\brief 转换为锚对象内部数据的引用。
@@ -1158,7 +1185,7 @@ swap(ContextNode& x, ContextNode& y) ynothrow
 TermNode
 MoveResolved(const ContextNode& ctx, string_view id)
 {
-	auto pr(ResolveName(ctx, id));
+	const auto pr(ResolveName(ctx, id));
 
 	if(const auto p = pr.first)
 	{
@@ -1172,7 +1199,7 @@ MoveResolved(const ContextNode& ctx, string_view id)
 TermNode
 ResolveIdentifier(const ContextNode& ctx, string_view id)
 {
-	auto pr(ResolveName(ctx, id));
+	const auto pr(ResolveName(ctx, id));
 
 	if(pr.first)
 		return PrepareCollapse(*pr.first, pr.second);
@@ -1213,9 +1240,9 @@ ResolveEnvironmentValue(const ValueObject& vo)
 {
 	// XXX: Support more environment types?
 	if(const auto p = vo.AccessPtr<EnvironmentReference>())
-		return {p->Lock(), {}};
+		return {ResolveToShared(p->Lock()), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
-		return {*p, true};
+		return {ResolveToShared(*p), true};
 	Environment::ThrowForInvalidType(vo.type());
 }
 pair<shared_ptr<Environment>, bool>
@@ -1223,16 +1250,16 @@ ResolveEnvironmentValue(ValueObject& vo, bool move)
 {
 	// XXX: Ditto.
 	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
-		return {p->Lock(), {}};
+		return {ResolveToShared(p->Lock()), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
-		return {move ? std::move(*p) : *p, true};
+		return {ResolveToShared(move ? std::move(*p) : *p), true};
 	// TODO: Ditto.
 	Environment::ThrowForInvalidType(vo.type());
 }
 
 
 void
-TraceException(std::exception& e, YSLib::Logger& trace)
+TraceException(const std::exception& e, YSLib::Logger& trace)
 {
 	YSLib::ExtractException(
 		[&] YB_LAMBDA_ANNOTATE((const char* str, size_t level), , nonnull(2)){

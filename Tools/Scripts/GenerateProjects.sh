@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2015-2017, 2020 FrankHB.
+# (C) 2015-2017, 2020, 2023 FrankHB.
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
@@ -13,7 +13,7 @@ TopLevel=$(hg root 2> /dev/null || (cd "$(git rev-parse --show-cdup)"; pwd))
 TopLevel=$(SHBuild_2u "$TopLevel")
 : "${ProjectGenerator:="$(which ProjectGenerator)"}"
 
-if [[ "$TopLevel" == '' ]]; then
+if test -z "$TopLevel"; then
 	SHBuild_Puts \
 		'ERROR: Cannot find top level directory. Make sure hg or git in PATH.'
 	exit 1;
@@ -34,7 +34,7 @@ SHBuild_GenerateCBP_()
 
 SHBuild_GenerateCBP_Wrap_()
 {
-	if [[ "$3" == '' ]]; then
+	if test -z "$3"; then
 		SHBuild_GenerateCBP_ "$TopLevel/$2/$2.cbp" "$1" "$2"
 	else
 		SHBuild_GenerateCBP_ "$TopLevel/$2/$3/$2_$3.cbp" "$1" "$2" "$3"

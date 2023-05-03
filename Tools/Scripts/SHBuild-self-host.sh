@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016, 2020-2021 FrankHB.
+# (C) 2014-2016, 2020-2021, 2023 FrankHB.
 # Test script for self-hosting SHBuild.
 
 set -e
@@ -19,7 +19,7 @@ cd "$SHBuild_BaseDir"
 
 # XXX: Disable LTO for MinGW32 to work around memory overflow with
 #	i686-w64-mingw32-g++.
-if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'i686' ]]; then
+if test "$SHBuild_Host_OS" = Win32 && test "$SHBuild_Host_Arch" = i686; then
 	NO_LTO_=-fno-lto
 else
 	NO_LTO_=
@@ -28,7 +28,7 @@ fi
 # shellcheck disable=2086
 "$S1_SHBuild" . "-xd,\"$outdir\"" "$@" $CXXFLAGS $NO_LTO_ $INCLUDES
 # XXX: MinGW will expect 'WinMain' if the linked archive has a 'main' function.
-if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+if test "$SHBuild_Host_OS" = Win32; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
 	"$CXX" -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \

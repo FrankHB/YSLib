@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016, 2018-2022 FrankHB.
+	© 2009-2016, 2018-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4100
+\version r4160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2022-02-26 22:52 +0800
+	2023-04-05 12:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YCLib_Platform
 #include <ystdex/expanded_function.hpp> // for ystdex::decay_t,
-//	ystdex::invoke_result_t, ystdex::retry_on_cond, yfsig;
+//	ystdex::invoke_result_t, ystdex::retry_on_error, yfsig;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <cerrno> // for errno, ENOMEM;
 #include <ystdex/exception.h> // for ystdex::throw_error;
@@ -51,7 +51,7 @@ namespace platform
 \ingroup Platforms
 \since build 652
 */
-//@{
+//!@{
 //! \brief \c YF_Platform_* 宏替换值的公共类型。
 using ID = std::uintmax_t;
 
@@ -106,7 +106,7 @@ YCL_IDTag_SpecOnBase(Android_ARM, Android)
 template<ID... _vN>
 struct IDTagSet : virtual IDTag<_vN>...
 {};
-//@}
+//!@}
 
 /*!
 \brief 包含平台标签的常量表达式函数。
@@ -125,7 +125,7 @@ struct IDTagSet : virtual IDTag<_vN>...
 \note 使用 ADL 调用第二参数。
 \since build 652
 */
-//@{
+//!@{
 // XXX: See $2019-01 @ %Documentation::Workflow.
 #if YB_IMPL_GNUCPP >= 60000
 #	define YCL_DefPlatformFwdTmpl(_n, _fn) \
@@ -138,7 +138,7 @@ struct IDTagSet : virtual IDTag<_vN>...
 #	define YCL_DefPlatformFwdTmpl(_n, _fn) \
 	DefFwdTmplAuto(_n, _fn(platform::IDTag<YF_Platform>(), yforward(args)...))
 #endif
-//@}
+//!@}
 
 
 /*!
@@ -146,13 +146,12 @@ struct IDTagSet : virtual IDTag<_vN>...
 \sa ystdex::is_detected
 \since build 651
 */
-//@{
+//!@{
 #define YCL_CheckDecl_t(_fn) CheckDecl##_fn##_t
 #define YCL_DeclCheck_t(_fn, _call) \
 	template<typename... _tParams> \
-	using YCL_CheckDecl_t(_fn) \
-		= decltype(_call(std::declval<_tParams>()...));
-//@}
+	using YCL_CheckDecl_t(_fn) = decltype(_call(std::declval<_tParams>()...));
+//!@}
 
 
 /*!
@@ -192,9 +191,9 @@ enum RecordLevel : std::uint8_t
 
 
 //! \since build 714
-//@{
-//! \note 省略第一参数时为 std::system_error 。
-//@{
+//!@{
+//! \note 第一参数指定抛出的异常类型，为空时默认类型是 std::system_error 。
+//!@{
 /*!
 \brief 按错误值和指定参数抛出第一参数指定类型的对象。
 \note 先保存可能是左值的 errno 以避免参数中的副作用影响结果。
@@ -219,7 +218,7 @@ enum RecordLevel : std::uint8_t
 			ystdex::throw_error<_t>(err_, \
 				platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
 	}while(false)
-//@}
+//!@}
 
 /*!
 \brief 跟踪 errno 取得的调用状态结果。
@@ -241,13 +240,13 @@ enum RecordLevel : std::uint8_t
 \note 比较返回默认构造的结果值，相等表示成功，小于表示失败且设置 errno 。
 \note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
 */
-//@{
+//!@{
 /*!
 \note 若失败抛出第一参数指定类型的对象。
 \note 省略第一参数时为 std::system_error 。
 \sa YCL_Raise_SysE
 */
-//@{
+//!@{
 #define YCL_WrapCall_CAPI(_t, _fn, ...) \
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
@@ -261,14 +260,14 @@ enum RecordLevel : std::uint8_t
 	YCL_WrapCall_CAPI(_t, _fn, __VA_ARGS__)(_sig)
 
 #define YCL_CallF_CAPI(_t, _fn, ...) YCL_Call_CAPI(_t, _fn, yfsig, __VA_ARGS__)
-//@}
+//!@}
 
 /*!
 \note 若失败跟踪 errno 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
 \sa YCL_Trace_SysE
 */
-//@{
+//!@{
 #define YCL_TraceWrapCall_CAPI(_fn, ...) \
 	[&] YB_LAMBDA_ANNOTATE((const char* sig_), , nonnull(2)){ \
 		const auto res_(_fn(__VA_ARGS__)); \
@@ -284,36 +283,36 @@ enum RecordLevel : std::uint8_t
 
 #define YCL_TraceCallF_CAPI(_fn, ...) \
 	YCL_TraceCall_CAPI(_fn, yfsig, __VA_ARGS__)
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 /*!
 \brief 检查默认区域下指定字符是否为可打印字符。
 \note MSVCRT 的 isprint/iswprint 实现缺陷的变通。
 \see https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale 。
-\since build 512
+\since build 971
 */
-//@{
-YB_STATELESS inline PDefH(bool, IsPrint, char c)
+//!@{
+YB_STATELESS inline PDefH(bool, IsPrint, char c) ynothrow
 	ImplRet(ystdex::isprint(c))
-YB_STATELESS inline PDefH(bool, IsPrint, wchar_t c)
+YB_STATELESS inline PDefH(bool, IsPrint, wchar_t c) ynothrow
 	ImplRet(ystdex::iswprint(c))
 template<typename _tChar>
 YB_STATELESS bool
-IsPrint(_tChar c)
+IsPrint(_tChar c) ynothrow
 {
 	return platform::IsPrint(wchar_t(c));
 }
-//@}
+//!@}
 
 
 /*!
 \warning 注意避免违反 ISO C++11 [basic.lval]/10 以引起未定义行为。
 \since build 631
 */
-//@{
+//!@{
 inline PDefH(ystdex::uchar_t*, ucast, wchar_t* p) ynothrow
 	ImplRet(ystdex::replace_cast<ystdex::uchar_t*>(p))
 inline PDefH(const ystdex::uchar_t*, ucast, const wchar_t* p) ynothrow
@@ -335,12 +334,16 @@ wcast(_tChar* p) ynothrow
 {
 	return p;
 }
-//@}
+//!@}
 
 
+//! \return 第二参数指定函数不经异常退出时的函数值，或捕获异常后第一参数指定的值。
+//!@{
 /*!
-\brief 调用并捕获异常。
+\brief 调用并捕获异常，处理分配失败。
 \since build 832
+
+捕获调用抛出的，std::bad_alloc 异常，设置 errno 为 ENOMEM 。
 */
 template<typename _func, typename... _tParams>
 ystdex::invoke_result_t<_func, _tParams...>
@@ -354,19 +357,26 @@ CallNothrow(const ystdex::invoke_result_t<_func, _tParams...>& v, _func f,
 }
 
 /*!
-\brief 循环重复操作。
-\since build 832
+\brief 调用并捕获异常，处理系统错误和分配失败。
+\since build 972
+std::bad_alloc 转换为 errno 。
+
+捕获调用抛出的，std::system_error 异常，设置 errno 为对应的错误码；
+捕获调用抛出的，std::bad_alloc 异常，设置 errno 为 ENOMEM 。
 */
-template<typename _func, typename _tErrorRef,
-	typename _tError = ystdex::decay_t<_tErrorRef>,
-	typename _type = ystdex::invoke_result_t<_func&>>
-_type
-RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
+template<typename _func, typename... _tParams>
+ystdex::invoke_result_t<_func, _tParams...>
+CallSysNothrow(const ystdex::invoke_result_t<_func, _tParams...>& v, _func f,
+	_tParams&&... args) ynothrowv
 {
-	return ystdex::retry_on_cond([&](_type res){
-		return res < _type() && _tError(err) == e;
-	}, f);
+	TryRet(f(yforward(args)...))
+	CatchExpr(std::system_error& e, YAssert(e.code().value() != 0,
+		"Unknown error found."), errno = e.code().value())
+	CatchExpr(std::bad_alloc&, errno = ENOMEM)
+	CatchIgnore(...)
+	return v;
 }
+//!@}
 
 /*!
 \brief 循环可能被中断的操作。
@@ -376,7 +386,7 @@ template<typename _func, typename _type = ystdex::invoke_result_t<_func&>>
 inline _type
 RetryOnInterrupted(_func f)
 {
-	return RetryOnError(f, errno, EINTR);
+	return ystdex::retry_on_error(f, errno, EINTR);
 }
 
 
@@ -430,7 +440,8 @@ public:
 		PDefHOp(const string&, [], size_t i) const ynothrowv
 		ImplRet(arguments[i])
 
-	DefGetter(const ynothrow, const VectorType&, Data, arguments)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const VectorType&, Data, arguments)
 
 	YB_ATTR_nodiscard YB_PURE PDefH(const VectorType&, ToVector, ) const&
 		ImplRet(arguments)
@@ -449,8 +460,8 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefHOp(char*, [], size_t i) const ynothrowv
 		ImplRet(arguments.second[i])
 
-	DefGetter(const ynothrow, size_t, Count, arguments.first)
-	DefGetter(const ynothrow, char**, Data, arguments.second)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, Count, arguments.first)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, char**, Data, arguments.second)
 
 	//! \note 使用构造函数的参数指定的分配器。
 	YB_ATTR_nodiscard YB_PURE VectorType
@@ -482,6 +493,7 @@ uspawn(const char*);
 \brief 执行 UTF-8 字符串的环境命令。
 \note Win32 平台：使用 ::_wsystem 实现。标准输出不指定使用 Unicode 字符。
 \note 非 Win32 平台：使用 std::system 实现；若参数为空则和 std::system 行为一致。
+\throw std::system_error 调用失败。
 \since build 539
 */
 YF_API int
@@ -518,7 +530,7 @@ SetEnvironmentVariable(const char*, const char*);
 
 
 //! \since build 704
-//@{
+//!@{
 /*!
 \brief 系统配置选项。
 \note 以 Max 起始的名称表示可具有的最大值。
@@ -532,12 +544,12 @@ enum class SystemOption
 	*/
 	PageSize,
 	//! \since build 720
-	//@{
+	//!@{
 	//! \brief 一个进程中可具有的信号量的最大数量。
 	MaxSemaphoreNumber,
 	//! \brief 可具有的信号量的最大值。
 	MaxSemaphoreValue,
-	//@}
+	//!@}
 	//! \brief 在路径解析中符号链接可被可靠遍历的最大次数。
 	MaxSymlinkLoop
 };
@@ -570,7 +582,7 @@ YF_API
 #endif
 size_t
 FetchLimit(SystemOption) ynothrow;
-//@}
+//!@}
 
 /*!
 \brief 取本机动态模块扩展名。

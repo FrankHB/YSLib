@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020-2022 FrankHB.
+# (C) 2014-2018, 2020-2023 FrankHB.
 # SHBuild installation script.
 
 set -e
@@ -43,7 +43,7 @@ S1_SHBuild="$S1_BuildDir/SHBuild"
 
 # XXX: %SHBuild_Rebuild_S1 is external, and not same to %SHBuild_Rebuild_S1_.
 # shellcheck disable=2154
-if [[ "$SHBuild_Rebuild_S1" == '' ]]; then
+if test -z "$SHBuild_Rebuild_S1"; then
 	if command -v "$S1_SHBuild" > /dev/null ; then
 		SHBuild_Puts "Found stage 1 SHBuild \"$S1_SHBuild\", building skipped."
 	else
@@ -54,7 +54,7 @@ else
 	SHBuild_Puts 'Stage 1 SHBuild would be rebuilt.'
 	SHBuild_Rebuild_S1_=true
 fi
-if [[ "$SHBuild_Rebuild_S1_" == 'true' ]]; then
+if test "$SHBuild_Rebuild_S1_" = true; then
 	SHBuild_Puts 'Building Stage 1 SHBuild ...'
 	SHBuild_Output="$S1_SHBuild" SHBuild_PCH_stdinc_h="$S1_BuildDir/stdinc.h" \
 		"$SHBuild_ToolDir/SHBuild-build.sh"
@@ -74,6 +74,6 @@ SHBuild="$SHBuild" SHBuild_Epoch=0 SHBuild_ToolDir="$SHBuild_ToolDir" \
 	SHBuild_NoDynamic="$SHBuild_NoDynamic" \
 	SHBuild_UseDebug="$SHBuild_UseDebug" \
 	SHBuild_UseRelease="$SHBuild_UseRelease" \
-	"$SHBuild" -xcmd,RunNPLFile \
-	"$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- "$@"
+	"$SHBuild" -xcmd,RunNPLFile "$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- \
+	"$@"
 

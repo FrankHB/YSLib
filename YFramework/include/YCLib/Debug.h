@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1107
+\version r1109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2023-03-07 12:19 +0800
+	2023-05-03 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -585,8 +585,8 @@ public:
 	operator()(Level, Logger&, const char*) const;
 
 	//! \since build 960
-	YB_ATTR_returns_nonnull
-	YB_ATTR_nodiscard DefGetter(const ynothrow, const char*, Tag, tag)
+	YB_ATTR_nodiscard YB_ATTR_returns_nonnull
+		DefGetter(const ynothrow, const char*, Tag, tag)
 };
 #endif
 

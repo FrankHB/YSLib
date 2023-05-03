@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020-2022 FrankHB.
+# (C) 2014-2018, 2020-2023 FrankHB.
 # Build script for SHBuild.
 
 set -e
@@ -44,8 +44,8 @@ LDFLAGS_IMPL_OPT=' '
 # XXX: There are some other bugs not resolved for ld.bfd on PE targets:
 #	https://sourceware.org/bugzilla/show_bug.cgi?id=11539,
 #	https://sourceware.org/bugzilla/show_bug.cgi?id=19803.
-if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'x86_64' \
-	&& "$SHBuild_CXX_Style_" == 'G++' ]]; then
+if test "$SHBuild_Host_OS" = Win32 && test "$SHBuild_Host_Arch" = x86_64 \
+	&& test "$SHBuild_CXX_Name" = G++; then
 #	LDFLAGS_WKRD_="$(SHBuild_CheckCompiler "$CXX" \
 #		'int main(){}' -Wl,--default-image-base-low '' \
 #		-xc++ -Wl,--default-image-base-low)"
@@ -76,7 +76,7 @@ SHBuild_Puts "Building ..."
 #	linkage which had been optimized away.
 # XXX: %SHBuild_Verbose_ is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Verbose_" != '' ]]; then
+if test -n "$SHBuild_Verbose_"; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
 	SHBuild_Puts "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \

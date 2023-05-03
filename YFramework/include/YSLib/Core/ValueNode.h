@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r4544
+\version r4616
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2023-03-31 12:25 +0800
+	2023-04-12 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,17 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject // for pmr, ystdex::is_interoperable,
-//	ystdex::enable_if_t, std::allocator_arg_t, std::allocator_arg, ystdex::and_,
-//	ystdex::enable_if_same_t, ystdex::remove_cvref_t, in_place_type,
+//	ystdex::enable_if_t, ystdex::enable_if_constructible_t,
+//	std::allocator_arg_t, std::allocator_arg, ystdex::and_,
+//	ystdex::enable_if_same_t, ystdex::remove_cvref_t,
+//	ystdex::enable_if_inconvertible_t, in_place_type,
 //	ystdex::enable_if_inconstructible_t, ystdex::end,
-//	ystdex::enable_if_interoperable_t, to_string, to_pmr_string;
+//	ystdex::enable_if_interoperable_t, to_string, to_pmr_string,
+//	ystdex::exclude_self_t, ystdex::head_of_t;
 #include <ystdex/container.hpp> // for ystdex::has_mem_key_type;
 #include <ystdex/operators.hpp> // for ystdex::totally_ordered;
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
-#include <ystdex/tuple.hpp> // for ystdex::invoke, ystdex::make_from_tuple;
+#include <ystdex/tuple.hpp> // for ystdex::make_from_tuple, ystdex::invoke;
 #include <ystdex/swap.hpp> // for ystdex::copy_and_swap;
 #include <ystdex/path.hpp> // for ystdex::path;
 #include <ystdex/utility.hpp> // for ystdex::forward_like;
@@ -45,6 +48,7 @@
 #include <numeric> // for std::accumulate;
 #include <ystdex/deref_op.hpp> // for ystdex::call_value_or;
 #include <ystdex/functor.hpp> // for ystdex::addrof;
+#include <iterator> // for std::make_move_iterator, std::begin, std::end;
 
 namespace YSLib
 {
@@ -140,8 +144,8 @@ public:
 private:
 	//! \since build 844
 	template<typename... _tParams>
-	using enable_value_constructible_t = ystdex::enable_if_t<
-		std::is_constructible<ValueObject, _tParams...>::value>;
+	using enable_value_constructible_t
+		= ystdex::enable_if_constructible_t<ValueObject, _tParams...>;
 
 public:
 	/*!
@@ -302,59 +306,65 @@ public:
 		: container(std::move(con), a)
 	{}
 	//!@}
+	//! \since build 972
+	//!@{
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
 	\note 不使用容器。
 	*/
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(NoContainerTag, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), Value(yforward(args)...)
+		: name(ystdex::pass_with_allocator<string>(str)),
+		Value(yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用字符串引用、值类型对象构造参数和分配器。
 	\note 不使用容器。
 	*/
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, NoContainerTag,
 		_tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(a), Value(yforward(args)...)
+		: name(ystdex::pass_with_allocator<string>(str)), container(a),
+		Value(yforward(args)...)
 	{}
 	//! \brief 构造：使用容器对象引用、字符串引用和值类型对象构造参数。
 	//!@{
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(const Container& con, _tString&& str, _tParams&&... args)
 		: ValueNode(std::allocator_arg, con.get_allocator(), con, yforward(str),
 		yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	ValueNode(Container&& con, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(std::move(con)),
-		Value(yforward(args)...)
+		: name(ystdex::pass_with_allocator<string>(str)),
+		container(std::move(con)), Value(yforward(args)...)
 	{}
 	//!@}
 	//! \brief 构造：使用容器对象引用、字符串引用、值类型对象构造参数和分配器。
 	//!@{
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, const Container& con,
 		_tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(con, a), Value(yforward(args)...)
+		: name(ystdex::pass_with_allocator<string>(str)), container(con, a),
+		Value(yforward(args)...)
 	{}
-	template<typename _tString, typename... _tParams,
+	template<typename _tString = string, typename... _tParams,
 		yimpl(typename = enable_value_constructible_t<_tParams...>)>
 	inline
 	ValueNode(std::allocator_arg_t, allocator_type a, Container&& con,
 		_tString&& str, _tParams&&... args)
-		: name(yforward(str)), container(std::move(con), a),
-		Value(yforward(args)...)
+		: name(ystdex::pass_with_allocator<string>(str)),
+		container(std::move(con), a), Value(yforward(args)...)
 	{}
+	//!@}
 	//!@}
 	//! \brief 构造：使用输入迭代器对和可选的分配器。
 	template<typename _tIn>
@@ -362,12 +372,16 @@ public:
 	ValueNode(const pair<_tIn, _tIn>& pr, allocator_type a = {})
 		: container(pr.first, pr.second, a)
 	{}
-	//! \brief 构造：使用输入迭代器对、字符串引用、值参数和可选的分配器。
-	template<typename _tIn, typename _tString>
+	/*!
+	\brief 构造：使用输入迭代器对、字符串引用、值参数和可选的分配器。
+	\since build 972
+	*/
+	template<typename _tIn, typename _tString = string>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str,
 		allocator_type a = {})
-		: name(yforward(str)), container(pr.first, pr.second, a)
+		: name(ystdex::pass_with_allocator<string>(str)),
+		container(pr.first, pr.second, a)
 	{}
 	//! \brief 原地构造：使用容器、名称、值的参数元组和可选的分配器。
 	//!@{
@@ -773,16 +787,13 @@ public:
 
 	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。
-	\since build 781
+	\since build 972
 	*/
 	//!@{
 	//! \return 按指定名称查找的指定类型的子节点的值的引用。
 	//!@{
-	/*!
-	\sa ValueObject::Access
-	\since build 681
-	*/
-	template<typename _type, typename _tString, typename... _tParams>
+	//! \sa ValueObject::Access
+	template<typename _type, typename _tString = string, typename... _tParams>
 	inline _type&
 	Place(_tString&& str, _tParams&&... args)
 	{
@@ -794,7 +805,7 @@ public:
 	\pre 间接断言：存储对象已存在时类型和访问的类型一致。
 	\sa ValueObject::GetObject
 	*/
-	template<typename _type, typename _tString, typename... _tParams>
+	template<typename _type, typename _tString = string, typename... _tParams>
 	inline _type&
 	PlaceUnchecked(_tString&& str, _tParams&&... args)
 	{
@@ -804,7 +815,7 @@ public:
 	//!@}
 
 	//! \brief 初始化的值对象引用。
-	template<typename _type, typename _tString, typename... _tParams>
+	template<typename _type, typename _tString = string, typename... _tParams>
 	inline ValueObject&
 	PlaceValue(_tString&& str, _tParams&&... args)
 	{
@@ -1527,10 +1538,10 @@ IsPrefixedIndex(string_view, char = '$');
 \note 重复以子节点数作为参数使用作为新节点的名称，可用于插入不重复节点。
 \note 字符串不保证可读。
 \note 具体算法未指定。相同实现的算法结果保证稳定，但不保证版本间稳定。
-\since build 598
+\since build 972
 */
 YB_ATTR_nodiscard YF_API YB_PURE string
-MakeIndex(size_t);
+MakeIndex(size_t, string::allocator_type = {});
 
 //! \throw std::invalid_argument 存在子节点但名称不是前缀索引。
 //!@{
@@ -1572,24 +1583,38 @@ public:
 	NodeLiteral(ValueNode&& nd)
 		: node(std::move(nd))
 	{}
-	NodeLiteral(const string& str)
-		: node(NoContainer, str)
+	//! \since build 972
+	//!@{
+	template<typename _tString = string, typename... _tParams,
+		yimpl(typename = ystdex::exclude_self_t<NodeLiteral, _tString>)>
+	inline
+	NodeLiteral(_tString&& str, string arg)
+		: node(NoContainer, yforward(str), arg)
 	{}
-	NodeLiteral(const string& str, string val)
-		: node(NoContainer, str, std::move(val))
+	template<typename _tString = string, typename... _tParams,
+		yimpl(typename = ystdex::exclude_self_t<NodeLiteral, _tString>,
+		typename = ystdex::enable_if_constructible_t<ValueObject, _tParams...>,
+		typename = ystdex::enable_if_inconvertible_t<
+		ystdex::head_of_t<_tParams...>, string>)>
+	inline
+	NodeLiteral(_tString&& str, _tParams&&... args)
+		: node(NoContainer, yforward(str), yforward(args)...)
 	{}
-	template<typename _tLiteral = NodeLiteral>
-	NodeLiteral(const string& str, std::initializer_list<_tLiteral> il)
-		: node(NoContainer, str, NodeSequence(il.begin(), il.end()))
+	template<typename _tString = string, typename _tLiteral = NodeLiteral,
+		size_t _vN>
+	NodeLiteral(_tString&& str, _tLiteral(&&il)[_vN],
+		ValueNode::allocator_type a = {})
+		: node(NoContainer, yforward(str), NodeSequence(std::make_move_iterator(
+		std::begin(il)), std::make_move_iterator(std::end(il)), a))
 	{}
-	//! \since build 674
-	template<typename _tLiteral = NodeLiteral, class _tString,
+	template<typename _tLiteral = NodeLiteral, class _tString = string,
 		typename... _tParams>
 	NodeLiteral(ListContainerTag, _tString&& str,
 		std::initializer_list<_tLiteral> il, _tParams&&... args)
 		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
 		yforward(args)...)
 	{}
+	//!@}
 	DefDeCopyMoveCtorAssignment(NodeLiteral)
 
 	YB_ATTR_nodiscard DefCvt(ynothrow, ValueNode&, node)
@@ -1597,6 +1622,11 @@ public:
 
 	//! \since build 853
 	YB_ATTR_nodiscard DefGetter(ynothrow, ValueNode&, NodeRef, node)
+
+	//! \since build 972
+	YB_ATTR_nodiscard YB_PURE
+		PDefH(ValueNode::allocator_type, get_allocator, ) const ynothrow
+		ImplRet(node.get_allocator())
 };
 
 /*!

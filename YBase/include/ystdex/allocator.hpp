@@ -11,13 +11,13 @@
 /*!	\file allocator.hpp
 \ingroup YStandardEx
 \brief 分配器接口。
-\version r6218
+\version r6303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 882
 \par 创建时间:
 	2020-02-10 21:34:28 +0800
 \par 修改时间:
-	2023-02-13 20:35 +0800
+	2023-04-11 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,21 +32,22 @@
 
 #include "compressed_pair.hpp" // for internal "placement.hpp", <memory>,
 //	false_, std::pair, true_, std::uses_allocator, std::allocator_arg,
-//	is_constructible, not_, and_, is_explicitly_constructible,
-//	is_implicitly_constructible, enable_if_t, detected_or_t,
-//	is_unqualified_object, is_copy_constructible, is_class_type, is_same,
-//	std::pointer_traits, std::declval, is_detected, detected_t,
-//	is_detected_exact, cond, remove_cvref_t, bool_, is_lvalue_reference, cond_t,
-//	remove_reference_t, compressed_pair, compressed_pair_element,
-//	enable_if_convertible_t, enable_if_constructible_t, is_assignable,
-//	remove_cv_t, exclude_self_t, ystdex::copy_assign, is_bitwise_swappable,
-//	is_nothrow_copy_constructible, is_nothrow_default_constructible;
+//	is_constructible, std::declval, enable_if_t, and_, not_,
+//	is_explicitly_constructible, is_implicitly_constructible, identity_t,
+//	is_nothrow_move_constructible, detected_or_t, is_unqualified_object,
+//	is_copy_constructible, is_class_type, is_same, std::pointer_traits,
+//	is_detected, detected_t, is_detected_exact, cond, remove_cvref_t, bool_,
+//	is_lvalue_reference, cond_t, remove_reference_t, compressed_pair,
+//	compressed_pair_element, enable_if_convertible_t, enable_if_constructible_t,
+//	is_assignable, remove_cv_t, exclude_self_t, ystdex::copy_assign,
+//	is_bitwise_swappable, is_nothrow_copy_constructible,
+//	is_nothrow_default_constructible;
 #include "apply.hpp" // for std::tuple, std::forward_as_tuple,
 //	std::piecewise_construct_t, std::piecewise_construct, std::make_tuple,
 //	ystdex::apply;
+#include "pointer.hpp" // for internal "pointer.hpp", ystdex::invoke,
+//	ystdex::swap_dependent, ystdex::to_address;
 #include "type_op.hpp" // for internal "type_op.hpp", cond_or_t;
-#include "pointer.hpp" // for internal "pointer.hpp", ystdex::swap_dependent,
-//	ystdex::to_address;
 #include "exception.h" // for throw_invalid_construction;
 
 /*!
@@ -359,6 +360,76 @@ uninitialized_construct_using_allocator(_type* p, const _tAlloc& a,
 }
 //!@}
 #endif
+
+//! \since build 972
+//!@{
+template<typename _type, typename _tParam, yimpl(typename... _tParams)>
+YB_ATTR_nodiscard inline _type
+forward_with_allocator(_tParam&& x, yimpl(_tParams&&...)) ynothrow
+{
+	return yforward(x);
+}
+template<typename _type, typename _tParam>
+YB_ATTR_nodiscard inline auto
+forward_with_allocator(_tParam&& x) -> decltype(
+	ystdex::make_obj_using_allocator(x.get_allocator(), yforward(x)))
+{
+	return ystdex::make_obj_using_allocator(x.get_allocator(), yforward(x));
+}
+
+template<typename _type, typename _tParam>
+YB_ATTR_nodiscard inline auto
+pass_with_allocator(_tParam&& x) ynoexcept_spec(ystdex::forward_with_allocator<
+	_type>(x)) -> decltype(ystdex::forward_with_allocator<_type>(x))
+{
+	return ystdex::forward_with_allocator<_type>(x);
+}
+template<typename _type>
+YB_ATTR_nodiscard inline _type
+pass_with_allocator(identity_t<_type&&> x)
+	ynoexcept(is_nothrow_move_constructible<_type>())
+{
+	return yforward(x);
+}
+
+template<typename _type, typename _func, class _tAlloc, typename... _tParams>
+inline auto
+call_using_allocator(_func f, const _tAlloc& a, _tParams&&... args) -> decltype(
+	f(ystdex::make_obj_using_allocator<_type>(a, yforward(args))...))
+{
+	return f(ystdex::make_obj_using_allocator<_type>(a, yforward(args))...);
+}
+
+template<typename _type, typename _fCallable, typename _func, class _tAlloc,
+	typename... _tParams>
+inline auto
+invoke_using_allocator(_fCallable&& f, const _tAlloc& a, _tParams&&... args)
+	-> decltype(ystdex::invoke(yforward(f), ystdex::make_obj_using_allocator<
+	_type>(a, yforward(args))...))
+{
+	return ystdex::invoke(yforward(f), ystdex::make_obj_using_allocator<_type>(
+		a, yforward(args))...);
+}
+
+template<typename _type, typename _func, typename... _tParams>
+inline auto
+call_with_allocator(_func f, _tParams&&... args)
+	-> decltype(f(ystdex::pass_with_allocator<_type>(yforward(args))...))
+{
+	return f(ystdex::pass_with_allocator<_type>(yforward(args))...);
+}
+
+template<typename _type, typename _fCallable, typename _func,
+	typename... _tParams>
+inline auto
+invoke_with_allocator(_fCallable&& f, _tParams&&... args)
+	-> decltype(ystdex::invoke(yforward(f), ystdex::pass_with_allocator<
+	_type>(yforward(args))...))
+{
+	return ystdex::invoke(yforward(f),
+		ystdex::pass_with_allocator<_type>(yforward(args))...);
+}
+//!@}
 
 
 //! \since build 595
@@ -754,7 +825,7 @@ do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 
 /*!
 \note 模板参数可能是引用。
-\see $2018-12 @ %Documentation::Workflow.
+\see $2018-12 @ %Documentation::Workflow 。
 */
 //!@{
 /*!
@@ -799,7 +870,8 @@ public:
 	allocator_guard_delete() = default;
 	//! \since build 937
 	template<class _tParam,
-		yimpl(typename = exclude_self_t<allocator_guard_delete, _tParam>)>
+		yimpl(typename = exclude_self_t<allocator_guard_delete, _tParam>,
+		typename = enable_if_constructible_t<base, _tParam, size_type&>)>
 	inline
 	allocator_guard_delete(_tParam&& a, size_type n = 1) ynothrow
 		: base(yforward(a), n)
@@ -944,7 +1016,8 @@ public:
 	allocator_delete() = default;
 	//! \since build 847
 	template<class _tParam,
-		yimpl(typename = exclude_self_t<allocator_delete, _tParam>)>
+		yimpl(typename = exclude_self_t<allocator_delete, _tParam>,
+		typename = enable_if_constructible_t<base, _tParam>)>
 	inline
 	allocator_delete(_tParam&& a) ynothrow
 		: base(yforward(a))
@@ -1098,6 +1171,8 @@ allocate_unique(const _tAlloc& alloc, std::initializer_list<_tValue> il)
 
 	return ystdex::create_with_allocator<_type>(a, il);
 }
+// NOTE: There is no '_default_init' overloads. See also the discussion in WG21
+//	P0211R3 (despite the incorrect wording at last).
 
 /*!
 \brief 使用分配器创建 \c std::shared_ptr 实例对象。

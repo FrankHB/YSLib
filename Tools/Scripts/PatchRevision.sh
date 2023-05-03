@@ -22,9 +22,9 @@ use_git_=''
 
 test_hg_()
 {
-	if [[ "$root_" == '' ]] && hash hg > /dev/null 2>& 1; then
+	if test -z "$root_" && hash hg > /dev/null 2>& 1; then
 		root_="$(SHBuild_2u "$(hg root 2> /dev/null)")"
-		if [[ "$root_" != '' ]]; then
+		if test -n "$root_"; then
 			use_hg_=hg
 		fi
 	fi
@@ -32,9 +32,9 @@ test_hg_()
 
 test_git_()
 {
-	if [[ "$root_" == '' ]] && hash git > /dev/null 2>& 1; then
+	if test -z "$root_" && hash git > /dev/null 2>& 1; then
 		root_="$(SHBuild_2u "$(git rev-parse --show-toplevel 2> /dev/null)")"
-		if [[ "$root_" != '' ]]; then
+		if test -n "$root_"; then
 			use_git_=git
 		fi
 	fi
@@ -42,9 +42,9 @@ test_git_()
 
 # XXX: %(SHBuild_VCS_hg, SHBuild_VCS_git) are external.
 # shellcheck disable=2154
-if [[ "$SHBuild_VCS_hg" != '' ]]; then
+if test -n "$SHBuild_VCS_hg"; then
 	test_hg_
-elif [[ "$SHBuild_VCS_git" != '' ]]; then
+elif test -n "$SHBuild_VCS_git"; then
 	test_git_
 else
 	test_hg_
@@ -53,10 +53,10 @@ fi
 
 SHBuild_Pushd "$root_"
 
-if [[ "$use_hg_" != '' ]]; then
+if test -n "$use_hg_"; then
 	SHBuild_Puts "Using hg."
 	hg status --color=none -amn0 | xargs -0 hg diff --color=none > bak.patch
-elif [[ "$use_git_" != '' ]]; then
+elif test -n "$use_git_"; then
 	SHBuild_Puts "Using git."
 	git diff --diff-filter=d --color=never HEAD > bak.patch
 else
@@ -71,10 +71,10 @@ SHBuild_Puts Patch area = range ["$PatchBegin", "$PatchEnd"].
 file=''
 for var in "${Versions[@]}"
 do
-	if [[ "$file" == '' ]]; then
+	if test -z "$file"; then
 		file="$var"
 	# XXX: This is needed to skip non-regular files, e.g. git submodules.
-	elif [[ -f "$file" ]]; then
+	elif test -f "$file"; then
 		sed -b -i \
 "$PatchBegin,${PatchEnd}s/version r[0-9][^ \\r\\n]*/version r$var/g" "$file"
 		SHBuild_Puts "\"$file\" processed using revision number \"$var\"."

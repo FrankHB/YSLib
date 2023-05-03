@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# (C) 2014-2018, 2020, 2022 FrankHB.
+# (C) 2014-2018, 2020, 2022-2023 FrankHB.
 # Common source script.
 
-[[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
+test -z "$INC_SHBuild_common" && INC_SHBuild_common=1 || return 0
 
 : "${SHBuild_CMD:="$COMSPEC"}"
 : "${SHBuild_CMD:=cmd}"
@@ -32,9 +32,9 @@ SHBuild_Puts()
 {
 	# XXX: %SHBuild_EOL is external.
 	# shellcheck disable=2154
-	if [[ "$SHBuild_EOL" == '' ]]; then
+	if test -z "$SHBuild_EOL"; then
 		# TODO: More precise detection of Windows shell.
-		if [[ "$COMSPEC" == '' ]]; then
+		if test -z "$COMSPEC"; then
 			eval readonly SHBuild_EOL='\\n'
 		else
 			eval readonly SHBuild_EOL='\\r\\n'
@@ -47,8 +47,9 @@ SHBuild_Puts()
 SHBuild_AssertNonempty()
 {
 	local vval
+
 	eval "vval=\"\${$1}\""
-	[[ "$vval" != '' ]] || \
+	test -n "$vval" || \
 		(SHBuild_Puts "ERROR: Variable \"$1\" should not be empty." >& 2; \
 			exit 1)
 }
@@ -76,10 +77,11 @@ SHBuild_CheckedCallSilent()
 
 SHBuild_InitReadonly()
 {
-	if [[ "$1" != '' ]]; then
+	if test -n "$1"; then
 		local vval
+
 		eval "vval=\"\${$1}\""
-		if [[ "$vval" == '' ]]; then
+		if test -z "$vval"; then
 			local varname=$1
 			shift
 			eval readonly \""$varname"\"=\"\$\(SHBuild_CheckedCall "$*"\)\"
@@ -104,7 +106,7 @@ SHBuild_2u()
 SHBuild_EchoEscape()
 {
 	# FIXME: Turn off ANSI escape sequence when $TERM not supported.
-	if [[ -t 1 ]]; then
+	if test -t 1; then
 		echo -ne "$1"
 	fi
 }
@@ -187,10 +189,10 @@ SHBuild_CheckUName()
 {
 	# XXX: %SHBuild_Env_OS is external.
 	# shellcheck disable=2154
-	[[ "$SHBuild_Env_OS" != '' ]] || SHBuild_CheckUName_Init_Env_OS_
+	test -n "$SHBuild_Env_OS" || SHBuild_CheckUName_Init_Env_OS_
 	# XXX: %SHBuild_Env_Arch is external.
 	# shellcheck disable=2154
-	[[ "$SHBuild_Env_Arch" != '' ]] || SHBuild_CheckUName_Init_Env_Arch_
+	test -n "$SHBuild_Env_Arch" || SHBuild_CheckUName_Init_Env_Arch_
 }
 
 # Get temporary directory name by checking "$TMPDIR", "$TEMP", "$TMP" and
@@ -199,11 +201,11 @@ SHBuild_GetTempDir()
 {
 	# NOTE: The type and the permission of the file indicated by the path is not
 	#	checked by design.
-	if [[ "$TMPDIR" != '' ]]; then
+	if test -n "$TMPDIR"; then
 		SHBuild_Put "$TMPDIR"
-	elif [[ "$TEMP" != '' ]]; then
+	elif test -n "$TEMP"; then
 		SHBuild_Put "$TEMP"
-	elif [[ "$TMP" != '' ]]; then
+	elif test -n "$TMP"; then
 		SHBuild_Put "$TMP"
 	else
 		SHBuild_2m '/tmp'
@@ -221,24 +223,24 @@ SHBuild_Platform_Detect()
 {
 	local result
 
-	if [[ "$1" == 'Win32' ]]; then
+	if test "$1" = Win32; then
 		# XXX: See '/etc/msystem' distributed by MSYS2.
-		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
-			result='MinGW64'
-		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
-			result='MinGW32'
-		elif [[ "$MSYSTEM" == 'CLANG64' ]]; then
-			result='MinGW_Clang64'
-		elif [[ "$MSYSTEM" == 'CLANG32' ]]; then
-			result='MinGW_Clang32'
-		elif [[ "$MSYSTEM" == 'CLANGARM64' ]]; then
-			result='MinGW_ClangARM64'
-		elif [[ "$MSYSTEM" == 'UCRT64' ]]; then
-			result='MinGW_UCRT64'
-		elif [[ "$2" == 'x86_64' ]]; then
-			result='MinGW64'
+		if test "$MSYSTEM" = MINGW64; then
+			result=MinGW64
+		elif test "$MSYSTEM" = MINGW32; then
+			result=MinGW32
+		elif test "$MSYSTEM" = CLANG64; then
+			result=MinGW_Clang64
+		elif test "$MSYSTEM" = CLANG32; then
+			result=MinGW_Clang32
+		elif test "$MSYSTEM" = CLANGARM64; then
+			result=MinGW_ClangARM64
+		elif test "$MSYSTEM" = UCRT64; then
+			result=MinGW_UCRT64
+		elif test "$2" = x86_64; then
+			result=MinGW64
 		else
-			result='MinGW32'
+			result=MinGW32
 		fi
 	else
 		result="$1"
@@ -249,19 +251,19 @@ SHBuild_Platform_Detect()
 
 SHBuild_PrepareBuild_Init_Host_Arch_()
 {
-	if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+	if test "$SHBuild_Host_OS" = Win32; then
 		# XXX: See '/etc/msystem' distributed by MSYS2.
-		if [[ "$MSYSTEM" == 'MINGW64' ]]; then
+		if test "$MSYSTEM" = MINGW64; then
 			SHBuild_Host_Arch=x86_64
-		elif [[ "$MSYSTEM" == 'MINGW32' ]]; then
+		elif test "$MSYSTEM" = MINGW32; then
 			SHBuild_Host_Arch=i686
-		elif [[ "$MSYSTEM" == 'CLANG64' ]]; then
+		elif test "$MSYSTEM" = CLANG64; then
 			SHBuild_Host_Arch=x86_64
-		elif [[ "$MSYSTEM" == 'CLANG32' ]]; then
+		elif test "$MSYSTEM" = CLANG32; then
 			SHBuild_Host_Arch=i686
-		elif [[ "$MSYSTEM" == 'CLANGARM64' ]]; then
+		elif test "$MSYSTEM" = CLANGARM64; then
 			SHBuild_Host_Arch=aarch64
-		elif [[ "$MSYSTEM" == 'UCRT64' ]]; then
+		elif test "$MSYSTEM" = UCRT64; then
 			SHBuild_Host_Arch=x86_64
 		else
 			SHBuild_Host_Arch="$SHBuild_Env_Arch"
@@ -279,7 +281,7 @@ SHBuild_PrepareBuild()
 	: "${SHBuild_Env_TempDir:=$(SHBuild_GetTempDir)}"
 	SHBuild_CheckUName
 	: "${SHBuild_Host_OS:="$SHBuild_Env_OS"}"
-	[[ "$SHBuild_Host_Arch" != '' ]] || SHBuild_PrepareBuild_Init_Host_Arch_
+	test -n "$SHBuild_Host_Arch" || SHBuild_PrepareBuild_Init_Host_Arch_
 	# XXX: Every initializaed variable shall be nonempty. Just avoid the
 	#	assertions here for efficiency.
 }
@@ -319,7 +321,7 @@ SHBuild_CheckPCH()
 {
 	# XXX: %SHBuild_NoPCH is external.
 	# shellcheck disable=2154
-	if [[ $SHBuild_NoPCH == '' ]]; then
+	if test -z "$SHBuild_NoPCH"; then
 		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
 		# XXX: %SHBuild_NoPCH is internal.
 		# shellcheck disable=2034
@@ -389,17 +391,17 @@ SHBuild_Install_Link()
 SHBuild_GetSystemPrefix()
 {
 	# XXX: See '/etc/msystem' distributed by MSYS2.
-	if [[ "$1" == 'MinGW64' ]]; then
+	if test "$1" = MinGW64; then
 		echo '/mingw64'
-	elif [[ "$1" == 'MinGW32' ]]; then
+	elif test "$1" = MinGW32; then
 		echo '/mingw32'
-	elif [[ "$1" == 'MinGW_Clang64' ]]; then
+	elif test "$1" = MinGW_Clang64; then
 		echo '/clang64'
-	elif [[ "$1" == 'MinGW_Clang32' ]]; then
+	elif test "$1" = MinGW_Clang32; then
 		echo '/clang32'
-	elif [[ "$1" == 'MinGW_ClangARM64' ]]; then
+	elif test "$1" = MinGW_ClangARM64; then
 		echo '/clangarm64'
-	elif [[ "$1" == 'MinGW_UCRT64' ]]; then
+	elif test "$1" = MinGW_UCRT64; then
 		echo '/ucrt64'
 	else
 		echo '/usr'

@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5346
+\version r5396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2023-03-06 12:05 +0800
+	2023-04-30 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ Use member initializers properly to eliminite need of initialization in construc
 There is a bug about template parameter declaration of Clang++ 3.4, up to 2013-10-21:
 	The template parameter declaration 'bool = {}' should be accecpted, because it can be reduced as: template-parameter → parameter-declaration → decl-specifier-seq declarator = initializer-clause, with initializer-clause is '{}'.
 	However, Clang++ rejects this code wrongly, though 'bool = false' can be accepted.
-	Actually this code is in the parameter-declaration-list of declaration of class template ystdex::bitseg_iterator in YStandard::Iterator.
+	Actually this code is in the parameter-declaration-list of declaration of class template ystdex::bitseg_iterator in module YStandard::Iterator.
 	Because currently Clang++ is not formally supported as the available compiler to build YSLib, the workaround above is not adopted.
 
 todo.deferred:
@@ -2066,7 +2066,7 @@ Update of code for DS platform is carefully evaluated.
 			To make the actual limitation sane, otherwise the length error condition is wrong.
 		The value of 'platform::FAT::LFN::MaxLength' (for UCS-2 sequence) is also changed to keep it not greater than length of converted MBCS.
 		As a result, length of FAT long filename greater than 255 now does not work.
-	The upstream Newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
+	The upstream newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
 		See also the deferred change in $2017-03 dep.merge.
 FAT initialization error has been tested and revisited.
 	The error is the failure to initialization FAT partition and the FAT mounting is thus aborted.
@@ -2231,7 +2231,7 @@ $2018-05:
 $report.impl:
 Several DS buidling problem concerned with compatibility issues in devkitPro has been addressed.
 	The update of libnds 1.6.0 changes minor internal interfaces, which has been adapted in module YCLib::NativeAPI.
-	The update of devkitARM r46 changes the libgloss/libsysbase I/O interface in Newlib, using 'void*' instead of 'int' as the internal representation of the file descriptor.
+	The update of devkitARM r46 changes the libgloss/libsysbase I/O interface in newlib, using 'void*' instead of 'int' as the internal representation of the file descriptor.
 		The module 'YCLib_(DS).DSIO' is adapted to use 'void*' type file handle instead of raw file descriptor.
 			This also reduces casts between pointers and 'int'.
 		See also $2015-12 for the changes.
@@ -3882,13 +3882,13 @@ report.impl:
 		Note the external FreeType is available only by the dynamic library.
 MinGW64 builds are revised after the toolchain update.
 	The mysterious linking failure when building the debug DLL configuration (with '-O0 -g') of YFramework still exists.
-		See also $2020-03 report.impl for the original issue.
+		See also $2020-02 report.impl for the original issue.
 		This time it starts to output error messages (undefined reference to symbols) from 10~20 minutes.
 		However, there are far more messages now. Some are about symbols after enabling '_GLIBCXX_DEBUG', some are not.
 		So, '-O0' is still unusable.
 	To work around the high resources comsumption during the compilation on 'NPLA1Forms.cpp' caused by '-Og -g', now '-fvar-tracking-assignments' is added.
 		See $2020-09 report.impl for the original issue.
-			This is fatal on i686 because cc1plus run out of the 32-bit address space. It is not that bad in x86-64, but annoying enough.
+			This is fatal on i686 because cc1plus runs out of the 32-bit address space. It is not that bad in x86-64, but annoying enough.
 		This time the compiler does not crash.
 			As a result, no excessive resources are comsumed as before.
 			Thus, the issue is worked around (better than '-O0').
@@ -3904,10 +3904,10 @@ MinGW64 builds are revised after the toolchain update.
 		See https://stackoverflow.com/a/29479701/2307646.
 		So, '-O1' replaces '-Og' in this case.
 		Same to the dynamic library case, the precompiled header is not usable because it has different options to the ones acually being used.
-MinGW32 also disable LTO for workaround.
+MinGW32 builds also disable LTO for working around the build issues.
 	MinGW32 static release build also has a linking failure in the final binary 'YSTest.exe'.
 		This is worked around by disabling LTO in all compiler options in this configuration.
-	MinGW32 dynamic release build miscompiles someting/fails to link 'YFramework.dll' and the final binary crashes on opening.
+	MinGW32 dynamic release build miscompiles something/fails to link 'YFramework.dll' and the final binary crashes on opening.
 		There is a SIGSEGV in 0x646469d0 in ZN5YSLib2UI7ListBoxC2ERKNS_7Drawing4RectESt10unique_ptrINS0_8TextListESt14default_deleteIS7_EE.constprop.1.
 		This is also worked around by disabling LTO in all compiler options in this configuration.
 NPL I/O library now has different basic abstract backend model.
@@ -3999,11 +3999,11 @@ $2020-12:
 
 report.impl:
 The YSLib build scripts are revised and enhanced.
-	'SHBuild-common-options.sh' is simplified by the removal of stage 2 configurations.
+	'Tools/Scripts/SHBuild-common-options.sh' is simplified by the removal of stage 2 configurations.
 		They are still available in %SHBuild-YSLib-common.txt.
 	Unused stage 2 configurations are removed.
 	Now all NPLA1 build scripts accept 'SHBuild_LDFLAGS' and 'SHBuild_LIBS'.
-	The build script 'SHBuild-YSLib-common.txt' now detects sanitizers used with Linux Clang++ or G++.
+	The NPLA1 build script 'Tools/Scripts/SHBuild-YSLib-common.txt' now detects sanitizers used with Linux Clang++ or G++.
 		Supported sanitizers are: ASan (AddressSanitizer), TSan (ThreadSanitizer), MSan (MemorySanitizer), UBSan (UndefinedBehaviorSanitizer) and LSan (LeakSanitizer).
 			See https://clang.llvm.org/docs/ and https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html for available options.
 			Note G++ has no support of MSan (MemorySanitizer) at current. It requires Clang.
@@ -4019,7 +4019,7 @@ The YSLib build scripts are revised and enhanced.
 		The support is in the build process. At runtime it would still fail due to bugs in the environment.
 			ASan has false positive of ODR uses.
 			LSan is known not working at current for stage 2 SHBuild.
-	The library building process in the build script 'SHBuild-YSLib-build.txt' has improved the compiler options configuration.
+	The library building process in the build script 'Tools/Scripts/SHBuild-YSLib-build.txt' has improved the compiler options configuration.
 		There is now a warning to indicate some fixes of flags being used.
 		As a workaround for performance, libYFramework dynamic builds with sanitizers add more flags.
 			The configuration without such flags fix would cause extremely slow compilation for the dynamic release library.
@@ -4294,12 +4294,12 @@ Exceptional cases of the macro definition in YFramework implementation units has
 		The warning is caused by a '#warning' preprocessing directive in the implementation-specific header <bits/c++config.h>.
 			The change is introduced by https://gcc.gnu.org/git/?p=gcc.git;h=767537a8b027bcb5807bb45b0268c5da98c2c7a0 since 2020-12-16.
 		The original directive is required because some system headers do not provide declarations in strictly ISO C conforming mode.
-			This include Newlib-based standard C library headers in devkitARM.
+			This include newlib-based standard C library headers in devkitARM.
 				The issue was effective on some old versions, e.g. https://sourceware.org/pipermail/cygwin-xfree/2001-August/006498.html.
 	The change of the source is to add a definition POSIX C macro '_POSIX_C_SOURCE' replacing to '200809L'.
 		This conforms to the current POSIX standard, see https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_02_01_01.
 			The default version is determined as the minimal requirement in YFramework module YCLib::Platform.h.
-		This has been supported by Newlib for years.
+		This has been supported by newlib for years.
 		It is defined conditionally to allow overriding on the compiler command lines.
 		This is not yet a bug fix because 128-bit integer types are not relied on in the translation unit concerned here.
 	Several alternative implemantation-dependent changes are considered inappropriate.
@@ -4954,7 +4954,7 @@ Static debug build of YFramework for MinGW64 is fixed.
 		Specifically, this would be on 'IDTag' instance construction in a call to 'platform::FetchRootPathLength_P<char16_t>'.
 	This is fixed by replacing '-O1' to '-Og'.
 		See $2020-10 report.impl for the original issue.
-	The workaround is still preserved since removal of it would failure with the current toolchain in building 'Dependency.cpp.o'.
+	The previous workaround is still preserved since removal of it would fail with the current toolchain in building 'Dependency.cpp.o'.
 	This issue has been effective at least since V0.9.
 		With the current provided external dependencies in Documentation::Dependencies since build 947, it also does not work for revisions since V0.9 before this fix.
 		It may also worth noting that the runtime failure is different before build 916. The initialization would just fail, instead of a crash.
@@ -5066,7 +5066,7 @@ New containers from 'ystdex' are used in YFramework module YCLib::Container and 
 		As a result, the templates having different default arguments no longer work as expected unless all these template arguments are explicitly provided.
 		They work as expected with recent Clang++ and G++ since 12.1.
 
-$2021-03:
+$2023-03:
 
 report.impl:
 The terminal support in YFramework module YCLib::Host is revised.
@@ -5154,6 +5154,44 @@ Use of nonX vs. non-X in documents and comments should follow the guideline by I
 	See https://github.com/cplusplus/draft/issues/440.
 	Some are still not clear up in ISO C++, though (e.g. nonempty vs. non-empty).
 	The changes (if any) would be gradule. Before the transision complete, there may be inconsistencies between files.
+
+$2023-04:
+
+report.impl:
+A bug of 'std::type_info::before' in libstdc++ (libsup++) implementation has been worked around.
+	The work around consists of '-U__GXX_TYPEINFO_EQUALITY_INLINE -D__GXX_TYPEINFO_EQUALITY_INLINE=1" in the G++ command line.
+		For MinGW targets, '-D__GXX_MERGED_TYPEINFO_NAMES=1' is changed to '-D__GXX_MERGED_TYPEINFO_NAMES=0'.
+		See below for rationale.
+	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103240#c5 for the updated summary to the upstream.
+	The case only occurs without the workaround on the stage 1 SHBuild on the MinGW64 platform.
+		For x86_64 Linux, 'std::type_info::before' is already inlined in the test environment.
+		For MinGW32 using GCC 10, so the change in https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103240 applied to GCC 12 and GCC 11 branch does not apply.
+		The bug only shows for 'flat_map' for 'NameTable' in the internal implementation of module NPL::NPLA1 in YFramework.
+			Both 'map' and 'unordered_map' do not show the bug, probably due to less call to 'std::type_info::before' required by the comparison object.
+		The test sequence of 'type_index' names used here (for a success build of stage 1 SHBuild initiate the build of YBase) is:
+			St5_BindIFPFN3NPL15ReductionStatusERNS0_8TermNodeERNS0_11ContextNodeEESt17reference_wrapperIS2_ESt12_PlaceholderILi1EEEE
+			N3NPL2A112_GLOBAL__N_112EvalSequenceE
+			St5_BindIFZN3NPL2A112_GLOBAL__N_113DoDefineOrSetILb0EE4CallIJEEENS0_15ReductionStatusERNS0_8TermNodeERNS0_11ContextNodeESt10shared_ptrINS0_11EnvironmentEES8_DpOT_EUlRKS7_RKSD_E_S7_SD_EE
+			N6ystdex15expanded_callerIFN3NPL15ReductionStatusERNS1_11ContextNodeEEZNS1_2A112_GLOBAL__N_124LambdaVauWithEnvironmentILy1ELy1EEES2_RNS1_8TermNodeES4_bEUlvE0_EE
+			ZN3NPL2A118FormContextHandler7DoCall1ERKS1_RNS_8TermNodeERNS_11ContextNodeEEUlS7_E_
+			N3NPL2A19Internals14GLContinuationIZNS0_12_GLOBAL__N_135ReduceChildrenOrderedAsyncUncheckedEN6ystdex7details13list_iteratorINS_8TermNodeEEES8_RNS_11ContextNodeEEUlRS7_SA_E_EE
+			St5_BindIFZN3NPL2A112_GLOBAL__N_110ImportImplERNS0_8TermNodeERNS0_11ContextNodeEbEUlRKSt10shared_ptrINS0_11EnvironmentEEE_S9_EE
+			St5_BindIFZZN3NPL2A112_GLOBAL__N_116ProvideLetCommonERNS0_8TermNodeERNS0_11ContextNodeEENKUlS4_S6_RSt10shared_ptrINS0_11EnvironmentEEE_clES4_S6_SA_EUlSA_E_S9_EE
+			St5_BindIFZN3NPL2A112_GLOBAL__N_13AccIZNS2_10ReduceAccLERNS0_8TermNodeERNS0_11ContextNodeEEUlS5_S5_S5_S5_RKSt10shared_ptrINS0_11Environm
+		After the 4th name in the sequence, the assertion in 'NPL::A1::InitializeTypeNameTableEntry' fails.
+			This is because the call to 'std::partition_point' returns wrong iterator result (index 1 from the key sequence container) rather than the correct iterator indicating the end position (to be inserted), thus the call 'emplace' into the 'flat_map' fails.
+				That indicates the following 2 names are unordered (with '*' emphasized for names in the unnamed namespace):
+					St5_BindIFPFN3NPL15ReductionStatusERNS0_8TermNodeERNS0_11ContextNodeEESt17reference_wrapperIS2_ESt12_PlaceholderILi1EEEE
+					St5_BindIFZN3NPL2A112_GLOBAL__N_113DoDefineOrSetILb0EE4CallIJEEENS0_15ReductionStatusERNS0_8TermNodeERNS0_11ContextNodeESt10shared_ptrINS0_11EnvironmentEES8_DpOT_EUlRKS7_RKSD_E_S7_SD_EE
+			The failed result cause the assertion fail as if there is already a key equivalent to the argument (but acutally not).
+	For the MinGW32 platform, '-D__GXX_MERGED_TYPEINFO_NAMES=1' needed to be changed because the ABI actually does not produce merged names.
+		Without the change, setting '__GXX_TYPEINFO_EQUALITY_INLINE' to '1' makes it fail in environment 'type_info' comparison during the test.
+		As tested, MinGW64 is irrelavant.
+			LLD already supports ICF (identical COMDAT folding) for PE/COFF for years.
+				See https://lld.llvm.org/NewLLD.html.
+				See https://reviews.llvm.org/rL340555.
+			But GNU ld does not, although it does support ICF (identical code folding) for ELF.
+	See also $2020-02 report.impl for the original changes on the related configuration.
 
 ////
 

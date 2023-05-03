@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r11350
+\version r11372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2023-03-24 02:00 +0800
+	2023-04-19 06:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -693,17 +693,21 @@ TokenizeTerm(TermNode&);
 */
 //!@{
 /*!
-\brief 父环境访问检查支持。
-\sa ContextNode::DefaultResolve
 \sa Environment
 
-若定义为 true ，则在默认访问父环境时，检查环境引用是否存在。
-其中，访问环境包括以下情形：
+访问环境包括以下情形：
 解析环境取环境宿主值；
 使用环境宿主值初始化 ValueObject 对象。
 注意解析环境时取得的可能表示环境宿主类型的值不一定是环境宿主值。
 若宿主类型的值作为环境宿主值，则视为访问。
 派生实现的基于语义规则要求的动态环境类型检查不使用此处的可选检查。
+*/
+//!@{
+/*!
+\brief 父环境访问检查支持。
+\sa ContextNode::DefaultResolve
+
+若定义为 true ，则在默认访问父环境时，检查环境引用是否存在。
 */
 #ifndef NPL_NPLA_CheckParentEnvironment
 #	ifndef NDEBUG
@@ -712,6 +716,21 @@ TokenizeTerm(TermNode&);
 #		define NPL_NPLA_CheckParentEnvironment false
 #	endif
 #endif
+
+/*!
+\brief 环境解析检查支持。
+\since build 972
+
+若定义为 true ，则在默认访问环境时，检查环境引用是否存在。
+*/
+#ifndef NPL_NPLA_CheckResolvedEnvironment
+#	ifndef NDEBUG
+#		define NPL_NPLA_CheckResolvedEnvironment true
+#	else
+#		define NPL_NPLA_CheckResolvedEnvironment false
+#	endif
+#endif
+//!@}
 
 /*!
 \brief 项引用间接访问检查支持。
@@ -4154,10 +4173,10 @@ RelaySwitched(ContextNode& ctx, _tParams&&... args)
 /*!
 \ingroup NPLDiagnostics
 \brief 追踪记录 NPL 异常。
-\since build 903
+\since build 972
 */
 YF_API void
-TraceException(std::exception&, YSLib::Logger&);
+TraceException(const std::exception&, YSLib::Logger&);
 
 } // namespace NPL;
 

@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r2019
+\version r2119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2023-01-16 01:30 +0800
+	2023-04-12 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,18 +42,18 @@
 \see https://docs.microsoft.com/cpp/preprocessor/predefined-macros 。
 \since build 934
 */
-//@{
+//!@{
 /*!
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 \since build 832
 */
-//@{
+//!@{
 #ifndef __cpp_lib_transformation_trait_aliases
 #	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201304L
 #		define __cpp_lib_transformation_trait_aliases 201304L
 #	endif
 #endif
-//@}
+//!@}
 //! \see WG21 P1902R1 。
 #ifndef __cpp_lib_remove_cvref
 #	if (YB_IMPL_MSCPP >= 1920 && _MSVC_LANG >= 201711L) \
@@ -65,13 +65,13 @@
 \see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
 \since build 679
 */
-//@{
+//!@{
 #ifndef __cpp_lib_void_t
 #	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
 #		define __cpp_lib_void_t 201411L
 #	endif
 #endif
-//@}
+//!@}
 //! \see WG21 P1902R1 。
 #ifndef __cpp_lib_type_identity
 #	if (YB_IMPL_MSCPP >= 1921 && _MSVC_LANG >= 201806L) \
@@ -79,7 +79,7 @@
 #		define __cpp_lib_type_identity 201806L
 #	endif
 #endif
-//@}
+//!@}
 
 namespace ystdex
 {
@@ -100,7 +100,7 @@ inline namespace cpp2011
 {
 
 //! \since build 245
-//@{
+//!@{
 using std::remove_const;
 using std::remove_volatile;
 using std::remove_cv;
@@ -131,7 +131,7 @@ using std::enable_if;
 using std::conditional;
 //! \since build 439
 using std::underlying_type;
-//@}
+//!@}
 
 } // inline namespace cpp2011;
 
@@ -146,7 +146,7 @@ inline namespace cpp2014
 \ingroup transformation_traits
 \brief ISO C++ 14 兼容类型操作别名。
 */
-//@{
+//!@{
 #if __cpp_lib_transformation_trait_aliases >= 201304L
 using std::remove_const_t;
 using std::remove_volatile_t;
@@ -176,7 +176,7 @@ using std::conditional_t;
 using std::underlying_type_t;
 #else
 //! \since build 340
-//@{
+//!@{
 template<typename _type>
 using remove_const_t = typename remove_const<_type>::type;
 
@@ -230,10 +230,10 @@ using add_pointer_t = typename add_pointer<_type>::type;
 template<size_t _vLen,
 	size_t _vAlign = yalignof(typename aligned_storage<_vLen>::type)>
 using aligned_storage_t = typename aligned_storage<_vLen, _vAlign>::type;
-//@}
+//!@}
 
 //! \since build 339
-//@{
+//!@{
 template<size_t _vLen, typename... _types>
 using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
 
@@ -248,9 +248,9 @@ using conditional_t = typename conditional<_bCond, _type, _type2>::type;
 
 template<typename _type>
 using underlying_type_t = typename underlying_type<_type>::type;
-//@}
+//!@}
 #endif
-//@}
+//!@}
 
 } // inline namespace cpp2014;
 
@@ -282,9 +282,9 @@ inline namespace cpp2020
 {
 
 //! \ingroup transformation_traits
-//@{
+//!@{
 //! \since build 833
-//@{
+//!@{
 #if __cpp_lib_remove_cvref >= 201711L
 using std::remove_cvref;
 using std::remove_cvref_t;
@@ -295,7 +295,7 @@ using std::remove_cvref_t;
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
 \see WG21 P0550R2 。
 */
-//@{
+//!@{
 template<typename _type>
 struct remove_cvref : remove_cv<remove_reference_t<_type>>
 {};
@@ -304,7 +304,7 @@ struct remove_cvref : remove_cv<remove_reference_t<_type>>
 template<typename _type>
 using remove_cvref_t = _t<remove_cvref<_type>>;
 #endif
-//@}
+//!@}
 
 
 #if YB_Impl_TypeTraits_has_cpp20_common_type
@@ -314,7 +314,7 @@ using std::common_type;
 using std::common_type_t;
 #else
 //! \since build 938
-//@{
+//!@{
 /*!
 \ingroup YBase_replacement_features
 \brief 取公共类型。
@@ -330,7 +330,7 @@ using std::common_type_t;
 
 同 ISO C++20 的 std::common_type ，但不支持程序定义的特化，
 	而直接使用 std::common_type 的程序定义的特化（若存在）。
-从 ISO C++11 起提供 std::common_type 的要求在不同标准版本中略有不同，如：
+从 ISO C++11 起提供 std::common_type 的要求在不同标准版本中略有不同：
 自 ISO C++14 起 LWG 2141 的解决要求成员 type 类型（若存在）为退化类型；
 WG21 P0435R1 解决 LWG 2465（同时涵盖 LWG 2460 的第一部分），
 	不再允许程序提供具有 cv 限定符的特化的模板参数。
@@ -351,7 +351,7 @@ P0548R1 调整了 P0435R1 依赖的特化；
 以上特性和修正都在本特征的实现中被支持。
 关于 ISO C++11 以来的 SFINAE 支持的其它提案，另见 N3843 和 P0015 。
 */
-//@{
+//!@{
 template<typename...>
 struct common_type
 {};
@@ -373,18 +373,18 @@ struct common_type<_type1, _type2, _types...>
 //! \since build 340
 template<typename... _types>
 using common_type_t = typename common_type<_types...>::type;
-//@}
-//@}
+//!@}
+//!@}
 #endif
-//@}
+//!@}
 
 } // inline namespace cpp2020;
 
 
 //! \ingroup metafunctions
-//@{
+//!@{
 //! \brief 表达式 SFINAE 别名模板。
-//@{
+//!@{
 //! \since build 653
 template<typename _type>
 struct always
@@ -405,7 +405,7 @@ public:
 \brief void_t 的一般化，可指定别名类型。
 \see CWG 1558 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
-\see https://stackoverflow.com/questions/31907885/void-t-fails-on-visual-studio-2015 。
+\see https://stackoverflow.com/questions/31907885 。
 \since build 688
 */
 #if YB_IMPL_MSCPP >= 1900 || YB_IMPL_GNUCPP > 50000 || YB_IMPL_CLANGPP \
@@ -462,8 +462,8 @@ using when_valid = well_formed_t<when<true>, _types...>;
 */
 template<bool _bCond>
 using enable_when = enable_if_t<_bCond, when<true>>;
-//@}
-//@}
+//!@}
+//!@}
 
 
 #if !YB_Impl_TypeTraits_has_cpp20_common_type
@@ -572,7 +572,7 @@ struct nonesuch
 \since build 649
 \see WG21 N4502 。
 */
-//@{
+//!@{
 namespace details
 {
 
@@ -593,21 +593,20 @@ struct detector<_tDefault, void_t<_gOp<_tParams...>>, _gOp, _tParams...>
 
 
 //! \since build 867
-//@{
-template<typename _type1, typename _type2,
-	bool _vSame = is_same<_type1, _type2>::value>
+//!@{
+template<typename _type1, typename _type2, bool = is_same<_type1, _type2>{}>
 struct is_same_or_convertible : is_convertible<_type1, _type2>
 {};
 
 template<typename _type1, typename _type2>
 struct is_same_or_convertible<_type1, _type2, true> : true_
 {};
-//@}
+//!@}
 
 } // namespace details;
 
 //! \ingroup YBase_replacement_features
-//@{
+//!@{
 template<template<typename...> class _gOp, typename... _tParams>
 using is_detected
 	= typename details::detector<nonesuch, void, _gOp, _tParams...>::value_t;
@@ -630,24 +629,24 @@ using is_detected_exact = is_same<_tExpected, detected_t<_gOp, _tParams...>>;
 template<typename _tTo, template<typename...> class _gOp, typename... _tParams>
 using is_detected_convertible
 	= is_convertible<detected_t<_gOp, _tParams...>, _tTo>;
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
 \ingroup unary_type_traits
 \tparam _type 需要判断特征的类型参数。
 */
-//@{
+//!@{
 //! \note 以下参数可能是 cv 修饰的类型，结果和去除 cv 修饰符的类型一致。
-//@{
+//!@{
 /*!
 \brief 判断是否为未知大小的数组类型。
 \since build 651
 */
 template<typename _type>
 struct is_array_of_unknown_bound
-	: bool_<is_array<_type>::value && extent<_type>::value == 0>
+	: bool_<is_array<_type>() && extent<_type>() == 0>
 {};
 
 
@@ -723,7 +722,7 @@ struct is_nonconst_object
 
 
 //! \since build 630
-//@{
+//!@{
 //! \brief 判断指定类型是否是指向对象类型的指针。
 template<typename _type>
 struct is_pointer_to_object
@@ -743,11 +742,11 @@ template<typename _type>
 struct is_function_pointer
 	: and_<is_pointer<_type>, is_function<remove_pointer_t<_type>>>
 {};
-//@}
+//!@}
 
 
 //! \since build 333
-//@{
+//!@{
 //! \brief 判断指定类型是否是指向类类型的指针。
 template<typename _type>
 struct is_class_pointer
@@ -767,7 +766,7 @@ template<typename _type>
 struct is_rvalue_class_reference
 	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -775,7 +774,7 @@ struct is_rvalue_class_reference
 \see ISO C++17 [class.prop]/2 。
 \since build 853
 */
-//@{
+//!@{
 /*!
 \brief 判断指定类型是否是平凡的非联合类类型。
 \note 注意和 ISO C++ 的 \c std::is_class 类似，排除联合。
@@ -792,7 +791,7 @@ struct is_trivial_class_type : and_<is_trivial<_type>, is_class_type<_type>>
 template<typename _type>
 struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -802,7 +801,7 @@ struct is_trivial_union : and_<is_trivial<_type>, is_union<_type>>
 template<typename _type>
 struct is_inheritable_class : and_<is_class<_type>, not_<is_final<_type>>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -812,14 +811,14 @@ struct is_inheritable_class : and_<is_class<_type>, not_<is_final<_type>>>
 template<typename _type>
 struct is_cv : or_<is_const<_type>, is_volatile<_type>>
 {};
-//@}
+//!@}
 
 
 /*!
 \brief 判断指定类型是否可分解为一个参数为类型的模板和类型参数。
 \since build 683
 */
-//@{
+//!@{
 template<typename>
 struct is_decomposable : false_
 {};
@@ -827,7 +826,7 @@ struct is_decomposable : false_
 template<template<typename...> class _gOp, typename... _types>
 struct is_decomposable<_gOp<_types...>> : true_
 {};
-//@}
+//!@}
 
 
 /*!
@@ -835,7 +834,7 @@ struct is_decomposable<_gOp<_types...>> : true_
 	或未知大小的数组。
 \since build 630
 */
-//@{
+//!@{
 template<typename _type>
 struct is_copyable
 	: and_<is_copy_constructible<_type>, is_copy_assignable<_type>>
@@ -874,21 +873,21 @@ struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
 
 /*!
 \brief 判断指定类型是否为可复制构造但不可无抛出异常地转移构造的类型。
-\note 和 std::move_if_noexcept 需要避免复制的条件相同。
+\note 和 std::move_if_noexcept 需要选择复制的条件相同。
 \since build 865
 */
 template<typename _type>
 struct is_throwing_move_copyable : and_<is_copy_constructible<_type>,
 	not_<is_nothrow_move_constructible<_type>>>
 {};
-//@}
-//@}
+//!@}
+//!@}
 
 
 //! \note 参数可以是不完整类型。
-//@{
+//!@{
 //! \ingroup type_traits_operations
-//@{
+//!@{
 /*!
 \brief 判断指定类型是否已退化为指定类型。
 \since build 841
@@ -905,23 +904,34 @@ struct is_decayed : is_same<_type, decay_t<_tTo>>
 template<typename _type, typename _tTo = _type>
 struct is_unqualified : is_same<_type, remove_cv_t<_tTo>>
 {};
-//@}
+//!@}
 
 
+//! \ingroup unary_type_trait
+//!@{
 /*!
-\ingroup unary_type_trait
 \brief 判断类型是否为非 const 对象类型。
 \since build 867
 */
 template<typename _type>
-struct is_unqualified_object
-	: and_<is_object<_type>, is_unqualified<_type>>
+struct is_unqualified_object : and_<is_object<_type>, is_unqualified<_type>>
 {};
-//@}
+
+
+/*!
+\brief 判断类型是否为非 const 对象的数组类型。
+\since build 972
+*/
+template<typename _type>
+struct is_array_of_unqualified_object : and_<is_array<_type>,
+	is_unqualified_object<remove_extent_t<_type>>>
+{};
+//!@}
+//!@}
 
 
 //! \ingroup binary_type_traits
-//@{
+//!@{
 /*!
 \brief 判断指定类型之间是否相同或可转换。
 \note 类似 is_convertible ，但不要求完整类型。
@@ -943,7 +953,7 @@ struct is_interoperable : or_<is_same_or_convertible<_type1, _type2>,
 
 
 //! \since build 832
-//@{
+//!@{
 //! \brief 判断指定类型是否可被指定参数类型构造且要求显式构造。
 template <typename _type, typename _tFrom>
 struct is_explicitly_constructible : and_<is_constructible<_type, _tFrom>,
@@ -970,7 +980,7 @@ template <typename _type, typename _tFrom>
 struct is_implicitly_nothrow_constructible : and_<is_nothrow_constructible<
 	_type, _tFrom>, is_convertible<_tFrom, _type>>
 {};
-//@}
+//!@}
 
 
 /*!
@@ -980,14 +990,14 @@ struct is_implicitly_nothrow_constructible : and_<is_nothrow_constructible<
 template<typename _type, typename _tParam>
 struct is_same_param : is_same<_type&, decay_t<_tParam>&>
 {};
-//@}
+//!@}
 
 
 /*!
 \ingroup metafunctions
 \since build 671
 */
-//@{
+//!@{
 //! \brief 判断第一参数和之后的参数指定的类型相同。
 template<typename _type, typename... _types>
 struct are_same : and_<is_same<_type, _types>...>
@@ -997,20 +1007,20 @@ struct are_same : and_<is_same<_type, _types>...>
 template<typename _type, typename... _types>
 struct is_in_types : or_<is_same<_type, _types>...>
 {};
-//@}
+//!@}
 
 
 /*!
 \ingroup metafunctions
 \brief 条件判断。
 */
-//@{
+//!@{
 /*!
 \sa conditional
 \since build 846
 */
 template<typename _tCond, typename _tThen = true_, typename _tElse = false_>
-using cond = conditional<_tCond::value, _tThen, _tElse>;
+using cond = conditional<_tCond{}, _tThen, _tElse>;
 
 /*!
 \sa conditional_t
@@ -1018,10 +1028,10 @@ using cond = conditional<_tCond::value, _tThen, _tElse>;
 */
 template<typename _tCond, typename _tThen = true_, typename _tElse = false_>
 using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
-//@}
+//!@}
 
 //! \ingroup transformation_traits
-//@{
+//!@{
 /*!
 \brief 恒等元函数。
 \note 功能可以使用 ISO C++11 的 std::common_type 的单一参数实例替代。
@@ -1031,9 +1041,9 @@ using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
 \note Microsoft VC++ 2013 使用 LWG 2141 建议的实现。
 \sa id
 \see LWG 2141 。
-\see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
-\see http://msdn.microsoft.com/library/vstudio/bb531344%28v=vs.120%29.aspx 。
-\see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
+\see https://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
+\see https://msdn.microsoft.com/library/vstudio/bb531344.aspx 。
+\see https://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
 \since build 334
 
 结果总是和参数类型相同的元函数。
@@ -1042,7 +1052,7 @@ using cond_t = _t<cond<_tCond, _tThen, _tElse>>;
 在 ystdex 中，identity 的名称保留为元函数。
 可使用 id 代替 std::identity 的使用：id<> 实现和 std::identity 的相同的功能。
 */
-//@{
+//!@{
 template<typename _type>
 struct identity
 {
@@ -1074,20 +1084,20 @@ using type_identity_t = _t<type_identity<_type>>;
 #endif
 
 } //inline namespace cpp2020;
-//@}
+//!@}
 
 
 /*!
 \ingroup transformation_traits
 \since build 942
 */
-//@{
+//!@{
 template<typename... _types>
 using empty_pack_t = bool_<sizeof...(_types) == 0>;
 
 template<typename... _types>
 using sizeof_pack_t = size_t_<sizeof...(_types)>;
-//@}
+//!@}
 
 /*!
 \ingroup unary_type_traits
@@ -1101,20 +1111,20 @@ using sizeof_t = size_t_<sizeof(_type)>;
 \sa enable_if_t
 \since build 575
 */
-//@{
+//!@{
 //! \since build 965
 template<typename _type, typename... _tParams>
 using enable_if_constructible_t
-	= enable_if_t<is_constructible<_type, _tParams...>::value>;
+	= enable_if_t<is_constructible<_type, _tParams...>{}>;
 
 //! \since build 965
 template<typename _tRes, typename _type, typename... _tParams>
 using enable_if_constructible_r_t
-	= enable_if_t<is_constructible<_type, _tParams...>::value, _tRes>;
+	= enable_if_t<is_constructible<_type, _tParams...>{}, _tRes>;
 
 template<typename _tFrom, typename _tTo, typename _type = void>
 using enable_if_convertible_t
-	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+	= enable_if_t<is_convertible<_tFrom, _tTo>{}, _type>;
 
 //! \since build 965
 template<typename _type, typename... _tParams>
@@ -1133,17 +1143,16 @@ using enable_if_inconvertible_t
 
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_interoperable_t
-	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
+	= enable_if_t<is_interoperable<_type1, _type2>{}, _type>;
 
 //! \since build 614
 template<typename _type1, typename _type2, typename _type = void>
-using enable_if_same_t
-	= enable_if_t<is_same<_type1, _type2>::value, _type>;
+using enable_if_same_t = enable_if_t<is_same<_type1, _type2>{}, _type>;
 
 //! \since build 865
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_same_param_t
-	= enable_if_t<is_same_param<_type1, _type2>::value, _type>;
+	= enable_if_t<is_same_param<_type1, _type2>{}, _type>;
 
 /*!
 \brief 启用无符号类型参数的重载。
@@ -1151,7 +1160,7 @@ using enable_if_same_param_t
 */
 template<typename _tParam, typename _type = remove_cvref_t<_tParam>>
 using enable_if_unsigned_t
-	= enable_if_t<is_unsigned<remove_cvref_t<_tParam>>::value, _type>;
+	= enable_if_t<is_unsigned<remove_cvref_t<_tParam>>{}, _type>;
 
 /*!
 \brief 排除选择类型的特定参数的重载。
@@ -1161,8 +1170,8 @@ using enable_if_unsigned_t
 template<typename _tSelected, typename _tParam, typename _type = void>
 using exclude_self_t
 	= enable_if_t<!is_same_param<_tSelected, _tParam>::value, _type>;
-//@}
-//@}
+//!@}
+//!@}
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10487
+\version r10655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2023-01-11 04:36 +0800
+	2023-05-03 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,14 +78,14 @@ struct YF_API NPLA1Tag : NPLATag
 
 
 //! \ingroup ThunkType
-//@{
+//!@{
 //! \since build 674
-//@{
+//!@{
 //! \brief 上下文处理器类型。
 using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
 //! \brief 字面量处理器类型。
 using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
-//@}
+//!@}
 
 
 /*!
@@ -113,7 +113,7 @@ enum class ValueToken
 	GroupingAnchor,
 	OrderedAnchor
 };
-//@}
+//!@}
 
 /*!
 \brief 取值记号的字符串表示。
@@ -144,7 +144,7 @@ public:
 	ContextHandler Handler;
 
 	//! \since build 877
-	//@{
+	//!@{
 	template<typename _func, yimpl(typename
 		= ystdex::exclude_self_t<Continuation, _func>)>
 	inline
@@ -181,7 +181,7 @@ public:
 		: Handler(ystdex::make_obj_using_allocator<ContextHandler>(a,
 		std::move(cont.Handler)))
 	{}
-	//@}
+	//!@}
 	DefDeCopyMoveCtorAssignment(Continuation)
 
 	YB_ATTR_nodiscard YB_STATELESS friend
@@ -197,19 +197,19 @@ public:
 
 
 //! \since build 859
-//@{
+//!@{
 /*!
 \brief 抛出参数指定消息的语法错误异常。
 \throw InvalidSyntax 语法错误：参数指定的标识符是不被支持的字面量。
 */
-//@{
+//!@{
 //! \pre 间接断言：第一参数非空。
 YB_NORETURN YF_API YB_NONNULL(1) void
 ThrowInvalidSyntaxError(const char*);
 //! \pre 间接断言：第一参数的数据指针非空。
 YB_NORETURN YF_API void
 ThrowInvalidSyntaxError(string_view);
-//@}
+//!@}
 
 /*!
 \brief 抛出被赋值操作数不可修改的异常。
@@ -217,20 +217,20 @@ ThrowInvalidSyntaxError(string_view);
 */
 YB_NORETURN YF_API void
 ThrowNonmodifiableErrorForAssignee();
-//@}
+//!@}
 
 /*!
 \brief 抛出参数指定值的不支持的字面量语法错误异常。
 \throw InvalidSyntax 语法错误。
 \since build 896
 */
-//@{
+//!@{
 //! \pre 间接断言：第一参数非空。
 YB_NORETURN YF_API YB_NONNULL(1) void
 ThrowUnsupportedLiteralError(const char*);
 YB_NORETURN inline PDefH(void, ThrowUnsupportedLiteralError, string_view sv)
 	ImplExpr(ThrowUnsupportedLiteralError(sv.data()))
-//@}
+//!@}
 
 /*!
 \brief 抛出不符合预期值类别的异常。
@@ -242,7 +242,7 @@ ThrowValueCategoryError(const TermNode&);
 
 
 //! \since build 676
-//@{
+//!@{
 /*!
 \ingroup functors
 \brief 遍合并器：逐次调用序列中的遍直至成功。
@@ -276,7 +276,7 @@ struct PassesCombiner
 \note 结果表示判断是否应继续规约。
 \sa PassesCombiner
 */
-//@{
+//!@{
 //! \brief 一般合并遍。
 template<typename... _tParams>
 using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
@@ -291,7 +291,7 @@ using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
 \since build 738
 */
 using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
-//@}
+//!@}
 
 
 //! \brief 作用域守卫类型。
@@ -302,7 +302,7 @@ using Guard = any;
 */
 using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 	YSLib::GDefaultLastValueInvoker<Guard>>;
-//@}
+//!@}
 
 
 //! \since build 955
@@ -375,22 +375,22 @@ public:
 	\pre 参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
 	\warning 若不满足上下文状态类型要求，行为未定义。
 	*/
-	//@{
+	//!@{
 	YB_ATTR_nodiscard YB_PURE static
 		PDefH(ContextState&, Access, ContextNode& ctx) ynothrowv
 		ImplRet(ystdex::polymorphic_downcast<ContextState&>(ctx))
 	YB_ATTR_nodiscard YB_PURE static
 		PDefH(const ContextState&, Access, const ContextNode& ctx) ynothrowv
 		ImplRet(ystdex::polymorphic_downcast<const ContextState&>(ctx))
-	//@}
+	//!@}
 
 	/*!
 	\brief 取规约合并项指针。
 	\sa combining_term_ptr
 	\since build 895
 	*/
-	DefGetter(const ynothrow, observer_ptr<TermNode>, CombiningTermPtr,
-		combining_term_ptr)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, observer_ptr<TermNode>,
+		CombiningTermPtr, combining_term_ptr)
 	/*!
 	\brief 取下一求值项引用。
 	\throw NPLException 下一求值项的指针为空。
@@ -486,7 +486,7 @@ public:
 	\sa ReduceOnce
 	\since build 892
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 重写项：设置下一项为参数并使用 ReduceOnce 重写项。
 	\sa Rewrite
@@ -501,7 +501,7 @@ public:
 	*/
 	ReductionStatus
 	RewriteTermGuarded(TermNode&);
-	//@}
+	//!@}
 
 	/*!
 	\brief 设置当前源代码名称为参数指定初始化的新分配的共享名称。
@@ -516,7 +516,7 @@ public:
 	}
 
 	//! \since build 948
-	//@{
+	//!@{
 	/*!
 	\brief 尝试取当前尾动作规约的操作符名称。
 	\return 若调用成功，操作符的名称符号；否则为空指针。
@@ -538,7 +538,7 @@ public:
 	*/
 	bool
 	TrySetTailOperatorName(TermNode&) const ynothrow;
-	//@}
+	//!@}
 
 	friend PDefH(void, swap, ContextState& x, ContextState& y) ynothrow
 		ImplExpr(swap(static_cast<ContextNode&>(x), static_cast<ContextNode&>(
@@ -556,7 +556,7 @@ inline PDefH(ReductionStatus, Continuation::operator(), ContextNode& ctx) const
 \note 第一参数为 TermNode& 类型时，引用的对象为被规约项。
 \warning 若不满足上下文状态类型要求，行为未定义。
 */
-//@{
+//!@{
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \pre 间接断言：第一参数的标签可表示一等对象的值。
@@ -577,37 +577,37 @@ Reduce(TermNode&, ContextNode&);
 \note 可能使参数中容器的迭代器失效。
 \sa Reduce
 */
-//@{
+//!@{
 /*!
 \note 按语言规范，子项规约顺序未指定。
 \note 忽略子项重规约要求。
 */
-//@{
+//!@{
 /*!
 \brief 对范围内的第二项开始逐项规约。
 \throw InvalidSyntax 容器为空。
 \sa ReduceChildren
 \since build 773
 */
-//@{
+//!@{
 YF_API void
 ReduceArguments(TNIter, TNIter, ContextNode&);
 //! \warning 不检查列表表示，假定参数指定的项是真列表。
 inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 	ImplRet(ReduceArguments(term.begin(), term.end(), ctx))
-//@}
+//!@}
 
 /*!
 \brief 规约子项。
 \since build 697
 */
-//@{
+//!@{
 YF_API void
 ReduceChildren(TNIter, TNIter, ContextNode&);
 inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 	ImplExpr(ReduceChildren(term.begin(), term.end(), ctx))
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief 有序规约子项。
@@ -616,13 +616,13 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 \sa ReduceOnce
 \since build 773
 */
-//@{
+//!@{
 YF_API ReductionStatus
 ReduceChildrenOrdered(TNIter, TNIter, ContextNode&);
 inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 	ContextNode& ctx)
 	ImplRet(ReduceChildrenOrdered(term.begin(), term.end(), ctx))
-//@}
+//!@}
 
 /*!
 \brief 规约第一个子项。
@@ -695,8 +695,8 @@ ReduceOrdered(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceTail(TermNode&, ContextNode&, TNIter);
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \note 不访问项的值数据成员。若需返回值正确地反映规约状态，需确保为空。
@@ -707,7 +707,7 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 结果中的列表元素是对应源列表的元素。
 最后一个参数指定的源列表可能被第一参数所有。
 */
-//@{
+//!@{
 /*!
 \brief 规约到引用列表。
 \since build 913
@@ -727,7 +727,7 @@ ReduceToReferenceList(TermNode&, ContextNode&, TermNode&);
 */
 YF_API ReductionStatus
 ReduceToReferenceUList(TermNode&, TermNode&);
-//@}
+//!@}
 
 
 /*!
@@ -766,7 +766,7 @@ SetupTraceDepth(ContextState&, const string& = yimpl("$__depth"));
 struct SeparatorTransformer
 {
 	//! 最后两个参数分别指定替换添加的前缀和判断被替换的项的过滤条件。
-	//@{
+	//!@{
 	template<typename _func, class _tTerm, class _fPred>
 	YB_ATTR_nodiscard TermNode
 	operator()(_func trans, _tTerm&& term, const ValueObject& pfx,
@@ -833,7 +833,7 @@ struct SeparatorTransformer
 		if(std::find_if(term.begin(), term.end(), filter) != term.end())
 			term = Process(std::move(term), pfx, filter);
 	}
-	//@}
+	//!@}
 };
 
 
@@ -843,7 +843,7 @@ struct SeparatorTransformer
 \return 分析结果。
 \since build 926
 */
-//@{
+//!@{
 /*!
 \brief 分析参数指定的叶节点词素。
 
@@ -868,7 +868,7 @@ ParseLeaf(TermNode&, string_view);
 YF_API void
 ParseLeafWithSourceInformation(TermNode&, string_view, const SourceName&,
 	const SourceLocation&);
-//@}
+//!@}
 
 
 /*!
@@ -922,7 +922,7 @@ public:
 };
 
 //! \relates WrappedContextHandler
-//@{
+//!@{
 /*!
 \ingroup metafunction
 \since build 927
@@ -938,7 +938,7 @@ using WrapContextHandlerTarget = ystdex::or_<std::is_constructible<typename
 	ystdex::expanded_caller<typename _tDst::FuncType, ystdex::decay_t<_func>>>>;
 
 //! \since build 751
-//@{
+//!@{
 template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, ystdex::false_)
@@ -960,9 +960,9 @@ WrapContextHandler(_func&& h)
 	return A1::WrapContextHandler<_tDst>(yforward(h),
 		WrapContextHandlerTarget<_func, _tDst>());
 }
-//@}
+//!@}
 //! \since build 886
-//@{
+//!@{
 template<class _tDst, typename _func, class _tAlloc>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(_func&& h, const _tAlloc& a, ystdex::false_)
@@ -984,9 +984,9 @@ WrapContextHandler(_func&& h, const _tAlloc& a)
 	return A1::WrapContextHandler<_tDst>(yforward(h), a,
 		WrapContextHandlerTarget<_func, _tDst>());
 }
-//@}
+//!@}
 //! \since build 927
-//@{
+//!@{
 template<class _tDst, typename _func>
 YB_ATTR_nodiscard YB_PURE inline _tDst
 WrapContextHandler(trivial_swap_t, _func&& h, ystdex::false_)
@@ -1029,8 +1029,8 @@ WrapContextHandler(trivial_swap_t, _func&& h, const _tAlloc& a)
 	return A1::WrapContextHandler<_tDst>(trivial_swap, yforward(h), a,
 		WrapContextHandlerTarget<_func, _tDst>());
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -1045,7 +1045,7 @@ class YF_API FormContextHandler
 {
 private:
 	//! \since build 958
-	//@{
+	//!@{
 	// NOTE: The call is specialized by %call_n. This is done regardless of
 	//	%__OPTIMIZE_SIZE__, because by default the generic case (using %DoCallN)
 	//	is not present for the ground environment of the object language, so the
@@ -1063,11 +1063,11 @@ private:
 		std::is_same<_type, std::allocator_arg_t>,
 		std::is_same<_type, trivial_swap_t>>;
 	template<typename _tParam>
-	using MaybeFunc = ystdex::enable_if_t<NotTag<_tParam>::value
+	using MaybeFunc = ystdex::enable_if_t<NotTag<_tParam>()
 		&& !ystdex::is_same_param<FormContextHandler, _tParam>::value>;
 	using Caller = ReductionStatus(*)(const FormContextHandler&, TermNode&,
 		ContextNode&);
-	//@}
+	//!@}
 
 public:
 	ContextHandler Handler;
@@ -1088,7 +1088,7 @@ private:
 
 public:
 	//! \since build 958
-	//@{
+	//!@{
 	template<typename _func, typename... _tParams,
 		yimpl(typename = MaybeFunc<_func>)>
 	inline
@@ -1145,7 +1145,7 @@ private:
 	FormContextHandler(tuple<_tFuncParams...> func_args, size_t n)
 		: Handler(InitWrap(func_args)), wrapping(n), call_n(InitCall(n))
 	{}
-	//@}
+	//!@}
 
 public:
 	//! \since build 757
@@ -1180,7 +1180,7 @@ public:
 		ImplRet(CheckArguments(wrapping, term), call_n(*this, term, ctx))
 
 	//! \since build 958
-	DefPred(const ynothrow, Operative, wrapping == 0)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Operative, wrapping == 0)
 	/*!
 	\brief 判断合并子的实现是否在初始化时按非常量值的包装数确定调用例程。
 	\since build 959
@@ -1188,17 +1188,17 @@ public:
 #if __OPTIMIZE_SIZE__
 	// XXX: Avoid to mention %DoCallN to allow it opted-out by static linking if
 	//	not used.
-	DefPred(const ynothrow, DynamicWrapper,
+	YB_ATTR_nodiscard DefPred(const ynothrow, DynamicWrapper,
 		!(call_n == DoCall0 || call_n == DoCall1))
 #else
-	DefPred(const ynothrow, DynamicWrapper, call_n == DoCallN)
+	YB_ATTR_nodiscard DefPred(const ynothrow, DynamicWrapper, call_n == DoCallN)
 #endif
 
 	//! \since build 958
-	DefGetter(const ynothrow, size_t, WrappingCount, wrapping)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, WrappingCount, wrapping)
 
 	//! \pre 断言：若使用异步实现，参数指定的项和下一求值项相同。
-	//@{
+	//!@{
 	/*!
 	\brief 调用上下文处理器。
 	\since build 943
@@ -1213,7 +1213,7 @@ private:
 	*/
 	ReductionStatus
 	CallN(size_t, TermNode&, ContextNode&) const;
-	//@}
+	//!@}
 
 public:
 	/*!
@@ -1229,9 +1229,9 @@ public:
 
 private:
 	//! \since build 958
-	//@{
+	//!@{
 	//! \pre 断言：若使用异步实现，参数指定的项和下一求值项相同。
-	//@{
+	//!@{
 	//! \pre 断言：第一参数的包装数等于 0 。
 	static ReductionStatus
 	DoCall0(const FormContextHandler&, TermNode&, ContextNode&);
@@ -1243,7 +1243,7 @@ private:
 	//! \pre 断言：第一参数的包装数大于 1 。
 	static ReductionStatus
 	DoCallN(const FormContextHandler&, TermNode&, ContextNode&);
-	//@}
+	//!@}
 
 	//! \since build 859
 	YB_ATTR_nodiscard YB_PURE bool
@@ -1275,7 +1275,7 @@ public:
 	PDefH(void, Unwrap, ) ynothrowv
 		ImplExpr(YAssert(wrapping != 0, "An operative cannot be unwrapped."),
 			call_n = InitCall(--wrapping))
-	//@}
+	//!@}
 
 	//! \since build 834
 	friend DefSwap(ynothrow, FormContextHandler, (swap(_x.Handler, _y.Handler),
@@ -1286,7 +1286,7 @@ public:
 \relates FormContextHandler
 \since build 921
 */
-//@{
+//!@{
 template<typename... _tParams>
 YB_ATTR_nodiscard YB_PURE inline ContextHandler
 MakeForm(TermNode::allocator_type a, _tParams&&... args)
@@ -1318,7 +1318,7 @@ AsForm(TermNode::allocator_type a, _tParams&&... args)
 	return NPL::AsTermNode(a, MakeForm(a, yforward(args)...));
 #endif
 }
-//@}
+//!@}
 
 
 /*!
@@ -1327,7 +1327,7 @@ AsForm(TermNode::allocator_type a, _tParams&&... args)
 \pre 间接断言：第二参数的数据指针非空。
 \since build 942
 */
-//@{
+//!@{
 template<class _tTarget>
 YB_ATTR_always_inline inline void
 RegisterFormHandler(_tTarget& target, string_view name, FormContextHandler fm)
@@ -1352,7 +1352,7 @@ RegisterFormHandler(_tTarget& target, string_view name, _tParams&&... args)
 		FormContextHandler(yforward(args)...));
 #endif
 }
-//@}
+//!@}
 
 /*!
 \brief 包装数种类枚举。
@@ -1372,7 +1372,7 @@ enum WrappingKind
 \pre 间接断言：第二参数的数据指针非空。
 \since build 838
 */
-//@{
+//!@{
 //! \brief 注册一般形式上下文处理器。
 template<class _tTarget, typename... _tParams>
 YB_ATTR_always_inline inline void
@@ -1388,7 +1388,7 @@ RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 {
 	A1::RegisterFormHandler(target, name, yforward(args)..., Strict);
 }
-//@}
+//!@}
 
 
 /*!
@@ -1425,7 +1425,7 @@ inline PDefH(void, CheckVariadicArity, const TermNode& term, size_t n)
 \pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
 \sa AssertBranchedList
 */
-//@{
+//!@{
 /*!
 \brief 取项的参数个数：子项数减 1 。
 \pre 间接断言：参数指定的项是分支列表节点。
@@ -1447,7 +1447,7 @@ YB_ATTR_nodiscard YB_PURE inline
 可使用 RegisterForm 注册上下文处理器，参考文法：
 $retain|$retainN \<expression>
 */
-//@{
+//!@{
 // XXX: G++ will warn with [-Wunused-value] if it is pure. See also $2019-01
 //	@ %Documentation::Workflow.
 #if defined(NDEBUG) && YB_IMPL_GNUCPP >= 100000
@@ -1484,15 +1484,15 @@ RetainN(const TermNode& term, size_t m = 1)
 			return n;
 		throw ArityMismatch(m, n);
 	}(FetchArgumentN(term)))
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
 \pre 间接断言：字符串参数的数据指针非空。
 \note 第一参数指定输入的项，其 Value 指定输出的值。
 */
-//@{
+//!@{
 /*!
 \brief 字面量和数值的叶节点求值默认实现。
 \pre 字符串参数非空。
@@ -1514,7 +1514,7 @@ DefaultEvaluateLeaf(TermNode&, string_view);
 \exception BadIdentifier 未在环境中找到指定标识符的绑定。
 \warning 若不满足上下文状态类型要求，行为未定义。
 */
-//@{
+//!@{
 /*!
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
@@ -1564,7 +1564,7 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
-//@}
+//!@}
 
 /*!
 \brief 若第三参数指定的项表示字面量处理器则调用并以结果其正规化第一参数指定的项。
@@ -1608,13 +1608,13 @@ inline PDefH(void, EvaluateLiteralHandler, TermNode& term,
 这允许简化之后的项的处理，如可假定合并子对象可能所有的项不是第一参数的子项，
 	可使用 TermNode::SetContent 代替 LiftOther 提升项。
 */
-//@{
+//!@{
 //! \note 对非规约合并项直接返回 ReductionStatus::Regular 。
 YF_API ReductionStatus
 ReduceCombined(TermNode&, ContextNode&);
 
 //! \pre 断言：第一参数是规约合并项。
-//@{
+//!@{
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但只适用于枝节点。
 \since build 882
@@ -1623,7 +1623,7 @@ YF_API ReductionStatus
 ReduceCombinedBranch(TermNode&, ContextNode&);
 
 //! \note 若第三参数不表示上下文处理器的宿主值，抛出的异常消息指定其为引用项。
-//@{
+//!@{
 /*!
 \brief 规约列表合并项：同 ReduceCombined ，但使用第三参数指定的值。
 \pre 第二参数引用的对象是 NPLA1 上下文状态或 public 继承的派生类。
@@ -1643,9 +1643,9 @@ ReduceCombinedReferent(TermNode&, ContextNode&, const TermNode&);
 YF_API ReductionStatus
 ReduceCombinedReferentWithOperator(TermNode&, ContextNode&, const TermNode&,
 	ValueObject&);
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 /*!
 \brief 规约提取名称的叶节点记号。
@@ -1659,11 +1659,11 @@ ReduceCombinedReferentWithOperator(TermNode&, ContextNode&, const TermNode&,
 */
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
-//@}
+//!@}
 
 
 //! \since build 876
-//@{
+//!@{
 /*!
 \ingroup guards
 \brief 求值环境守卫。
@@ -1709,7 +1709,7 @@ InvokeIn(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 }
 
 //! \since build 942
-//@{
+//!@{
 /*!
 \brief 加载代码作为模块。
 \return 作为环境模块的环境对象强引用。
@@ -1733,9 +1733,9 @@ GetModuleFor(ContextNode& ctx, _fCallable&& f, _tParams&&... args)
 \pre 间接断言：模块名称字符串的数据指针非空。
 \sa A1::GetModuleFor
 */
-//@{
+//!@{
 //! \brief 加载模块为变量，若已存在则忽略。
-//@{
+//!@{
 //! \since build 961
 template<typename _fCallable, typename... _tParams>
 inline void
@@ -1762,13 +1762,13 @@ LoadModule(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	A1::LoadModule(ctx.GetRecordRef(), ctx, module_name, yforward(f),
 		yforward(args)...);
 }
-//@}
+//!@}
 
 /*!
 \brief 加载模块为变量，若已存在抛出异常。
 \exception BadIdentifier 变量绑定已存在。
 */
-//@{
+//!@{
 //! \since build 961
 template<typename _fCallable, typename... _tParams>
 inline void
@@ -1795,9 +1795,9 @@ LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
 	A1::LoadModuleChecked(ctx.GetRecordRef(), ctx, module_name, yforward(f),
 		yforward(args)...);
 }
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 /*!
@@ -1809,7 +1809,7 @@ LoadModuleChecked(ContextNode& ctx, string_view module_name, _fCallable&& f,
 \warning 若不满足上下文状态类型要求，行为未定义。
 \since build 876
 */
-//@{
+//!@{
 /*!
 \brief 设置当前项并直接求值规约。
 \note 第五参数指定下一个动作的续延。
@@ -1824,8 +1824,8 @@ RelayForEval(ContextNode&, TermNode&, EnvironmentGuard&&, bool, Continuation);
 */
 YF_API ReductionStatus
 RelayForCall(ContextNode&, TermNode&, EnvironmentGuard&&, bool);
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -1850,7 +1850,7 @@ Ensigil(TokenValue);
 \throw InvalidSyntax 嵌套异常：项不符合语法要求。
 \note 异常条件视为语法错误而非直接的类型错误。
 */
-//@{
+//!@{
 /*!
 \brief 检查形式参数树。
 \since build 917
@@ -1868,10 +1868,10 @@ CheckParameterTree(const TermNode&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE ystdex::optional<string>
 ExtractEnvironmentFormal(TermNode&);
-//@}
+//!@}
 
 //! \pre 间接断言：第三参数的标签可表示一等对象的值。
-//@{
+//!@{
 /*!
 \throw InvalidSyntax 嵌套异常 ArityMismatch ：参数数匹配失败。
 \throw InvalidSyntax 嵌套异常 ParameterMismatch ：参数匹配失败。
@@ -1880,7 +1880,7 @@ ExtractEnvironmentFormal(TermNode&);
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
 */
-//@{
+//!@{
 /*!
 \brief 匹配参数。
 \exception std::bad_function_call 异常中立：参数指定的处理器为空。
@@ -1959,7 +1959,7 @@ MatchParameter(const TermNode&, TermNode&, function<void(TermNode&, TNIter,
 	当绑定的引用标记字符为 @ 且不是列表项时抛出异常。
 	按引用传递绑定直接转移该项的内容。
 */
-//@{
+//!@{
 //! \since build 961
 YF_API void
 BindParameter(BindingMap&, const TermNode&, TermNode&,
@@ -1970,7 +1970,7 @@ BindParameter(BindingMap&, const TermNode&, TermNode&,
 */
 YF_API void
 BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
-//@}
+//!@}
 
 /*!
 \brief 使用操作数结构化匹配并绑定参数到合式的形式参数树。
@@ -1987,7 +1987,7 @@ BindParameter(const shared_ptr<Environment>&, const TermNode&, TermNode&);
 若确保绑定不具有引起对象语言中可观察行为的副作用，先前的 BindParameter
 	或 BindParameterWellFormed 也可确保满足前置条件。
 */
-//@{
+//!@{
 //! \since build 961
 YF_API void
 BindParameterWellFormed(BindingMap&, const TermNode&, TermNode&,
@@ -1999,7 +1999,7 @@ BindParameterWellFormed(BindingMap&, const TermNode&, TermNode&,
 YF_API void
 BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 	TermNode&);
-//@}
+//!@}
 
 /*!
 \brief 使用操作数结构化匹配并绑定符号。
@@ -2007,7 +2007,7 @@ BindParameterWellFormed(const shared_ptr<Environment>&, const TermNode&,
 
 同 BindParameter ，但形式参数指定为符号，不进行递归绑定或结尾序列匹配。
 */
-//@{
+//!@{
 //! \since build 961
 YF_API void
 BindSymbol(BindingMap&, const TokenValue&, TermNode&,
@@ -2018,9 +2018,9 @@ BindSymbol(BindingMap&, const TokenValue&, TermNode&,
 */
 YF_API void
 BindSymbol(const shared_ptr<Environment>&, const TokenValue&, TermNode&);
-//@}
-//@}
-//@}
+//!@}
+//!@}
+//!@}
 
 
 /*!
@@ -2035,13 +2035,13 @@ SetupTailContext(ContextNode&, TermNode&);
 
 
 //! \ingroup NPLDiagnostics
-//@{
+//!@{
 /*!
 \pre 断言：参数的数据指针非空。
 \note 不对名称参数指向的数据具有所有权。一般需要使用字符串字面量。
 \since build 896
 */
-//@{
+//!@{
 /*!
 \brief 添加全局类型名称表项。
 \return 是否添加成功。
@@ -2063,7 +2063,7 @@ InitializeTypeNameTableEntry(string_view desc)
 	{
 		Init(string_view sv)
 		{
-			const auto res(AddTypeNameTableEntry(type_id<_type>(), sv));
+			const auto res(A1::AddTypeNameTableEntry(type_id<_type>(), sv));
 
 			yunused(res);
 			YAssert(res, "Duplicated name found.");
@@ -2114,7 +2114,7 @@ NameTypedReducerHandler(_fCallable&& x, string_view desc)
 	return A1::NameExpandedHandler<Reducer, ReducerFunctionType>(yforward(x),
 		desc);
 }
-//@}
+//!@}
 
 /*!
 \brief 查询续延中的名称信息。
@@ -2149,16 +2149,29 @@ YB_ATTR_nodiscard YB_PURE YF_API string_view
 QueryTypeName(const type_info&);
 
 /*!
-\brief 追踪记录 NPL 续延。
 \sa QueryContinuationName
 \sa QuerySourceInformation
 \sa QueryTailOperatorName
+*/
+//!@{
+/*!
+\brief 追踪记录 NPL 规约动作。
+\since build 972
+
+追踪第一参数指定的动作记录的 NPL 续延。
+追踪每一个动作以未指定的格式使用第二参数指定的 Logger 对象打印特定的文本。
+*/
+YF_API void
+TraceAction(const Reducer&, YSLib::Logger&);
+
+/*!
+\brief 追踪记录 NPL 续延。
+\sa TraceAction
 \sa YSLib::FilterException
-\see $2021-08 @ %Documentation::Workflow.
+\see $2021-08 @ %Documentation::Workflow 。
 \since build 925
 
-追踪第一参数指定的动作序列记录的 NPL 续延。
-追踪每一个动作以未指定的格式使用第二参数指定的 Logger 对象打印特定的文本。
+调用 TraceAction 追踪参数指定的动作序列记录的 NPL 续延。
 若处理任意动作时抛出异常，则追踪中止，并确保最终无异常抛出。
 当前使用 YSLib::FilterException 处理追踪中止后的异常。
 调用本函数以外，一般应确保之后的动作序列被清除，以确保语言规则要求的临时对象清理。
@@ -2167,15 +2180,23 @@ QueryTypeName(const type_info&);
 追踪任意动作和清除任意动作之间非决定性有序；
 追踪动作先序清楚同一个动作；
 追踪的动作之间的顺序同 ContextNode::ReducerSequence::clear 清除其元素的顺序。
-调用本函数实现上述动作时，不修改第一参数，因此一般需要在之后显式清除动作序列。
+调用本函数实现上述动作时，不修改动作序列，一般需要在之后显式清除动作序列。
 */
+//!@{
+//! \since build 972
 YF_API void
-TraceBacktrace(const ContextNode::ReducerSequence&, YSLib::Logger&) ynothrow;
-//@}
+TraceBacktrace(ContextNode::ReducerSequence::const_iterator,
+	ContextNode::ReducerSequence::const_iterator, YSLib::Logger&) ynothrow;
+inline PDefH(void, TraceBacktrace, const ContextNode::ReducerSequence& backtrace,
+	YSLib::Logger& trace) ynothrow
+	ImplRet(A1::TraceBacktrace(backtrace.cbegin(), backtrace.cend(), trace))
+//!@}
+//!@}
+//!@}
 
 
 //! \since build 942
-//@{
+//!@{
 //! \brief 保持环境守卫。
 template<class _tGuard>
 inline ReductionStatus
@@ -2193,7 +2214,7 @@ using GKeptGuardAction = decltype(std::bind(KeepGuard<_tGuard>,
 \brief 转移保持环境守卫。
 \since build 943
 */
-//@{
+//!@{
 template<class _tGuard>
 YB_ATTR_nodiscard inline GKeptGuardAction<_tGuard>
 MoveKeptGuard(_tGuard& gd)
@@ -2207,8 +2228,8 @@ MoveKeptGuard(_tGuard&& gd)
 {
 	return A1::MoveKeptGuard(gd);
 }
-//@}
-//@}
+//!@}
+//!@}
 
 
 /*!
@@ -2233,7 +2254,7 @@ SetupDefaultInterpretation(GlobalState&, EvaluationPasses);
 \ingroup metafunctions
 \since build 891
 */
-//@{
+//!@{
 //! \brief 解析结果元素类型。
 template<typename _fParse>
 using GParsedValue = typename ParseResultOf<_fParse>::value_type;
@@ -2244,7 +2265,7 @@ using GParsedValue = typename ParseResultOf<_fParse>::value_type;
 template<typename _fParse, typename... _tParams>
 using GTokenizer
 	= function<TermNode(const GParsedValue<_fParse>&, _tParams...)>;
-//@}
+//!@}
 
 /*!
 \brief 标记器：分析词素转换为可能包含记号的节点。
@@ -2273,7 +2294,7 @@ class YF_API GlobalState
 {
 public:
 	//! \since build 891
-	//@{
+	//!@{
 	//! \brief 代码加载选项。
 	enum LoadOption
 	{
@@ -2284,10 +2305,14 @@ public:
 		//! \brief 不使用源代码信息。
 		NoSourceInformation
 	};
-	//! \brief 代码加载选项标签类型。
+	/*!
+	\ingroup tags
+	\brief 代码加载选项标签类型。
+	\relates LoadOption
+	*/
 	template<LoadOption _vOpt = Contextual>
 	using LoadOptionTag = std::integral_constant<LoadOption, _vOpt>;
-	//@}
+	//!@}
 	// XXX: Use %function instead of %ystdex::unchecked_function is a bit more
 	//	efficient.
 	/*!
@@ -2336,9 +2361,9 @@ public:
 	*/
 	TermPasses::HandlerType Preprocess{std::allocator_arg, Allocator};
 	//! \since build 891
-	//@{
+	//!@{
 	//! \invariant 值被调用时若返回，能被视为是纯函数。
-	//@{
+	//!@{
 	/*!
 	\brief 叶节点词素转换器。
 	\sa ParseLeaf
@@ -2349,13 +2374,13 @@ public:
 	\sa ParseLeafWithSourceInformation
 	*/
 	SourcedTokenizer ConvertLeafSourced;
-	//@}
+	//!@}
 	/*!
 	\brief 默认启用源代码位置。
 	\sa Perform
 	*/
 	bool UseSourceLocation = {};
-	//@}
+	//!@}
 	/*!
 	\brief 加载例程。
 	\since build 899
@@ -2375,16 +2400,16 @@ public:
 	\sa SetupDefaultInterpretation
 	\since build 566
 	*/
-	//@{
+	//!@{
 	//! \sa ParseLeaf
-	//@{
+	//!@{
 	//! \brief 构造：使用默认解释、指定的分配器和默认的叶节点词素转换器。
 	GlobalState(TermNode::allocator_type a = {});
 	//! \brief 构造：使用默认解释、指定的存储资源和默认的叶节点词素转换器。
 	GlobalState(pmr::memory_resource& rsrc)
 		: GlobalState(TermNode::allocator_type(&rsrc))
 	{}
-	//@}
+	//!@}
 	//! \brief 构造：使用默认解释、指定的分配器和叶节点词素转换器。
 	GlobalState(Tokenizer, SourcedTokenizer, TermNode::allocator_type a = {});
 	//! \brief 构造：使用默认解释、指定的存储资源和叶节点词素转换器。
@@ -2393,7 +2418,7 @@ public:
 		: GlobalState(std::move(leaf_conv), std::move(sourced_leaf_conv),
 		TermNode::allocator_type(&rsrc))
 	{}
-	//@}
+	//!@}
 
 	/*!
 	\brief 判断当前实现是否为异步实现。
@@ -2431,7 +2456,7 @@ public:
 	\sa ReadFrom
 	\sa Reduce
 	*/
-	//@{
+	//!@{
 	/*!
 	\note 使用默认预处理例程。
 	\sa Preprocess
@@ -2458,7 +2483,7 @@ public:
 		Reduce(term, cs);
 		return term;
 	}
-	//@}
+	//!@}
 
 	/*!
 	\brief 准备规约项：分析输入并标记记号节点。
@@ -2483,7 +2508,7 @@ public:
 	\sa Prepare
 	\since build 955
 	*/
-	//@{
+	//!@{
 	template<class _type>
 	YB_ATTR_nodiscard inline TermNode
 	ReadFrom(_type&& input, ContextState& cs) const
@@ -2532,7 +2557,7 @@ public:
 	ReadFrom(LoadOptionTag<NoSourceInformation>, std::streambuf&, ReaderState&,
 		ContextState&) const;
 	//! \pre 断言：字符串的数据指针非空。
-	//@{
+	//!@{
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<>, string_view, ContextState&) const;
 	YB_ATTR_nodiscard TermNode
@@ -2541,8 +2566,8 @@ public:
 	YB_ATTR_nodiscard TermNode
 	ReadFrom(LoadOptionTag<NoSourceInformation>, string_view, ContextState&)
 		const;
-	//@}
-	//@}
+	//!@}
+	//!@}
 };
 
 //! \since build 955
@@ -2586,7 +2611,7 @@ struct is_bitwise_swappable<NPL::A1::Continuation> : true_
 {};
 
 //! \since build 927
-//@{
+//!@{
 //! \relates NPL::A1::WrappedContextHandler
 template<typename _func>
 struct is_bitwise_swappable<NPL::A1::WrappedContextHandler<_func>> : true_
@@ -2596,7 +2621,7 @@ struct is_bitwise_swappable<NPL::A1::WrappedContextHandler<_func>> : true_
 template<>
 struct is_bitwise_swappable<NPL::A1::FormContextHandler> : true_
 {};
-//@}
+//!@}
 
 } // namespace ystdex;
 

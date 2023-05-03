@@ -15,7 +15,7 @@ set -e
 
 # XXX: %SHBuild_Debug is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Debug" != '' ]]; then
+if test -n "$SHBuild_Debug"; then
 	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG_PEDANTIC'
 	LDFLAGS_OPT_DBG=' '
 fi
@@ -24,7 +24,7 @@ fi
 
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" == 'OS_X' ]]; then
+if test "$SHBuild_Host_OS" = OS_X; then
 	: "${LDFLAGS_GC:="-Wl,--dead-strip"}"
 else
 	: "${LDFLAGS_GC:="-Wl,--gc-sections"}"
@@ -33,17 +33,16 @@ fi
 
 SHBuild_CXX_Style_=$(SHBuild_CheckCXX "$CXX")
 
-# NOTE: See %SHBuild_CheckC.
-if [[ $SHBuild_CXX_Style_ != '' ]] \
-	&& ! echo 'int main(){}' | "$CXX" -pipe -xc++ \
-		-o"$SHBuild_Env_TempDir/null" "$C_CXXFLAGS_GC" "$LDFLAGS_GC" \
-		- 2> /dev/null; then
+# NOTE: See %SHBuild_CheckCXX.
+if test -n "$SHBuild_CXX_Style_" && ! echo 'int main(){}' | "$CXX" -pipe -xc++ \
+	-o"$SHBuild_Env_TempDir/null" "$C_CXXFLAGS_GC" "$LDFLAGS_GC" \
+	- 2> /dev/null; then
 	C_CXXFLAGS_GC=''
 	LDFLAGS_GC=''
 fi
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
+if test "$SHBuild_Host_OS" != Win32; then
 	: "${C_CXXFLAGS_PIC:=-fPIC -fno-semantic-interposition}"
 fi
 
@@ -51,7 +50,7 @@ fi
 #	also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.
 : "${LDFLAGS_STRIP:=-s}"
 
-if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
+if test "$SHBuild_Host_OS" != Win32; then
 	: "${C_CXXFLAGS_EXT="-D_POSIX_C_SOURCE=200809L"}"
 fi
 : "${C_CXXFLAGS_COMMON:= \
@@ -101,7 +100,7 @@ fi
 
 # NOTE: The compiler should be specified earlier than this line to
 #	automatically determine if these values should be used.
-if [[ $SHBuild_CXX_Style_ == "Clang++" ]]; then
+if test "$SHBuild_CXX_Style_" = Clang++; then
 	: "${C_CXXFLAGS_COMMON_IMPL_:=-fno-merge-all-constants}"
 	: "${CXXFLAGS_IMPL_WARNING:="-Wno-deprecated-register \
 -Wno-mismatched-tags \
@@ -115,7 +114,7 @@ if [[ $SHBuild_CXX_Style_ == "Clang++" ]]; then
 	#: "${LDFLAGS_IMPL_OPT:=-flto}"
 	# XXX: LTO is disabled by default for compatibility to the prebuilt
 	#	binaries (by G++).
-elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
+elif test "$SHBuild_CXX_Style_" = G++; then
 	: "${C_CXXFLAGS_IMPL_WARNING:="-Wdouble-promotion \
 -Wlogical-op \
 -Wsuggest-attribute=const \
@@ -131,7 +130,7 @@ elif [[ $SHBuild_CXX_Style_ == "G++" ]]; then
 	# XXX: %SHBuild_Host_OS and %SHBuild_host_Arch are external.
 	# shellcheck disable=2154
 	# XXX: Only i686 MinGW32 uses old GCC not supporting -flto=auto now.
-	if [[ "$SHBuild_Host_OS" == 'Win32' && "$SHBuild_Host_Arch" == 'i686' ]]; \
+	if test "$SHBuild_Host_OS" = Win32 && test "$SHBuild_Host_Arch" = i686; \
 then
 		LTO_=-flto=jobserver
 	else
@@ -145,7 +144,7 @@ fi
 
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" == 'Win32' && "$LDFLAGS_IMPL_USE_LLD_" == '' ]]; then
+if test "$SHBuild_Host_OS" = Win32 && test -z "$LDFLAGS_IMPL_USE_LLD_"; then
 	# XXX: Workarond for LTO bug on MinGW. See
 	#	https://sourceware.org/bugzilla/show_bug.cgi?id=12762.
 	: "${LDFLAGS_WKRD_:="-Wl,-allow-multiple-definition"}"
@@ -165,7 +164,7 @@ $C_CXXFLAGS_IMPL_WARNING"}"
 #	which having the bug in https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103240.
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" != 'Win32' ]]; then
+if test "$SHBuild_Host_OS" != Win32; then
 	# XXX: '-D__GXX_TYPEINFO_EQUALITY_INLINE=1' is required for platform
 	#	%MinGW64. '-D__GXX_MERGED_TYPEINFO_NAMES=1' is also an optimization.
 	: "${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_ \
@@ -187,7 +186,7 @@ fi
 $CXXFLAGS_IMPL_WARNING"}"
 # XXX: %CXXFLAGS_OPT_UseAssert is external.
 # shellcheck disable=2154
-if [[ "$CXXFLAGS_OPT_UseAssert" == '' ]]; then
+if test -z "$CXXFLAGS_OPT_UseAssert"; then
 	: "${CXXFLAGS_OPT_DBG:=" \
 $C_CXXFLAGS_OPT_LV -DNDEBUG \
 $CXXFLAGS_IMPL_OPT \
@@ -215,7 +214,7 @@ CXXFLAGS="${CXXFLAGS//	/ }"
 $LDFLAGS_IMPL_COMMON_THRD_ \
 $LDFLAGS_OPT_DBG \
 $LDFLAGS_WKRD_"}"
-if [[ "$LDFLAGS_IMPL_USE_LLD_" != '' ]]; then
+if test -n "$LDFLAGS_IMPL_USE_LLD_"; then
 	LDFLAGS="-fuse-ld=lld $LDFLAGS"
 fi
 LDFLAGS="${LDFLAGS//	/ }"

@@ -7,8 +7,8 @@ set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-YSLib.sh
 . "$SHBuild_ToolDir/SHBuild-YSLib.sh" # for SHBuild_Puts, SHBuild_EchoVar_N,
-#	YSLib_BaseDir, SHBuild_GetBuildName, CXX, CXXFLAGS, LDFLAGS, INCLUDES, LIBS,
-#	SHBuild_Host_OS;
+#	YSLib_BaseDir, SHBuild_Host_OS, CXXFLAGS, LDFLAGS, SHBuild_GetBuildName,
+#	CXX, INCLUDES;
 
 SHBuild_Puts "Bootstrap beginned."
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
@@ -61,7 +61,7 @@ $YSLib_BaseDir/YFramework/source/NPL/NPLA1Forms.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp"
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
-if [[ "$SHBuild_Host_OS" == 'Win32' ]]; then
+if test "$SHBuild_Host_OS" = Win32; then
 	LIBS="$LIBS \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/MinGW32.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \

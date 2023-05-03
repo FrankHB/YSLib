@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2019, 2021-2022 FrankHB.
+	© 2012-2019, 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r908
+\version r915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2022-02-26 23:04 +0800
+	2023-04-11 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,6 +223,7 @@ IsPrefixedIndex(string_view name, char prefix)
 		{
 			const auto ss(name.substr(1));
 
+			// XXX: Use the default-initialized allocator.
 			return MakeIndex(DecodeIndex(ss)) == ss;
 		}
 		CatchIgnore(std::invalid_argument&)
@@ -230,9 +231,9 @@ IsPrefixedIndex(string_view name, char prefix)
 }
 
 string
-MakeIndex(size_t n)
+MakeIndex(size_t n, string::allocator_type a)
 {
-	string str;
+	string str(a);
 	// XXX: Conversion might be implementation-defined with steady result
 	//	expectedly.
 	const auto lb(n > 1 ? ystdex::floor_lb(n) + 1 : n);
@@ -249,7 +250,10 @@ MakeIndex(size_t n)
 			--i;
 		}
 		else
+		{
 			YAssert(false, "Unexpected argument found.");
+			YB_ASSUME(false);
+		}
 	}
 	str[0] = char(lb);
 	return str;
@@ -271,6 +275,7 @@ DecodeIndex(string_view sv)
 			&& sz == (lb + 7) / 8 + 1)
 		{
 			size_t n(0);
+
 			for(size_t i(1); i < sz; ++i)
 			{
 				n <<= 8;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015, 2017, 2020-2021 FrankHB.
+# (C) 2014-2015, 2017, 2020-2021, 2023 FrankHB.
 # Common source script: toolchain configuration.
 
 set -e
@@ -22,6 +22,7 @@ SHBuild_CheckCompiler()
 {
 	local compile="$1"
 	local src="$2"
+
 	SHBuild_AssertNonempty compile
 	SHBuild_AssertNonempty src
 	# NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
@@ -29,6 +30,7 @@ SHBuild_CheckCompiler()
 		|| [[ "$compile" == */* && ! -d "$compile" && -x "$compile" ]]; then
 		local success="$3"
 		local failure="$4"
+
 		shift 4
 		# XXX: %SHBuild_Env_TempDir is external.
 		# shellcheck disable=2154
@@ -62,13 +64,16 @@ SHBuild_CheckCXX()
 SHBuild_GetAR_()
 {
 	local SHBuild_CXX_Style_
+
 	SHBuild_CXX_Style_=$(SHBuild_CheckCXX "$1")
+
 	local ar="$2"
-	if [[ $SHBuild_CXX_Style_ == Clang++ ]]; then
+
+	if test "$SHBuild_CXX_Style_" = Clang++; then
 		if hash llvm-ar 2> /dev/null; then
 			ar=llvm-ar
 		fi
-	elif [[ $SHBuild_CXX_Style_ == G++ ]]; then
+	elif test "$SHBuild_CXX_Style_" == G++; then
 		if hash gcc-ar 2> /dev/null; then
 			ar=gcc-ar
 		fi

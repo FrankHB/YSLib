@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# (C) 2014-2021 FrankHB.
+# (C) 2014-2021, 2023 FrankHB.
 # Shared stage 1 script for YSLib building.
 
-[[ "$INC_SHBuild_YSLib" == '' ]] && INC_SHBuild_YSLib=1 || return 0
+test -z "$INC_SHBuild_YSLib" && INC_SHBuild_YSLib=1 || return 0
 
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 : "${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}"
