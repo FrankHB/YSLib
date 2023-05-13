@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规范和实现规格说明。
-\version r34398
+\version r34448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2023-03-21 01:00 +0800
+	2023-05-13 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ SRFI ：Scheme Requests for Implementation 。
 
 @1.2 术语：
 本文档中没有另行指定定义的基本概念使用参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html 。
-描述中可能涉及上下文相关的略称参见 @1.2.5 。
+描述中可能涉及上下文相关的略称参见 @1.2.6 。
 
 @1.2.1 通用领域：
 关于“语言”补充的基本概念和约定，使用元语言语法 <相关范畴/上下文> 。
@@ -114,7 +114,10 @@ SRFI ：Scheme Requests for Implementation 。
 包含 <NPL> 。
 参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html#%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80 。
 
-@1.2.5 略称：
+@1.2.5 [<计算机体系结构>] ：
+参见 https://frankhb.github.io/YSLib-book/Terminology.zh-CN.html#%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84 。
+
+@1.2.6 略称：
 参见 https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html#%E7%95%A5%E7%A7%B0 。
 
 @1.3 需求概述：
@@ -366,6 +369,9 @@ SRFI ：Scheme Requests for Implementation 。
 @4.1.1 表示：
 参见 https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html#%E8%A1%A8%E7%A4%BA 。
 
+@4.1.1.1 同像性：
+参见 https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html#%E5%90%8C%E5%83%8F%E6%80%A7 。
+
 @4.1.2 演绎规则：
 参见 https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html#%E6%BC%94%E7%BB%8E%E8%A7%84%E5%88%99 。
 
@@ -487,7 +493,7 @@ SRFI ：Scheme Requests for Implementation 。
 若派生实现提供这样的机制的公开接口，则削弱实现对隐式的共享对实现带来的可用性，且用户利用这样的设计合理地消除开销仍然是普遍困难的。
 维护共享状态的运行时机制依赖隐式的资源分配，以维护被引用对象和引用以外的全局状态。这样的分配机制难以具有可移植性，或者公用的可移植机制并不能满足隐式共享的引用的语义而必须有附加的开销，在一定程度上违反 @1.5.2.2 。
 依赖全局状态的实现通常无法简单地通过程序逻辑的推理消除运行时的状态依赖或把运行时拆分为不同的系统。这使实现通常无法直接部署在分布式系统上而阻碍 @1.5.2.1 。
-特别地，指令集架构(ISA, instruction-set architecture) 以地址空间(address space) 这样典型的形式提供的存储空间资源的元素之间通常是不可共享的；ISA 的实现共享的资源（如 cache ）并不为解决共享问题而设计，也不在 ISA 显式提供而基本不可能被利用加速隐式共享引用的实现。
+特别地，ISA(@1.2.5) 以地址空间(@1.2.5) 这样典型的形式提供的存储空间资源的元素之间通常是不可共享的；ISA 的实现共享的资源（如 cache ）并不为解决共享问题而设计，也不在 ISA 显式提供而基本不可能被利用加速隐式共享引用的实现。
 现实的语言实现通常也符合这里的判断。典型地，允许普遍地通过引用提供隐式的共享行为的语言（如 Scheme ）使用不支持隐式的共享引用的语言（如 C ）实现，因为前者需要后者实现运行时；反之则几乎不存在实例，因为去除运行时的共享而模拟总是不共享的（可变的）对象是不必要和低效的。
 使资源到修改(@4.1) 操作之后延迟分配使系统的失败风险被集中，但同时引入更多不确定性。添加不同的使用范型(paradigm) 和场景往往使对系统性能和可靠性的评估都更困难。
 现有的如 COW（ copy-on-write ，写时复制）启用隐式资源共享的策略，都会要求运行时机制的更大的计算开销并增加系统复杂性。在硬件支持机制（如地址翻译）的辅助下，加速特定被指定总是进行的任务可使系统整体性能提升，但这不保证能适合作为通用的计算策略。
@@ -1249,7 +1255,8 @@ NPLA 实现中提供构建时确定的实现选项，以宿主语言的宏定义
 @6.1.2.1 运行时检查：
 当前实现选项用于指定启用检查（可蕴含可选的实现提供的内存安全检查(@5.6.4.4) ）：
 NPL_NPLA_CheckEnvironmentReferenceCount 环境对象销毁时检查环境引用计数。
-NPL_NPLA_CheckParentEnvironment 默认访问父环境(@5.7) 时，检查环境引用是否存在。
+NPL_NPLA_CheckParentEnvironment 访问父环境(@5.7) 时，检查环境引用是否存在。
+NPL_NPLA_CheckResolvedEnvironment 解析环境引用(@6.11.4.2) 时，检查环境引用是否存在。
 NPL_NPLA_CheckTermReferenceIndirection 项引用(@5.8.3.8) 的间接操作(@6.9.3) 时检查关联环境(@5.8.3.6) 。
 若关联环境，要求关联环境的锚对象指针(@6.7.2) 和环境弱引用锁定的强引用指针非空。无法确保没有关联环境的非内存安全操作(@5.6.4.1) 中的引用有效性。
 启用以上检查可避免引起不满足检查条件时的一些宿主语言的未定义行为(@5.4) ，即便已引起 NPLA 和对象语言的未定义行为(@5.6.4.1) 。
@@ -1280,7 +1287,7 @@ NPLA 核心实现为对数据结构的管道-过滤器(pipe-filter) 架构模式
 对本文档中未明确引入的名称，调用时是否使用 ADL ，按实现提供的声明和注释约定确定。
 
 @6.1.4 安全保证：
-NPLA API 和实现提供特定的整体安全保证以满足对象语言的要求，并提升实现行为的可预测性。
+NPLA API 和实现提供特定的整体安全保证以满足对象语言的要求，并提升实现行为(@2.5) 的可预测性。
 
 @6.1.4.1 嵌套调用安全：
 除以下例外，NPLA 实现及对应可能由用户提供的替换的实现应支持嵌套调用安全(@5.4.2) ：
@@ -1360,6 +1367,9 @@ TNCIter
 TNIter
 TermByteAllocator
 SContext 模块的其它 API 详见以下小节和项节点访问(@6.2.3) 。
+**注释**
+在 NPL 中，任意一等对象(@4.1) 都具有值(@4.1) 。
+ValueObject 和某些其它设计中的值对象(@4.1) 不同，并非仅作为值的表示，而是任意一等对象的表示。
 
 @6.1.6.1 词素(@3.3.1) 处理：
 以下命名空间 NPL 中的 API 提供词素相关的转换：
@@ -1535,6 +1545,7 @@ TermNode 的子项(@6.2) 在表达式项中作为子表达式(@3.4.2) 的实现�
 NPLA-GA(@3.4.5) 允许使用表达式作为 IR 的基本元素。
 其它一些不符合类似性质的高级语言的实现可能在内部采用类似的结构。
 例如，GCC 在前端后不从表达式区分语句。参见：https://gcc.gnu.org/pub/gcc/summit/2003/Tree%20SSA%20-%20A%20New%20optimization%20infrastructure.pdf 。
+使用 TermNode 作为公共的 IR 允许保持同像性(@4.1.1.1) 。
 
 @6.3.1 值类别：
 表达式项(@6.3) 及在表达式求值规约中得到的项具有表达式的值类别(@5.8.1) 。
@@ -2678,13 +2689,15 @@ Abs
 
 @6.14.6 数值表示：
 参见 https://frankhb.github.io/YSLib-book/Features/NPL.zh-CN.html#%E6%95%B0%E5%80%BC%E8%A1%A8%E7%A4%BA 。
-以下函数提供和数值表示相关的操作：
-ReadDecimal
 NPLAMath 提供以下外部表示相关的 API ：
 函数 ReadDecimal
+函数 ReadNumber
 对象 StringBufferSize
 函数模板实例 WriteFPString
 函数 FPToString
+其中以下函数提供解析数值表示：
+ReadDecimal
+ReadNumber
 
 @6.14.6.1 优化实现：
 WriteFPString 对浮点数的处理使用有限精度的算法，不保证内部表示完全精确。
@@ -5346,6 +5359,10 @@ copy-environment(@11.3.7)
 本章指定在根环境(@10.1) 提供的 NPLA1 标准库特性(@10.3.3) 。
 根环境基本特性(@11.3) 提供在基础上下文(@8.5.2) 初始化的根环境基本(@10.7.3) 特性，作为单独的模块。
 基础派生特性(@11.4) 起的各节提供其余要求 NPLA1 实现直接支持的各个模块的操作。
+**原理**
+一些特性参照和类推扩展 [RnRK] 。
+同 [RnRK] 的设计，eval(@11.3.7) 和 $vau(@11.4.1) 是体现对象语言设计的光滑性(@1.5.5.1) 的主要原语；因为保留引用值的不安全操作(@10.6.1) 的支持类推 eval%(@11.3.7) 和 $vau%(@11.4.1) 。
+在本设计中，后者在逻辑意义上更基本，即便不指定为派生(@10.7.3) 。
 **注释**
 一些特性可约定处理的值的宿主类型(@9) 。
 
@@ -6445,6 +6462,13 @@ inexact <number> 取和参数值最接近的不精确数。
 否则，若不存在符合数值相等（以 =? 判断）的不精确数，则引起错误。
 inexact 是幂等操作(@4.1) 。
 **注释** 同 [R6RS] 和 [R7RS] 的同名过程，及 [R5RS] 的 exact->inexact ；因为当前实现不支持不是 <real> 的 <number> ，也同 [RnRK] 的 real->inexact 。关于 [RnRS] 中的命名，另见 https://small.r7rs.org/ticket/328/ 和 [R7RS] 的相关注释。
+string->number <string> ：转换字符串为数值。
+若转换成功，结果是对应参数作为外部表示的数值。否则，结果是 #f 。
+不因转换失败引起错误。
+数值包括所有实现支持的值。
+**注释** 同 [R7RS] 的同名过程，但不支持附加的可选的进位制参数。
+number->string <number> ：转换数值为字符串。
+**注释** 同 [R7RS] 的同名过程，但不支持附加的可选的进位制参数且不因特定的参数值出错。
 **原理**
 关于比较操作：
 同 [RnRK] 而不同于 [R5RS] 、[R6RS] 和 [R7RS] ，比较操作不明确要求传递性（但精确数仍然因真值的数学性质而保证传递性），以允许操作数存在不精确数时，转换不精确数 flonum 的简单实现。
@@ -6470,6 +6494,7 @@ https://github.com/shirok/Gauche/issues/805
 
 @12.3.1 除法约定：
 二元除法或者取余数的操作中，第一个参数是被除数，第二个参数是除数。
+数论除法的结果中的数值具有整数类型。
 当除数是不精确数 0 时：
 若被除数是非零有限数值或无限大值，则商的符号同被除数的符号；
 否则，商的符号未指定。
@@ -6826,7 +6851,7 @@ $env-de! <variable> <body> ：按环境变量定义变量的值。
 若变量同名的环境变量具有非空值，则定义的变量的值为等于这个值的字符串；否则，求值 <body> 并定义变量的值为求值结果。
 定义变量使用的绑定的初值符是以 desigil(@11.3.6) 的方式移除标记字符(@9.2.2.4) 后的参数。
 
-@13.2.5 其它 SHBuild 派生特性：
+@13.2.5 SHBuild 构建支持派生特性：
 变量 SHBuild_Env_OS ：参见用户文档。
 变量 SHBuild_Env_Arch ：参见用户文档。
 () SHBuild_GetPlatformStrings ：取操作系统和体系结构字符串列表。
@@ -6839,7 +6864,9 @@ $env-de! <variable> <body> ：按环境变量定义变量的值。
 当前扩展的环境变量包括：
 使用 SHBuild_LDFLAGS 扩展 LDFLAGS ；
 使用 SHBuild_LIBS 扩展 LIBS 。
-以下 API 的具体功能参见用户文档中脚本的说明；对函数 shell 脚本中存在的同名函数，参数可能不同。
+
+@13.2.6 SHBuild 构建支持兼容特性：
+以下 API 的具体功能参见用户文档中脚本的说明；和 shell 脚本中存在的同名函数的参数可能不同。
 SHBuild_2m <string> ：以 cygpath -m 转换参数指定的路径作为结果，若失败则结果是参数。
 SHBuild_2u <string> ：以 cygpath -au 转换参数指定的路径作为结果，若失败则结果是参数。
 SHBuild_2w <string> ：以 cygpath -w 转换参数指定的路径作为结果，若失败则结果是参数。
@@ -6847,9 +6874,23 @@ SHBuild_EchoVar_N <string> ：在终端输出环境变量及其值。
 () SHBuild_GetTempDir ：取临时目录。
 SHBuild_GetSystemPrefix <string> ：取系统前缀字符串。
 SHBuild_Platform_Detect <string1> <string2> ：取系统前缀字符串。
-SHBuild_CheckCXX <string1> <string2> ：尝试调用第二参数指定的编译器的特定命令行以检查 C++ 编译器风格。
-结果是风格名称，为 "G++" 或 "Clang++" 之一。
+SHBuild_CheckCXX <string1> <string2> ：尝试调用第二参数指定的编译器的特定命令行以检查 C++ 编译器。
+结果是编译器名称，和同名的 shell 函数对应。
 第一参数指定的宿主操作系统字符串用于缓存结果。对所有参数都相同的调用，不重复调用编译器命令。
+SHBuild_CXX_Test <string1> <string2> <string>... ：使用第一参数指定的 C++ 编译器命令构建第二参数指定的源代码。
+之后的参数指定选项。
+除第一参数外，其余的参数和同名的 shell 函数对应，详见用户文档中的说明。
+SHBuild_CXX_TestSimple <string1> <string>... ：使用第一参数指定的 C++ 编译器命令构建最简 C++ 源代码。
+参数意义同 SHBuild_CXX_Test ，其余的参数和同名的 shell 函数对应，详见用户文档中的说明。
+SHBuild_CXX_GetVersion <string1> <string2> ：取参数指定的编译器的版本号。
+参数同 SHBuild_CheckCXX 。
+除通过参数指定编译器并调用 SHBuild_CheckCXX 取编译器名称外，功能和同名 shell 函数相同，详见用户文档中的说明。
+SHBuild_Get_C_CXXFLAGS_WARNING <string> <real> ：取指定 C++ 编译器名称和版本字符串对应的默认 C 和 C++ 公用警告选项字符串。
+SHBuild_Get_CXXFLAGS_WARNING <string> <real> <string2> <string3> <string4> ：取指定 C++ 编译器名称和版本字符串对应的默认 C++ 警告选项字符串。
+最后三个参数被组合到结果中，一般对应 shell 脚本中以下变量的值：
+	C_CXXFLAGS_WARNING
+	C_CXXFLAGS_IMPL_WARNING
+	CXXFLAGS_IMPL_WARNING
 
 */
 ////

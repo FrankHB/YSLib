@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016, 2018, 2020 FrankHB.
+	© 2014-2016, 2018, 2020, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r599
+\version r614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2020-12-24 12:06 +0800
+	2023-05-07 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform // for YSLib::Drawing, YSLib::RecordLevel,
 //	YSLib::Err, YSLib::Informative, platform::Deref, platform::Nonnull,
-//	YTraceDe;
+//	ordered_linked_map, YTraceDe;
 #if YF_Use_XCB
 #	include <ystdex/array.hpp> // for ystdex::cast_array;
 #	include YFM_YCLib_XCB // for YSLib::FilterExceptions;
@@ -40,13 +40,13 @@
 
 using namespace YSLib::Drawing;
 //! \since build 845
-//@{
+//!@{
 using YSLib::RecordLevel;
 using YSLib::Err;
 using YSLib::Informative;
 using platform::Deref;
 using platform::Nonnull;
-//@}
+//!@}
 using namespace platform::Concurrency;
 //! \since build 845
 using namespace platform::Threading;
@@ -70,8 +70,11 @@ static_assert(ystdex::and_<std::is_same<WindowData::ID, ::xcb_window_t>,
 namespace
 {
 
+// XXX: For performance, %value_map is not used, though there are no
+//	requirements about invalidation at current.
 //! \since build 565
-using GlobalTable = map<ConnectionReference::NativeHandle, map<string, Atom>>;
+using GlobalTable = ordered_linked_map<ConnectionReference::NativeHandle,
+	ordered_linked_map<string, Atom>>;
 
 //! \since build 565
 shared_ptr<GlobalTable>
@@ -83,7 +86,7 @@ FetchGlobalTablePtr()
 }
 
 //! \since build 562
-//@{
+//!@{
 static mutex TableMutex;
 
 //! \since build 565
@@ -100,16 +103,16 @@ MakeAtomPair(::xcb_connection_t& c_ref, string_view name, bool e) ynothrowv
 	return pair<string, Atom>{name, Atom(c_ref, name, e)};
 }
 
-locked_ptr<map<string, Atom>>
+locked_ptr<GlobalTable::mapped_type>
 LockAtoms(::xcb_connection_t& c_ref)
 {
 	return {&FetchGlobalTableRef().at(make_observer(&c_ref)), TableMutex};
 }
-//@}
+//!@}
 
 
 //! \since build 564
-//@{
+//!@{
 class XCBConnectionErrorCategory : public std::error_category
 {
 public:
@@ -144,7 +147,7 @@ XCBConnectionErrorCategory::message(int err) const
 		return "unknown";
 	}
 }
-//@}
+//!@}
 
 
 class XCBErrorCategory : public std::error_category
@@ -210,7 +213,7 @@ FetchXCBErrorCategory()
 }
 
 //! \since build 624
-//@{
+//!@{
 template<typename _tParam>
 YB_NORETURN void
 ThrowGeneralXCBException(_tParam&& arg, int err = 0, const std::error_category&
@@ -248,7 +251,7 @@ FetchGeometry(::xcb_connection_t& c_ref, ::xcb_drawable_t id,
 		ThrowGeneralXCBException("XCB reply is null without error detected.");
 	return p_reply;
 }
-//@}
+//!@}
 
 } // unnamed namespace;
 

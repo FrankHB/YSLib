@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r16846
+\version r17171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 900
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-05-04 01:00 +0800
+	2023-05-14 05:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,332 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "class template specialization %std::hash for %(nptr, observer_ptr) \
+			instances" @ %Pointer $=
+		(
+			+ $re_add(b967) DD "'\ingroup hashers'" @ "Doxygen comment",
+			* "ill-formed call" @ "%operator()" @ ("%std::hash specialization \
+				for %nptr instances" $since b847, "%std::hash specialization \
+				for %ovserver_ptr instances" $since b846)
+				$= (+ "missing '()'")
+		),
+		+ "overload with 1st parameter of const reference to allocator type"
+			@ "function templates %(vsfmt; sfmt)" @ %String
+	),
+	/ %YFramework $=
+	(
+		/ $re_add(b970) "framework associative container types optimization"
+			^ ("type aliases" @ %YCLib.Container) $effective $=
+		(
+			/ DLDI (%XCB,
+				"alias %MessageMap" @ %HostedGUI ^ "%ordered_linked_map")
+				@ %YCLib ^ "%ordered_linked_map" ~ "%map",
+				// The types are identical. Note it requires the fix of the \
+					class template specialization %std::hash for \
+					%ystdex::observer_ptr instances in \
+					%YBase.YStandardEx.Pointer if %linked_map is used for %XCB.
+			/ "member alias %Partition::OpenFilesSet" @ %'YCLib_(DS)'.DSIO
+				^ "%value_set" ~ "%set",
+			/ DLI "windows map" @ 'YF_Hosted' @ ("class %GUIHost"
+				@ %Helper.GUIApplication) ^ "%value_map" ~ "%map"
+		),
+		+ DD "'\exception' command" @ "Doxygen comment"
+			@ "function %FetchGlobalInstance" @ %Helper.GUIApplication,
+		/ $dev %YCLib.HostedGUI $=
+		(
+			/ $lib @ 'YCL_HostedUI_XCB || YCL_Android' @ "class %ScreenBuffer"
+				$=
+			(
+				+ $re_add(b880) 'YB_PURE' @ "functions %(GetSize, GetContext)",
+					// To eliminate G++ 12.1 warning: \
+						[-Wsuggest-attribute=pure].
+				+ 'YB_ATTR_nodiscard' @ "functions %(GetBufferPtr, GetContext, \
+					GetSize, GetStride)"
+			),
+			/ $doc "'\warning' command" @ "Doxygen comment"
+				@ ("class %HostWindowDelete", "class %GDIObjectDelete"
+				@ "platform %Win32") -> '\ingroup deleters'
+		),
+		+ $dev $lib 'YB_ATTR_nodiscard' @ ($re_add(b968)
+			"all definitions with %DefGetterMem" @ %('YCLib_(DS)'.DSIO,
+			YCLib.HostedGUI), $re_add(b972) ("all definitions with %DefGetter"
+			@ %('YCLib_(DS)'.DSIO, YCLib.HostedGUI),
+			"all definitions with %DefPred" @ %'YCLib_(DS)'.DSIO)),
+		/ %NPL $=
+		(
+			/ %NPLAMath $=
+			(
+				+ 'YF_API' @ "function %ReadDecimal",
+				(
+				+ "function %ReadNumber";
+				+ "function %StringToNumber" @ "inline namespace %Math"
+				),
+				(
+				+ "function %NumberValueToString"
+					$dep_from ("%sfmt" @ %YBase.YStandardEx.String);
+				+ "function %NumberToString" @ "inline namespace %Math"
+				),
+				+ DLDI 'YB_PURE'
+					@ ("internal cast functions", "%TrimTrailingZeros"),
+					// To eliminate G++ 13.1 warning: \
+						[-Wsuggest-attribute=pure].
+				+ DLDI 'YB_ATTR_nodiscard YB_PURE'
+					@ "internal comparison function template"
+					// Ditto.
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %DefaultEvaluateLeaf"
+					^ $dep_from ("%ReadNumber" @ %NPLAMath),
+				+ DLI 'YB_FLATTEN'
+					@ "functions %(ParseLeaf, ParseLeafWithSourceInformation)",
+				(
+				/ DLDI "reordered declarations of functions \
+					%(CheckArgumentList, CheckVariadicArity)";
+				/ "static member function %FormContextHandler::CheckArguments"
+					-> "non-member inline function %CheckArguments"
+				)
+			),
+			/ %Dependency $=
+			(
+				/ @ "function %LoadModule_std_math" @ %Dependency $=
+				(
+					+ "applicative 'string->number'"
+						^ $dep_from ("%StringToNumber" @ %NPLAMath),
+					+ "applicative 'number->string'"
+						^ $dep_from ("%NumberToString" @ %NPLAMath)
+				),
+				/ "simplified alternative derivation"
+					@ "function %LoadModule_std_modules" $=
+				(
+					/ "combiners" ^ '$import&!' ~ '$import!',
+					- $design ';' @ "end of definition" @ "applicative %require"
+				),
+				/ DLDI "reordered native implemantation of \
+					'derive-current-environment' before \
+					'make-standard-environment'"
+					// To be consistent with the document and alternative \
+						derivations.
+			)
+		)
+	),
+	/ %Tools.Scripts $=
+	(
+		* "redundant '-pthread'" @ "fallback values" @ "variables \
+			%(CXXFLAGS_IMPL_COMMON_THRD_, LDFLAGS_IMPL_COMMON_THRD_)"
+			@ "%SHBuild-common-options.sh"
+			$= (/ '-pthread' -> ''),
+			// This is now also consistent with %SHBuild-YSLib-common.txt.
+		/ @ "%SHBuild-common-toolchain.sh" $=
+		(
+			/ @ "function %SHBuild_CheckCompiler" $=
+			(
+				- DLI "redudant 'SHBuild_Put' call with empty argument",
+				/ "removed '-' from the calling command"
+					$dep_to "compiling implicit stdin"
+					// This requires '-' specified in the trailing arguments, \
+						which shall come after '-xc' or '-xc++' but before \
+						'-l' options (if any). Previously '-l' options cannot \
+						be put behind '-', so linking may fail using GNU ld.
+			),
+			+ "functions %((SHBuild_CC_Test; SHBuild_CC_TestSimple),
+				(SHBuild_CXX_Test; SHBuild_CXX_TestSimple))"
+				$dep_from "compiling implicit stdin",
+			+ "function %SHBuild_CC_GetVersion" ^ $dep_from "%SHBuild_CC_Test",
+			+ "function %SHBuild_CXX_GetVersion"
+				^ $dep_from "%SHBuild_CXX_Test",
+			(
+			+ "cached readonly variable %SHBuild_CXX_Name",
+			+ "cached readonly variable %SHBuild_CXX_Version" ^ $dep_from
+				"%SHBuild_CXX_GetVersion";
+			+ "output of C++ compiler identification"
+			),
+			* "missing detection of G++ for invalid compilers with empty result"
+				@ "functions %(SHBuild_CheckCC, SHBuild_CheckCXX)"
+				$mismatch('YSLib-wiki') $since b897
+				// This was documented since 2020-08-05.
+		),
+		/ $design $impl @ ("%SHBuild-build.sh" $dep_from ("%SHBuild_CXX_Name"
+			@ "%SHBuild-common-toolchain.sh"), "applicative \
+			'build-with-conf-opt'" @ "%SHBuild-YSLib-common.txt") $=
+		(
+			/ 'SHBuild_CXX_Style_' -> 'SHBuild_CXX_Name';
+			/ "asserted to ensure nonempty value of %SHBuild_CXX_Name"
+		),
+		/ @ "%SHBuild-common-options.sh" $=
+		(
+			/ DLI "simplified detection of variables %(C_CXXFLAGS_GC, \
+				LDFLAGS_GC, CXXFLAGS_IMPL_COMMON_THRD_, \
+				LDFLAGS_IMPL_COMMON_THRD_)" ^ $dep_from
+				("%SHBuild_CXX_TestSimple" @ "%SHBuild-common-toolchain.sh"),
+			(
+			/ DLI "simplified" ^ $dep_from ("%SHBuild_CXX_Name"
+				@ "%SHBuild-common-toolchain.sh") $dep_to "C++ style variable";
+			/ DLI "simplified default value initialization" @ "%AR",
+			- "variable %SHBuild_CXX_Style_" $dep_from "%SHBuild-build.sh"
+			),
+			(
+			+ "functions %(SHBuild_Get_C_CXXFLAGS_WARNING, \
+				SHBuild_Get_CXXFLAGS_WARNING)" ^ $dep_from
+				("%SHBuild_CXX_GetVersion" @ "%SHBuild-common-toolchain.sh");
+			/ "default value" @ "variables %(C_CXXFLAGS_WARNING, \
+				C_CXXFLAGS_IMPL_WARNING, CXXFLAGS_IMPL_WARNING, \
+				CXXFLAGS_WARNING)" $=
+			(
+				/ "improved initialization to support fallbacks in old \
+					versions of compilers and to avoid unsupported options \
+					used for old versions of compilers";
+					// Clang++ >= 5.0 supports '-Wno-noexcept-type \
+						-Wzero-as-null-pointer-constant' as GCC. This also \
+						handles case like '-Wdeprecated' as C++-only in older \
+						versions.
+				(
+				/ "merged default value of %C_CXXFLAGS_IMPL_WARNING into \
+					%C_CXXFLAGS_WARNING";
+				/ $comp @ "variable %C_CXXFLAGS_WARNING for Clang++" $=
+				(
+					/ "added '-Wdouble-promotion' for Clang >= 3.8",
+						// Clang >= 3.8 supports '-Wdouble-promotion' as GCC.
+					/ "removed '-Wno-missing-braces' for Clang >= 6.0"
+						// This is not needed for newer versions. See \
+							https://bugs.llvm.org/show_bug.cgi?id=21629.
+				)
+				),
+				(
+				/ "merged default value of %CXXFLAGS_IMPL_WARNING into \
+					%CXXFLAGS_WARNING";
+				/ $comp "default value of %CXXFLAGS_WARNING depended on \
+					%(C_CXXFLAGS_WARNING, C_CXXFLAGS_IMPL_WARNING)"
+					~ "%CFLAGS_WARNING";
+				* "C-only options set in %CFLAGS_WARNING interfered with \
+					the default value of %CXXFLAGS_WARNING" $since b540
+					// Not it allows C-only options in %CLFAGS_WARNING \
+						without setting %CXXFLAGS_WARNING.
+				)
+			)
+			),
+			/ "default value" @ "variables %(CXXFLAGS_IMPL_OPT, \
+				LDFLAGS_IMPL_OPT)" @ "using G++" ^ $dep_from
+				("%SHBuild_CXX_GetVersion" @ "%SHBuild-common-toolchain.sh") $=
+			(
+				// See $2023-05 @ %Documentation::Workflow.
+				/ "improved LTO option and '-fno-enforce-eh-specs' for G++ \
+					based on the compiler version",
+				+ ('-fno-strong-eval-order', '-fnew-inheriting-ctors')
+					@ "G++ >= 7.1"
+			)
+		),
+		/ @ "%SHBuild-YSLib-common.txt" $=
+		(
+			/ DLI "simplified default value initialization" @ "variable %AR",
+			+ "applicatives %(SHBuild_CXX_Test, SHBuild_CXX_GetVersion)",
+				// As %SHBuild-common-toolchain.sh.
+			(
+			/ "applicative 'compile-ok'" $=
+			(
+				/ "reordered '-' before the option argument",
+					// As %SHBuild_CheckCompiler in \
+						%SHBuild-common-toolchain.sh, except no interface is \
+						changed, because '-xc++' is explicitly specified \
+						before '-' here.
+				(
+				^ "file" @ "nonempty environment variable %COMSPEC" ~ "pipe";
+					// It is not easy to support multiple lines in pipe using \
+						'CMD'.
+				+ "supported source of multiple line"
+				),
+				+ "assertion to ensure nonempty argument of the compiler"
+					$dep_from "empty C++ compiler" ^ '$assert-nonempty'
+			);
+			+ "applicatives %(SHBuild_CXX_Test, SHBuild_CXX_GetVersion)",
+				// As %SHBuild-common-toolchain.sh.
+			/ DLI "extracted shared command cache" @ "%SHBuild_CheckCXX"
+			),
+			/ @ "appliative 'build-with-conf-opt'" $=
+			(
+				// As stage 1 in %SHBuild-toolchain.sh.
+				+ "output of C++ compiler identification"
+					^ $dep_from ("%SHBuild_CXX_GetVersion",
+					"applicatives ('number->string', 'string->number')"
+					@ %YFramework.NPL.Dependency);
+				+ "applicatives %(SHBuild_Get_C_CXXFLAGS_WARNING, \
+					SHBuild_Get_CXXFLAGS_WARNING)";
+				/ "adjusted default value as stage 1" @ "variables \
+					%(C_CXXFLAGS_WARNING, C_CXXFLAGS_IMPL_WARNING, \
+					CXXFLAGS_IMPL_WARNING, CXXFLAGS_WARNING, \
+					CXXFLAGS_IMPL_OPT, LDFLAGS_IMPL_OPT)",
+				/ $re_ex(b970) "enabled LLD for Clang++ for all targets"
+					// This was occasionally enabled only for MinGW hosts. Not \
+						it is same as stage 1 in %SHBuild-toolchain.sh since \
+						b970.
+			),
+			/ DLDI "simplified Win32 detection for host OS",
+			+ "applicative %SHBuild_CXX_TestSimple",
+			/ "simplified compiling test applicatives" ^ "null device"
+				~ "error out stream paramter"
+				// No other streams are yet actually used publicly and all \
+					applicatives changed here are not documented in \
+					%Documentation::NPL or the user documentation.
+			(
+				/ "applicatives ('get-thread-options', \
+					'get-thread-options-silent')"
+					-> "applicative 'get-thread-options_'"
+					^ $dep_from "%SHBuild_CXX_TestSimple",
+				/ "applicative ('compile-ok-silent', 'compile-ok-discard_')"
+					-> "applicative 'compile-ok-discard_'";
+				/ $dep_from "applicative 'compile-ok'" -> 'compile-ok_'
+			),
+			/ "simplified '2>' and null device concatenations",
+			/ DLDI "adjusted initialization for variable %MSYSTEM",
+			+ "check against empty value" @ "variable %CXX",
+			+ DLI "libquadmath detection" ^ $dep_from
+				"applictives ('compile-ok_', %SHBuild_CXX_TestSimple)",
+			/ "tested against G++ and returned empty string as result on \
+				failure" @ "applicative %SHBuild_CheckCXX",
+				// As the shell function in %SHBuild-common-toolchain.sh. This \
+					was not mismatched with the document %Documentation.NPL, \
+					though.
+			* "redundant warning on failure of removal of nonexisting \
+				temporary file" $since b904
+		),
+		* "unavailable '-lquadmath' might fail to link"
+			@ "%SHBuild-bootstrap.sh" $since b932
+			// Not all toolchains to be supported have QuadMath (which is a \
+				part of libgcc), e.g. Clang in platform %MinGW_Clang32.
+			 $= (/ "test availablility of '-lquatmath' and added only when \
+				succeeded" $impl ^ $dep_from
+				("%SHBuild_CXX_Test" @ "%SHBuild-common-toolchain.sh")),
+		/ "default value" @ "variables %(CC, CXX)" @ "%MSYSTEM matching \
+			'CLANG(64|32|ARM64)'"-> ('clang', 'clang++') ~ ('gcc', 'g++')
+			("%(SHBuild-common-toolchain.sh, SHBuild-YSLib-common.txt"
+			$dep_to "separated detection of C++ compiler"),
+			// This makes it unnecessary to install packages like \
+				mingw-w64-clang-{i686,x86_64}-gcc-compat in MSYS2 where \
+				Clang is used as the default toolchain.
+		/ "detected libquadmath and only added to system library options \
+			when supported" @ "%(SHBuild-YSLib-build.txt, SHBuild-BuildApp.txt)"
+			^ $dep_from "libquadmath detection" @ "%SHBuild-YSLib-common.txt",
+		/ "%SHBuild-BuildApp.txt" $=
+		(
+			* "missing hiding error output on 'test' command failure"
+				@ "applicative 'stat-file?'" $since b900 $dep_from
+				("simplified compiling test applicatives"
+					@ "%SHBuild-YSLib-common.txt"),
+			(
+			* "wrong detection of Clang++ for workaround from environment \
+				variable %CXX" $since b900
+				$dep_from "separated detection of C++ compiler";
+			* $comp "probably empty input as C++ compiler for %SHBuild_CheckCXX"
+				$since b900 $dep_to "empty C++ compiler"
+			)
+		)
+	)
+),
+
+b972
 (
 	/ %YBase.YStandardEx $=
 	(

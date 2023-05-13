@@ -7,8 +7,8 @@ set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-YSLib.sh
 . "$SHBuild_ToolDir/SHBuild-YSLib.sh" # for SHBuild_Puts, SHBuild_EchoVar_N,
-#	YSLib_BaseDir, SHBuild_Host_OS, CXXFLAGS, LDFLAGS, SHBuild_GetBuildName,
-#	CXX, INCLUDES;
+#	YSLib_BaseDir, SHBuild_Host_OS, SHBuild_CXX_Test, CXXFLAGS, LDFLAGS,
+#	SHBuild_GetBuildName, CXX, INCLUDES;
 
 SHBuild_Puts "Bootstrap beginned."
 : "${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}"
@@ -68,7 +68,34 @@ $YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/NLS.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/Registry.cpp"
 fi
-LIBS="$LIBS -lquadmath"
+if SHBuild_CXX_Test '
+#include <quadmath.h>
+#ifndef QUADMATH_H
+#	error "QuadMath not found."
+#endif
+
+namespace fpq
+{
+
+using ::floorq;
+using ::scalbnq;
+using ::finiteq;
+using ::powq;
+using ::log2q;
+
+} // namespace fpq;
+
+int
+main()
+{
+	return int(fpq::floorq(__float128(0.0)));
+}
+' -lquadmath; then
+	LIBS="$LIBS -lquadmath"
+	SHBuild_Puts "Detected quadmath for linking."
+else
+	SHBuild_Puts "Not detected quadmath for linking."
+fi
 
 export CXXFLAGS
 export LDFLAGS

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016, 2019-2020, 2022 FrankHB.
+	© 2012-2016, 2019-2020, 2022-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r587
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2022-09-03 22:29 +0800
+	2023-05-04 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define INC_Helper_GUIApplication_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_YGlobal // for YSLib::allocate_unique, Environment;
+#include YFM_Helper_YGlobal // for YSLib::allocate_unique, Environment,
+//	value_map;
 #include YFM_Helper_HostWindow // for Host::Window;
 #include YFM_YCLib_NativeAPI
 #include YFM_YSLib_Core_YApplication // for Application, Shell;
@@ -60,8 +61,9 @@ private:
 		并避免和其它代码冲突。
 	\warning 销毁窗口前移除映射，否则可能引起未定义行为。
 	\warning 非线程安全，应仅在宿主线程上操作。
+	\since build 973
 	*/
-	map<Host::NativeWindowHandle, observer_ptr<Host::Window>> wnd_map;
+	value_map<Host::NativeWindowHandle, observer_ptr<Host::Window>> wnd_map;
 	//! \brief 窗口对象映射锁。
 	mutable mutex wmap_mtx;
 	/*!
@@ -270,7 +272,7 @@ public:
 \sa LockInstance
 \since build 550
 */
-//@{
+//!@{
 YF_API yimpl(GUIApplication&)
 FetchGlobalInstance();
 template<class _tApp>
@@ -279,7 +281,7 @@ FetchGlobalInstance()
 {
 	return ystdex::polymorphic_downcast<_tApp&>(FetchGlobalInstance());
 }
-//@}
+//!@}
 
 /*!
 \brief 锁定实例。
@@ -292,6 +294,7 @@ LockInstance();
 
 /*!
 \brief 取单一环境对象引用。
+\exception GeneralEvent 异常中立：由 FetchGlobalInstance 抛出。
 \since build 398
 */
 inline PDefH(Environment&, FetchEnvironment, )
@@ -311,13 +314,13 @@ inline PDefH(GUIHost&, FetchGUIHost, )
 \note 对宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
 \since build 954
 */
-//@{
+//!@{
 //! \note 创建 \c Shells::GUIShell 的对象作为 Shell 。
 YF_API void
 Execute(GUIApplication&);
 YF_API void
 Execute(GUIApplication&, shared_ptr<Shell>);
-//@}
+//!@}
 
 } // namespace YSLib;
 

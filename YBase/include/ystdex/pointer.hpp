@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r776
+\version r782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2023-02-01 18:06 +0800
+	2023-05-06 04:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -615,6 +615,8 @@ struct pointer_classify<_type*>
 namespace std
 {
 
+//! \ingroup hashers
+//!@{
 /*!
 \brief ystdex::nptr 散列支持。
 \since build 847
@@ -626,14 +628,14 @@ struct hash<ystdex::nptr<_type>>
 	operator()(const ystdex::observer_ptr<_type>& p) const
 		ynoexcept_spec(hash<_type>(p.get()))
 	{
-		return hash<_type>(p.get());
+		return hash<_type>()(p.get());
 	}
 };
 
 /*!
 \brief ystdex::observer_ptr 散列支持。
 \see ISO WG21 N4529 8.12.7[memory.observer.ptr.hash] 。
-\since build 674
+\since build 846
 */
 template<typename _type>
 struct hash<ystdex::observer_ptr<_type>>
@@ -641,9 +643,10 @@ struct hash<ystdex::observer_ptr<_type>>
 	YB_ATTR_nodiscard YB_PURE size_t
 	operator()(const ystdex::observer_ptr<_type>& p) const yimpl(ynothrow)
 	{
-		return hash<_type*>(p.get());
+		return hash<_type*>()(p.get());
 	}
 };
+//!@}
 
 } // namespace std;
 

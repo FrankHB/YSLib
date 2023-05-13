@@ -129,8 +129,7 @@ $provide! ($lazy-env-val $env-de!)
 	$defv/e! &$env-de! mods (&var .&body) d
 		$let ((t safeenv-get (symbol->string (desigil var))))
 			eval (list $def! var
-				($if (string-empty? t)
-					(list (unwrap eval) (move! body) d) t)) d
+				($if (string-empty? t) (list (unwrap eval) (move! body) d) t)) d
 );
 
 $provide! (SHBuild_Env_OS SHBuild_Env_Arch)
@@ -171,11 +170,12 @@ $defl! SHBuild_GetPlatformStrings ()
 );
 
 $def! nul_dev_ $if (win32? SHBuild_Env_OS) "NUL" "/dev/null";
+$def! cmd_noerr_ ++ "2> " nul_dev_;
 
 $import! std.system system-get system-quote;
 
 $defl! system-or-puts (cmd str) $let (((rstr code .)
-	system-get (cons-cmd cmd (system-quote str) "2>" nul_dev_)))
+	system-get (cons-cmd cmd (system-quote str) cmd_noerr_)))
 	$if (eqv? code 0) rstr str;
 
 "NOTE", "See https://stackoverflow.com/questions/27975969/27976653#27976653.";
@@ -210,30 +210,57 @@ $defl! mktmp_exe_ ()
 	make-temporary-filename (++ SHBuild_Env_TempDir "/") ".exe";
 "NOTE",
 	"The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.";
-$defl! with-tmp-file_ (tmp-file f)
+$defl/e! with-tmp-file_ (derive-environment std.system std.io) (tmp-file f)
 (
-	$import! std.system remove-file;
-
 	$def! r f tmp-file;
-	$unless (remove-file tmp-file)
+	$unless ($or (not? (readable-file? tmp-file)) (remove-file tmp-file))
 		(putss "Warning: Failed to remove temporary file '" tmp-file "'");
 	move! r
 );
 
-$defl! compile-ok (src compile out opt err-out)
+$defl/e! blank-string?_ std.strings (s)
+	string-empty? (regex-replace s (string->regex "[ \n\r\t\v]") "");
+
+$defl! split-multiline_ (str)
+(
+	$if (blank-string?_ str) (raise-error "Empty command found.")
+	(
+		$import! std.strings string-split regex-replace string->regex;
+
+		string-split (regex-replace str (string->regex "([<>&|\"])") "^$1")
+			"\r\n"
+	)
+);
+
+"XXX", "Assume the shell supporting single quotes.";
+$defl/e! expand-src_ std.strings (cmd) ++ " '" cmd "'";
+
+$defl! compile-ok_ (src compile out opt)
 (
 	$import! std.strings string<-;
 
-	$when (safeenv-empty? "COMSPEC")
-		(string<- src (system-quote src));
-	system-ok (cons-cmd "echo" src "|" (system-quote compile) "-pipe" "-xc++"
-		"-o" (system-quote out) opt "- 2>" err-out)
+	$assert-nonempty compile;
+	$if (safeenv-empty? "COMSPEC")
+	(
+		"XXX", "Not checking the existence of executable %compile.";
+		system-ok (cons-cmd (++ "echo" (expand-src_ src)) "|"
+			(system-quote compile) "-pipe" "-xc++" "-" "-o" (system-quote out)
+			opt cmd_noerr_)
+	)
+	(
+		with-tmp-file_ (make-temporary-filename (++ SHBuild_Env_TempDir "/")
+			".cpp") ($lambda (tmp-src) (
+			for-each-ltr ($lambda (s) ($remote-eval system std.system)
+				(cons-cmd (++ "ECHO." s) ">> " tmp-src)) (split-multiline_ src);
+			"XXX", "Not checking the existence of executable %compile.";
+			system-ok (cons-cmd (system-quote compile) (system-quote tmp-src)
+				"-pipe" "-o" (system-quote out) opt cmd_noerr_)
+		))
+	)
 );
-$defl! compile-ok-discard_ (src compile opt err-out)
+$defl! compile-ok-discard_ (src compile opt)
 	with-tmp-file_ (() mktmp_exe_)
-		($lambda (tmp-file) compile-ok src compile tmp-file opt err-out);
-$defl! compile-ok-silent (src compile opt)
-	compile-ok-discard_ src compile opt nul_dev_;
+		($lambda (tmp-file) compile-ok_ src compile tmp-file opt);
 
 $defl/e! SHBuild_EchoVar_N (derive-current-environment env_SHBuild_) (var)
 	SHBuild_EchoVar var (safeenv-get (SHBuild_SDot_ var));
@@ -248,10 +275,10 @@ $defl! SHBuild_GetSystemPrefix (platform) $cond
 	((eqv? platform "MinGW_ClangARM64") "/clangarm64")
 	(#t "/usr");
 $defl! SHBuild_Platform_Detect (os arch)
-(
-	$env-de! MSYSTEM;
-	$cond
-		((win32? os) $cond
+	$if (win32? os)
+	(
+		$env-de! MSYSTEM "";
+		$cond
 			((eqv? MSYSTEM "MINGW64") "MinGW64")
 			((eqv? MSYSTEM "MINGW32") "MinGW32")
 			((eqv? MSYSTEM "CLANG64") "MinGW_Clang64")
@@ -259,9 +286,9 @@ $defl! SHBuild_Platform_Detect (os arch)
 			((eqv? MSYSTEM "CLANGARM64") "MinGW_ClangARM64")
 			((eqv? MSYSTEM "UCRT64") "MinGW_UCRT64")
 			((eqv? arch "x86_64") "MinGW64")
-			(#t "MinGW32"))
-		(#t os)
-);
+			(#t "MinGW32")
+	)
+	os;
 
 $def! SHBuild_CmdCache_ ();
 $defl%! SHBuild_CmdCache_At_ (host-os) assv host-os SHBuild_CmdCache_;
@@ -276,20 +303,207 @@ $defl! SHBuild_CmdCache_GetEnv_ (host-os)
 	first (rest& r)
 );
 
-$defl! SHBuild_CheckCXX (host-os cxx)
+"XXX", "Not checking the existence of the output executable.";
+$defl! compile-exec-output_ (src compile opt de)
+	with-tmp-file_ (() mktmp_exe_)
+		($lambda (tmp-file)
+			$if (compile-ok_ src compile tmp-file opt)
+				(system-or-puts tmp-file de) de);
+
+$defl/e! make-compiler-version-string_ std.strings (major minor patch)
+	++ major " * 10000L + " minor " * 100L + " patch;
+
+$defl! get-cxx-version-string-expr_ (name)
+	$cond ((eqv? name "Clang++") make-compiler-version-string_
+		"__clang_major__" "__clang_minor__" "__clang_patchlevel__")
+		((eqv? name "G++") make-compiler-version-string_
+			"__GNUG__" "__GNUC_MINOR__" "__GNUC_PATCHLEVEL__")
+		(#t "");
+
+$defl! test-cxx-version_ (e sym)
+	$let* ((name ($remote-eval force std.promises) (first (eval% sym e)))
+		(ver get-cxx-version-string-expr_ name))
+	(
+		$import! std.strings string-empty? ++ symbol->string;
+
+		$if (string-empty? ver) ""
+		(
+			compile-exec-output_ (++ "	
+#include <cstdio>
+
+int
+main()
+{
+	std::printf(\"%ld\\n\", " ver ");
+}
+") (symbol->string sym) "" ""
+		)
+	);
+
+$defl! access-cmd-cache-with-fn_ (host-os cxx fn)
 (
-	$import! std.strings string->symbol,
-	$import! std.promises $lazy force;
+	$import! std.strings string->symbol;
 
 	$let ((e SHBuild_CmdCache_GetEnv_ host-os) (sym string->symbol cxx))
 	(
+		$import! std.promises $lazy/d;
+
 		$unless (eval (list bound? cxx) e)
 		(
-			eval (list $def! sym ($lazy
-				$if (compile-ok-silent "int main(){return __clang__;}" cxx "")
-					"Clang++" "G++")) e;
+			$let ((d () make-standard-environment))
+				eval (list $def! sym list
+					(list $lazy/d d
+						$cond
+							(list (list compile-ok-discard_
+								"int main(){return __clang__;}" cxx "")
+								"Clang++")
+							(list (list compile-ok-discard_
+								"int main(){return __GNUG__;}" cxx "")
+								"G++")
+							(list #t ""))
+					(list $lazy/d d test-cxx-version_ e (list $quote sym))
+				) e
 		);
-		force (eval% sym e)
+		fn (eval% sym e)
+	)
+);
+
+$defl! SHBuild_CheckCXX (host-os cxx)
+	access-cmd-cache-with-fn_ host-os cxx
+		($lambda/e std.promises ((&prom .)) force prom);
+
+$defw! SHBuild_CXX_Test (cxx src .opts) d
+	compile-ok-discard_ src cxx (apply cons-cmd (list* "-pipe" "-xc++" opts) d);
+
+$defw! SHBuild_CXX_TestSimple (cxx .opts) d
+	apply SHBuild_CXX_Test (list* cxx "int main(){}" opts) d;
+
+$defl! SHBuild_CXX_GetVersion (host-os cxx)
+	access-cmd-cache-with-fn_ host-os cxx
+		($lambda/e std.promises ((#ignore &prom .)) force prom);
+
+$defl! SHBuild_Get_C_CXXFLAGS_WARNING (cxx-name cxx-version)
+(
+	"NOTE", "The minimal version is 2.95.3.";
+	"XXX", "%w_suggest_attribute is for G++ only, but there is always some",
+		" (partial) fallback for supported compilers.";
+	$let ((opts_cc "")
+		(w_deprecated "-Wdeprecated")
+		(w_deprecated_declarations "-Wdeprecated-declarations")
+		(w_double_promotion "-Wdouble-promotion")
+		(w_extra "-Wextra")
+		(w_format "-Wformat=2 -Wno-format-nonliteral")
+		(w_float_equal "-Wfloat-equal")
+		(w_invalid_pch "-Winvalid-pch")
+		(w_missing_include_dirs "-Wmissing-include-dirs")
+		(w_sign_conversion "-Wsign-conversion")
+		(w_suggest_attribute cons-cmd "-Wsuggest-attribute=const"
+			"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"))
+	(
+		$import! std.math <?,
+		$import! std.strings string<-;
+
+		$cond ((eqv? cxx-name "Clang++") (
+			$if (<? cxx-version 30800) (string<- w_double_promotion ""),
+			string<- w_suggest_attribute "-Wmissing-noreturn"
+		))
+		((eqv? cxx-name "G++") (
+			$def! w_logical_op "-Wlogical-op",
+			$def! w_trampolines "-Wtrampolines";
+			"XXX", "'-Wfloat-equal' is documented in GCC 3.0.4. Actually it is",
+				" introduced earlier, see https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=b843d2101e5b335f9ae87d5dea12372aca5fb5da.";
+			$if (<? cxx-version 30000) (string<- w_float_equal ""),
+			"XXX", "'-Wno-deprecated-declarations' is documented in GCC 3.1.0.",
+			$if (<? cxx-version 30100) (string<- w_deprecated_declarations ""),
+			$if (<? cxx-version 30400) (
+				"XXX", "'-W' seems working since GCC 2.5.",
+				string<- w_extra "-W",
+				string<- w_format "-Wformat",
+				string<- w_invalid_pch ""
+			),
+			$if (<? cxx-version 40000) (string<- w_missing_include_dirs ""),
+			$if (<? cxx-version 40300) (
+				string<- w_logical_op "",
+				string<- w_sign_conversion ""
+			),
+			"XXX", "'-Wno-deprecated' is documented in GCC 4.4.0 for warnings.",
+				" This was only for C/Obj-C++ previously.",
+			$if (<? cxx-version 40400) (string<- w_deprecated ""),
+			$if (<? cxx-version 40600) (
+				"XXX", "This is not documented in GCC 5.1, but the alternative is",
+					" already used since 4.6. See the default value initialized",
+					" above.",
+				string<- w_suggest_attribute "-Wmissing-noreturn",
+				string<- w_double_promotion "",
+				string<- w_trampolines ""
+			);
+			string<- opts_cc (cons-cmd w_logical_op w_trampolines)
+		));
+		cons-cmd "-Wall" "-Wcast-align" w_deprecated w_deprecated_declarations
+			w_double_promotion w_extra w_float_equal w_format w_invalid_pch
+			"-Wmissing-declarations" w_missing_include_dirs "-Wmultichar"
+			"-Wredundant-decls" w_sign_conversion w_suggest_attribute "-Wshadow"
+			opts_cc
+	)
+);
+
+$defl! SHBuild_Get_CXXFLAGS_WARNING (cxx-name cxx-version
+	C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING CXXFLAGS_IMPL_WARNING)
+(
+	"NOTE", "The minimal version is 2.95.3.";
+	"XXX", "%w_no_missing_braces is a workaround for",
+		" https://bugs.llvm.org/show_bug.cgi?id=21629. Although it is",
+		" supported in G++ (documented in 3.0.4) and newer versions of",
+		" Clang++, this is only enabled for affected versions of Clang++.";
+	$let ((opts_cxx "")
+		(w_deprecated "")
+		(w_no_mismatched_tags "-Wno-mismatched-tags")
+		(w_no_missing_braces "")
+		(w_no_noexcept_type "-Wno-noexcept-type")
+		(w_zero_as_null_pointer_constant "-Wzero-as-null-pointer-constant"))
+	(
+		$import! std.math <?,
+		$import! std.strings string<-;
+
+		$cond ((eqv? cxx-name "Clang++")
+			$let ((w_no_deprecated_register "-Wno-deprecated-register")) (
+			$if (<? cxx-version 30400) (string<- w_no_deprecated_register ""),
+			"XXX", "Clang++ supports '-Wnoexcept-types' since 5.0. Clang++",
+				" >= 4.0 warns against '-Wno-noexcept-type', though Clang++",
+				" 3.0 not.",
+			$if (<? cxx-version 50000) (
+				string<- w_no_noexcept_type "",
+				string<- w_zero_as_null_pointer_constant ""
+			),
+			"XXX", "See above.",
+			$if (<? cxx-version 60000)
+				(string<- w_no_missing_braces "-Wno-missing-braces");
+			string<- opts_cxx (cons-cmd w_no_deprecated_register
+				"-Wshorten-64-to-32" "-Wweak-vtables")
+		))
+		((eqv? cxx-name "G++") $let (
+			(w_conditionally_supported "-Wconditionally-supported")
+			(w_strict_null_sentinal "-Wstrict-null-sentinel")
+			(w_suggest_final cons-cmd "-Wsuggest-final-methods"
+				"-Wsuggest-final-types")) (
+			$if (<? cxx-version 40100) (string<- w_strict_null_sentinal ""),
+			"XXX", "'-Wno-deprecated' is documented in GCC 4.4.0 for warnings.",
+				" This was only for C/Obj-C++ previously.",
+			$if (<? cxx-version 40400) (string<- w_deprecated "-Wdeprecated"),
+			$if (<? cxx-version 40900) (string<- w_conditionally_supported ""),
+			$if (<? cxx-version 50100) (string<- w_suggest_final ""),
+			"XXX", "G++ supports '-Wmismatch-tags' since 9.0. Although",
+				" '-Wno-mismatched-tags' is just fine for previous versions,",
+				" ignore it here.",
+			$if (<? cxx-version 90000) (string<- w_no_mismatched_tags "");
+			string<- opts_cxx (cons-cmd w_conditionally_supported
+				w_strict_null_sentinal w_suggest_final)
+		));
+		cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING
+			"-Wctor-dtor-privacy" w_deprecated w_no_mismatched_tags
+			w_no_missing_braces w_no_noexcept_type "-Wnon-virtual-dtor"
+			"-Woverloaded-virtual" "-Wsign-promo"
+			w_zero_as_null_pointer_constant opts_cxx CXXFLAGS_IMPL_WARNING
 	)
 );
 
@@ -316,25 +530,16 @@ $defl! SHBuild_Extend_CallVariables ()
 );
 
 $defl! SHBuild_ar_ok_ (ar)
-	system-ok (cons-cmd (system-quote-m_ ar) "--help" "1>"
-		(() mktmp_) "2>" nul_dev_);
-$defl! SHBuild_GetAR_ (host-os cxx ar)
-	$let ((SHBuild_CXX_Style_ SHBuild_CheckCXX host-os cxx))
-		$cond (($and (eqv? SHBuild_CXX_Style_ "Clang++")
-				(SHBuild_ar_ok_ "llvm-ar")) "llvm-ar")
-			(($and (eqv? SHBuild_CXX_Style_ "G++")
-				(SHBuild_ar_ok_ "gcc-ar")) "gcc-ar")
-			(#t ar);
+	system-ok
+		(cons-cmd (system-quote-m_ ar) "--help" "1>" (() mktmp_) cmd_noerr_);
 
-$defl! get-thread-options (cxx err-out)
+$defl! get-thread-options_ (cxx)
 (
-	"TODO", "Impl without pthread?";
 	$defl! dmp-test (name) (system-ok (cons-cmd (system-quote-m_ cxx)
-		"-dumpspecs 2>& 1 | grep" name ">" err-out));
+		"-dumpspecs 2>& 1 | grep" name ">" nul_dev_));
 	$if (dmp-test "mthreads:") (list "-mthreads" "-mthreads")
 	(
-		$defl! compile-test (opt)
-			compile-ok-discard_ "int main(){}" cxx opt err-out;
+		$defl! compile-test (opt) SHBuild_CXX_TestSimple cxx opt;
 		$cond
 			((compile-test "-Werror -mthreads")
 				list ($if (compile-test "-c -Werror -mthreads") "-mthreads"
@@ -344,7 +549,6 @@ $defl! get-thread-options (cxx err-out)
 			(#t list "-pthread" "-pthread")
 	)
 );
-$defl! get-thread-options-silent (cxx) get-thread-options cxx nul_dev_;
 $defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
 	$import! env_SHBuild_ SHBuild_TrimOptions_;
@@ -379,16 +583,18 @@ $defl! ld-ext-adjust_win32_subsystem_ (host-os)
 		(ss-verbose-puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows")
 		""
 );
+
 $defl! get-gcflags_ (host-os CXX)
 (
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	"XXX", "%LDFLAGS_GC is used to the environment detection despite %use-ld.";
 	$env-de! LDFLAGS_GC
 		($if (eqv? host-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
-	$if (compile-ok-silent "int main(){}" CXX
+	$if (compile-ok-discard_ "int main(){}" CXX
 		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC)) (list C_CXXFLAGS_GC LDFLAGS_GC)
 		(list "" "")
 );
+
 $defl! use-fsanitize? (name opt)
 	rmatch? opt (++ ".*-fsanitize=[a-z,]*" name ".*");
 $defl! use-san? (opt)
@@ -399,16 +605,88 @@ $defl! use-msan? (opt) use-fsanitize? "memory" opt;
 $defl! use-ubsan? (opt) use-fsanitize? "undefined" opt;
 $defl! use-lsan? (opt) use-fsanitize? "leak" opt;
 
+$defl! SHBuild_cxx_ ()
+(
+	$env-de! MSYSTEM "";
+	$env-de! CXX $if (rmatch? MSYSTEM "CLANG(64|32|ARM64)") "clang++" "g++";
+	$assert-nonempty CXX;
+	CXX
+);
+
+$defw! test-libquadmath_ () d
+	$if (SHBuild_CXX_Test (() SHBuild_cxx_) "#include <quadmath.h>
+#ifndef QUADMATH_H
+#	error \"QuadMath not found.\"
+#endif
+
+namespace fpq
+{
+
+using ::floorq;
+using ::scalbnq;
+using ::finiteq;
+using ::powq;
+using ::log2q;
+
+} // namespace fpq;
+
+int
+main()
+{
+	return int(fpq::floorq(__float128(0.0)));
+}
+" "-lquadmath")
+	(
+		puts "Detected quadmath for linking.";
+		"-lquadmath"
+	)
+	(
+		puts "Not detected quadmath for linking.";
+		""
+	);
+
 $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	app do-ld-ext do-build)
 (
-	$import! std.strings string->symbol,
+	$import! std.math string->number positive? integer? / number->string <?,
+	$import! std.strings string<- string->symbol,
 	$import! std.promises $lazy force,
 	$import! env_SHBuild_ SHBuild_EchoVar SHBuild_QuoteS_ SHBuild_TrimOptions_;
 
 	$def! use-ld $or dynamic app;
-	($env-de! CXX "g++"; safeenv-set "CXX" CXX),
-	($env-de! AR (SHBuild_GetAR_ host-os CXX "ar"); safeenv-set "AR" AR),
+	(
+	$def! CXX () SHBuild_cxx_;
+	safeenv-set "CXX" CXX
+	);
+	$def! SHBuild_CXX_Name SHBuild_CheckCXX host-os CXX;
+	$assert-nonempty SHBuild_CXX_Name;
+	$def! SHBuild_CXX_Version SHBuild_CXX_GetVersion host-os CXX;
+	$assert-nonempty SHBuild_CXX_Version;
+	$def! cxx-version string->number SHBuild_CXX_Version;
+	$unless ($and cxx-version (integer? cxx-version) (positive? cxx-version))
+	(
+		raise-error (++ "The detected raw compiler version '"
+			SHBuild_CXX_Version
+			"' is not a valid representation of a positive integer.");
+	);
+	$provide! (cxx-version-major cxx-version-minor cxx-version-patch)
+	(
+		$import! std.math floor/;
+
+		$def! (cxx-version-major mq) floor/ cxx-version 10000;
+		$def! (cxx-version-minor cxx-version-patch) floor/ mq 100;
+		list cxx-version-major cxx-version-minor cxx-version-patch
+	);
+	putss "C++ compiler identification is " SHBuild_CXX_Name " "
+		(number->string cxx-version-major) "." (number->string
+		cxx-version-minor) "." (number->string cxx-version-patch) ".";
+	($env-de! AR $cond
+		(($and (eqv? SHBuild_CXX_Name "Clang++")
+			(SHBuild_ar_ok_ "llvm-ar")) "llvm-ar")
+		(($and (eqv? SHBuild_CXX_Name "G++")
+			(SHBuild_ar_ok_ "gcc-ar")) "gcc-ar")
+		(#t "ar");
+	safeenv-set "AR" AR),
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
 	($env-de! LD CXX; safeenv-set "LD" LD);
 	"TODO", "Add sanity checks.";
@@ -419,14 +697,14 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 		$def! prom_LDFLAGS_STRIP $lazy-env-val "LDFLAGS_STRIP" "-s";
 		"#", "-Wl,--print-gc-sections"
 	);
-	$def! SHBuild_CXX_Style_ SHBuild_CheckCXX host-os CXX;
 	$def! prom_gcflags_ $lazy get-gcflags_ host-os CXX;
+	$def! host-win32 win32? host-os;
 	$def! prom_C_CXXFLAGS_PIC
 		$lazy-env-val "C_CXXFLAGS_PIC"
-			$if (win32? host-os) "" "-fPIC -fno-semantic-interposition";
+			$if host-win32 "" "-fPIC -fno-semantic-interposition";
 	$def! prom_C_CXXFLAGS_EXT
 		$lazy-env-val "C_CXXFLAGS_EXT"
-			$if (win32? host-os) "" "-D_POSIX_C_SOURCE=200809L";
+			$if host-win32 "" "-D_POSIX_C_SOURCE=200809L";
 	$def! prom_C_CXXFLAGS_COMMON
 		$lazy-env-val "C_CXXFLAGS_COMMON" cons-cmd "-pipe"
 			(first (force prom_gcflags_))
@@ -434,12 +712,8 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			(force prom_C_CXXFLAGS_EXT);
 	$def! prom_C_CXXFLAGS_OPT_LV $lazy-env-val "C_CXXFLAGS_OPT_LV" "-O3";
 	$def! prom_C_CXXFLAGS_WARNING $lazy-env-val "C_CXXFLAGS_WARNING"
-		cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"
-		"-Wdeprecated-declarations" "-Wextra" "-Wfloat-equal" "-Wformat=2"
-		"-Winvalid-pch" "-Wmissing-declarations" "-Wmissing-include-dirs"
-		"-Wmultichar" "-Wno-format-nonliteral" "-Wredundant-decls" "-Wshadow"
-		"-Wsign-conversion";
-	$def! prom_thread-options_ $lazy get-thread-options-silent CXX;
+		SHBuild_Get_C_CXXFLAGS_WARNING SHBuild_CXX_Name cxx-version;
+	$def! prom_thread-options_ $lazy get-thread-options_ CXX;
 	$def! prom_CXXFLAGS_IMPL_WARNING $lazy-env-val "CXXFLAGS_IMPL_WARNING" "";
 	$def! prom_C_CXXFLAGS_COMMON_IMPL_
 		$lazy-env-val "C_CXXFLAGS_COMMON_IMPL_" "";
@@ -448,19 +722,18 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 		$lazy-env-val "C_CXXFLAGS_IMPL_WARNING" "";
 	$if use-ld
 		($def! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT" "");
-	"TODO", "Expose this option?";
 	$def! use_lld_ #f;
+	"NOTE", "The minimal versions are GCC 2.95.3 and Clang 3.0.0.";
 	$cond
-		((eqv? SHBuild_CXX_Style_ "Clang++")
+		((eqv? SHBuild_CXX_Name "Clang++")
 		(
+			"XXX", "This is needed for conformance, so not in",
+				" %CXXFLAGS_IMPL_OPT. See also $2023-05 @ doc/Workflow.txt.";
 			$redef! prom_C_CXXFLAGS_COMMON_IMPL_ $lazy-env-val
 				"C_CXXFLAGS_COMMON_IMPL_" "-fno-merge-all-constants";
-			$redef! prom_CXXFLAGS_IMPL_WARNING
-				$lazy-env-val "CXXFLAGS_IMPL_WARNING" cons-cmd
-				"-Wno-deprecated-register" "-Wno-mismatched-tags"
-				"-Wno-missing-braces" "-Wshorten-64-to-32" "-Wweak-vtables";
 			"XXX", "LTO is disabled by default for compatibility to the",
-				" prebuilt binaries.";
+				" prebuilt binaries. (by G++). If enabled, '-flto=auto' is ",
+				" available since Clang++ 13.0";
 			"#", "$set-if-empty! CXXFLAGS_IMPL_OPT", "-flto";
 			$if use-ld
 			(
@@ -469,25 +742,33 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 					"It is still not ready to run successfully for MinGW64 for",
 					" Clang++ < 14.",
 					"See https://github.com/msys2/MINGW-packages/issues/10547.";
-				$if (win32? host-os) ($redef! use_lld_ #t)
+				$redef! use_lld_ #t
 			)
 		))
-		((eqv? SHBuild_CXX_Style_ "G++")
+		((eqv? SHBuild_CXX_Name "G++")
 		(
-			$redef! prom_C_CXXFLAGS_IMPL_WARNING $lazy-env-val
-				"C_CXXFLAGS_IMPL_WARNING" cons-cmd "-Wdouble-promotion"
-				"-Wlogical-op" "-Wtrampolines" "-Wsuggest-attribute=const"
-				"-Wsuggest-attribute=noreturn" "-Wsuggest-attribute=pure"
-				"-Wsuggest-final-types" "-Wsuggest-final-methods";
-			$redef! prom_CXXFLAGS_IMPL_WARNING $lazy-env-val
-				"CXXFLAGS_IMPL_WARNING" cons-cmd
-				"-Wconditionally-supported" "-Wno-noexcept-type"
-				"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
-			$def! LTO_ $if ($and (win32? host-os) (eqv? host-arch "i686"))
-				"-flto=jobserver" "-flto=auto";
+			"XXX", "See $2023-05 @ doc/Workflow.txt.";
+			$def! LTO_ "-flto=auto",
+			$def! f_new_inheriting_ctors_ "-fnew-inheriting-ctors",
+			$def! f_no_strong_eval_order_ "-fno-strong-eval-order",
+			$def! f_no_enforce_eh_specs_ "-fno-enforce-eh-specs";
+
+			$if (<? cxx-version 30000) (string<- f_no_enforce_eh_specs_ ""),
+			$if (<? cxx-version 70100) (
+				string<- f_new_inheriting_ctors_ "",
+				string<- f_no_strong_eval_order_ ""
+			),
+			"XXX", "Despite the documentation, MinGW GCC 10 does not work with",
+				" '-flto=auto'. See also",
+				" https://gitlab.kitware.com/cmake/cmake/-/merge_requests/7559.",
+			$if ($or (<? cxx-version 100100) ($and host-win32
+				(<? cxx-version 110000))) (string<- LTO_ "-flto=jobserver");
+			"NOTE", "The minimal version is 2.95.3, so",
+				" '-fexpensive-optimizations' is always supported.";
 			$redef! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT"
 				cons-cmd "-fexpensive-optimizations" LTO_
-				"-fno-enforce-eh-specs";
+				f_new_inheriting_ctors_ f_no_enforce_eh_specs_
+				f_no_strong_eval_order_;
 			$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
 				(++ "-fexpensive-optimizations " LTO_)
 		));
@@ -496,7 +777,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 		"XXX", "Workaround for LTO bug on MinGW. See",
 			" https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
 		$def! prom_LDFLAGS_WKRD_ $lazy-env-val "LDFLAGS_WKRD_"
-			($if ($and (win32? host-os) (not? use_lld_))
+			($if ($and host-win32 (not? use_lld_))
 				" -Wl,-allow-multiple-definition" "")
 	);
 	$def! prom_CFLAGS_STD $lazy-env-val "CFLAGS_STD" "-std=c11";
@@ -505,12 +786,12 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	$def! prom_CXXFLAGS_IMPL_COMMON $lazy-env-val "CXXFLAGS_IMPL_COMMON"
 		cons-cmd (first (force prom_thread-options_))
 		"-U__GXX_TYPEINFO_EQUALITY_INLINE" "-D__GXX_TYPEINFO_EQUALITY_INLINE=1"
-		"-U__GXX_MERGED_TYPEINFO_NAMES" ($if (win32? host-os)
+		"-U__GXX_MERGED_TYPEINFO_NAMES" ($if host-win32
 		"-D__GXX_MERGED_TYPEINFO_NAMES=0" "-D__GXX_MERGED_TYPEINFO_NAMES=1");
 	$def! prom_CXXFLAGS_STD $lazy-env-val "CXXFLAGS_STD" "-std=c++11";
-	$def! prom_CXXFLAGS_WARNING $lazy-env-val "CXXFLAGS_WARNING" cons-cmd
-		(force prom_CFLAGS_WARNING) "-Wctor-dtor-privacy" "-Wnon-virtual-dtor"
-		"-Woverloaded-virtual" "-Wsign-promo"
+	$def! prom_CXXFLAGS_WARNING $lazy-env-val "CXXFLAGS_WARNING"
+		SHBuild_Get_CXXFLAGS_WARNING SHBuild_CXX_Name cxx-version
+		(force prom_C_CXXFLAGS_WARNING) (force prom_C_CXXFLAGS_IMPL_WARNING)
 		(force prom_CXXFLAGS_IMPL_WARNING);
 	$def! prom_CXXFLAGS_OPT_DBG $lazy
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG_PEDANTIC")
@@ -539,10 +820,10 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			(cons-cmd (force prom_LDFLAGS_STRIP) (force prom_LDFLAGS_IMPL_OPT)
 			(first (restv (force prom_gcflags_))));
 		$def! prom_LDFLAGS_DYN_BASE $lazy-env-val "LDFLAGS_DYN_BASE"
-			++ "-shared" ($if ($and (win32? host-os) (not? use_lld_))
+			++ "-shared" ($if ($and host-win32 (not? use_lld_))
 				" -Wl,--dll" "");
 		$def! prom_LIBS_RPATH $lazy-env-val "LIBS_RPATH"
-			$if (win32? host-os) ""
+			$if host-win32 ""
 				(++ "-Wl,-rpath," (SHBuild_QuoteS_ "$ORIGIN:$ORIGIN/../lib"));
 		"XXX", "Here '-Wl,' options are separated to improve compatibility for",
 			" LLVM.";
@@ -551,7 +832,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			$if use_lld_
 			(
 				cons-cmd "-Wl,-undefined,error"
-					($if (win32? host-os) ""
+					($if host-win32 ""
 						(++ "-Wl,--export-dynamic-symbol='_ZTS*'"
 						" -Wl,--export-dynamic-symbol='_ZTI*'"))
 			)
@@ -576,7 +857,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			(cons-cmd (force prom_LDFLAGS_DYN)) "-Wl,--dn")));
 		$unless has-asan-opt ($redef! has-asan-opt use-asan? LDFLAGS);
 		"XXX", "Assume %LD has same style to %CXX when sanitizers are used";
-		$if ($and (eqv? SHBuild_CXX_Style_ "Clang++")
+		$if ($and (eqv? SHBuild_CXX_Name "Clang++")
 			($or (use-san? CFLAGS) (use-san? CXXFLAGS)
 			(use-san? SHBuild_CXXFLAGS)))
 		(
@@ -600,8 +881,8 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
 	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
-	$defw! echo-var (var) d SHBuild_EchoVar var ($if (bound? var) (eval
-		(string->symbol var) d) "");
+	$defw! echo-var (var) d
+		SHBuild_EchoVar var ($if (bound? var) (eval (string->symbol var) d) "");
 	"XXX", "The values of following variables may be overriden in 'do-build'.";
 	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";
@@ -625,12 +906,12 @@ $defl! get-hg-rev-info_ ()
 	"XXX", "If the command is 'HG' which may contain spaces in its path, use",
 		" 'system-qget' instead of 'system-get'.";
 	$let (((bstr code .) system-get (cons-cmd "hg log -r \"p1()\" -T"
-		(system-quote "{search('\d+', desc)}") "2>" nul_dev_)))
+		(system-quote "{search('\d+', desc)}") cmd_noerr_)))
 		$if (eqv? code 0)
 		(
 			$let (((rstr code2 .) system-get (cons-cmd "hg log -r \"p1()\" -T"
 				(system-quote (++ "(hg {rev}:{fill(node, 8) | firstline} "
-				"{date(date, '%Y-%m-%d')})\\n")) "2>" nul_dev_)))
+				"{date(date, '%Y-%m-%d')})\\n")) cmd_noerr_)))
 				$if (eqv? code2 0) (list "hg" bstr (++ "b" bstr " " rstr))
 					(list "" bstr "")
 		) (list "" "" "")
@@ -640,13 +921,13 @@ $defl! get-hg-rev-info_ ()
 $defl! get-git-rev-info_ ()
 (
 	"XXX", "Assume 'sed' is always available. This is true in Git for Windows";
-	$let (((bstr code .) system-get (cons-cmd "git log -1 --format=%s" "2>"
-		nul_dev_ " | sed -E \"s/[^0-9]+([0-9]+).*/\1/\"" "2>" nul_dev_)))
+	$let (((bstr code .) system-get (cons-cmd "git log -1 --format=%s"
+		cmd_noerr_ " | sed -E \"s/[^0-9]+([0-9]+).*/\1/\"" cmd_noerr_)))
 		$if (eqv? code 0)
 		(
 			$let (((rstr code2 .) system-get (cons-cmd
-				"git log -1 --date=short --format=\"(git %h %cd)\"" "2>"
-				nul_dev_)))
+				"git log -1 --date=short --format=\"(git %h %cd)\""
+				cmd_noerr_)))
 				$if (eqv? code2 0) (list "git" bstr (++ "b" bstr " " rstr))
 					(list "" bstr "")
 		) (list "" "" "")
@@ -662,19 +943,18 @@ $defl! get_env_SHB_ (host-os)
 (
 	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
 
-	$def! cmd_noerr_ ++ "2>" nul_dev_;
 	"#", "Following private environment variables are used: SHBuild.",
 		" This is expected to be stage 1";
 	$def! e_S1_SHBuild_ () system-quote (safeenv-get "SHBuild");
 	$defl! e_rm_ (pth)
 	(
 		$import! std.system system;
+
 		"TODO", "Avoid deletion if possible?";
 		"XXX", "This relies on 'rm'", "Error is ignored.";
 		system (cons-cmd "rm" (system-quote pth) cmd_noerr_)
 	);
-	$if (win32? host-os)
-		($defl! e_add_x_ (#ignore));
+	$if (win32? host-os) ($defl! e_add_x_ (#ignore));
 	(
 		$defl! e_add_x_ (pth)
 		(

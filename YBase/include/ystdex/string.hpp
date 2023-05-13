@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r3606
+\version r3654
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2023-02-07 22:47 +0800
+	2023-05-12 02:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 #include "allocator.hpp" // for internal "allocator.hpp", allocator_traits,
 //	enable_if_t, remove_cvref_t, false_, is_object, decay_t, std::declval,
 //	true_, nested_allocator, or_, is_same, is_enum, yconstraint, is_class,
-//	is_equal, enable_if_inconvertible_t, yassume, YAssert;
+//	is_equal, enable_if_inconvertible_t, yassume, YAssert,
+//	ystdex::make_obj_using_allocator;
 #include "container.hpp" // for "container.hpp", enable_for_input_iterator_t,
 //	make_index_sequence, index_sequence, begin, end, empty, size,
 //	ystdex::sort_unique, ystdex::underlying;
@@ -2189,6 +2190,7 @@ ston(const _tString& str, _tParams&&... args)
 \throw std::runtime_error 格式化字符串输出失败。
 \note 对 _tString 构造异常中立。
 */
+//!@{
 template<class _tString = string>
 YB_ATTR_nodiscard YB_NONNULL(1) _tString
 vsfmt(const typename string_traits<_tString>::value_type* fmt,
@@ -2214,11 +2216,40 @@ vsfmt(const typename string_traits<_tString>::value_type* fmt,
 	}
 	return str;
 }
+//! \since build 973
+template<class _tString = string>
+YB_ATTR_nodiscard YB_NONNULL(2) _tString
+vsfmt(const typename string_traits<_tString>::allocator_type a,
+	const typename string_traits<_tString>::value_type* fmt, std::va_list args)
+{
+	std::va_list ap;
+
+	va_copy(ap, args);
+
+	const auto l(ystdex::vfmtlen(fmt, ap));
+
+	va_end(ap);
+	if(l == size_t(-1))
+		throw std::runtime_error("Failed to write formatted string.");
+
+	auto str(ystdex::make_obj_using_allocator<_tString>(a, l,
+		typename _tString::value_type()));
+
+	if(l != 0)
+	{
+		YAssert(str.length() > 0 && str[0] == typename _tString::value_type(),
+			"Invalid string value constructed.");
+		std::vsprintf(&str[0], fmt, args);
+	}
+	return str;
+}
+//!@}
 
 /*!
 \brief 以 C 标准输出格式的输出 basic_string 实例的对象。
 \note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
 */
+//!@{
 template<class _tString = string>
 YB_ATTR_nodiscard YB_NONNULL(1) _tString
 sfmt(const typename string_traits<_tString>::value_type* fmt, ...)
@@ -2239,6 +2270,29 @@ sfmt(const typename string_traits<_tString>::value_type* fmt, ...)
 		throw;
 	}
 }
+//! \since build 973
+template<class _tString = string>
+YB_ATTR_nodiscard YB_NONNULL(2) _tString
+sfmt(const typename string_traits<_tString>::allocator_type& a,
+	const typename string_traits<_tString>::value_type* fmt, ...)
+{
+	std::va_list args;
+
+	va_start(args, fmt);
+	try
+	{
+		auto str(ystdex::vsfmt<_tString>(a, fmt, args));
+
+		va_end(args);
+		return str;
+	}
+	catch(...)
+	{
+		va_end(args);
+		throw;
+	}
+}
+//!@}
 //!@}
 
 /*!

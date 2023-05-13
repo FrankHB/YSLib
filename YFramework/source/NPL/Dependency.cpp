@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r8092
+\version r8107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2023-03-11 11:55 +0800
+	2023-05-12 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -940,6 +940,12 @@ LoadBasicDerived(ContextState& cs)
 	RegisterForm(m, "$let*%", LetAsteriskRef);
 	RegisterForm(m, "$letrec", LetRec);
 	RegisterForm(m, "$letrec%", LetRecRef);
+	RegisterStrict(m, "derive-current-environment",
+		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
+		Retain(term);
+		term.emplace(NPL::AsTermNode(term.get_allocator(), ctx.WeakenRecord()));
+		return MakeEnvironment(term);
+	});
 	RegisterStrict(m, "make-standard-environment", trivial_swap,
 		// NOTE: The weak reference of the ground environment is saved and it
 		//	shall not be moved after being called.
@@ -949,12 +955,6 @@ LoadBasicDerived(ContextState& cs)
 		RetainN(term, 0);
 		term.SetValue(CreateEnvironmentWithParent(term.get_allocator(), ce));
 	}, cs.WeakenRecord()));
-	RegisterStrict(m, "derive-current-environment",
-		[] YB_LAMBDA_ANNOTATE((TermNode& term, ContextNode& ctx), , flatten){
-		Retain(term);
-		term.emplace(NPL::AsTermNode(term.get_allocator(), ctx.WeakenRecord()));
-		return MakeEnvironment(term);
-	});
 	RegisterStrict(m, "derive-environment", trivial_swap,
 		// NOTE: As 'make-standard-environment'.
 		// TODO: Blocked. Use C++14 lambda initializers to simplify the
@@ -1911,10 +1911,8 @@ LoadModule_std_math(ContextState& cs)
 	RegisterUnary<Strict, const NumberLeaf>(m, "finite?", IsFinite);
 	RegisterUnary<Strict, const NumberLeaf>(m, "infinite?", IsInfinite);
 	RegisterUnary<Strict, const NumberLeaf>(m, "nan?", IsNaN);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "=?",
-		Equal);
-	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "<?",
-		Less);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "=?", Equal);
+	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "<?", Less);
 	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, ">?",
 		Greater);
 	RegisterBinary<Strict, const NumberLeaf, const NumberLeaf>(m, "<=?",
@@ -1948,6 +1946,9 @@ LoadModule_std_math(ContextState& cs)
 	RegisterBinary<Strict, NumberNode, NumberNode>(m, "truncate-remainder",
 		TruncateRemainder);
 	RegisterUnary<Strict, NumberNode>(m, "inexact", Inexact);
+	RegisterUnary<Strict, const string>(m, "string->number", StringToNumber);
+	RegisterUnary<Strict, const NumberNode>(m, "number->string",
+		NumberToString);
 }
 
 void
@@ -2482,7 +2483,7 @@ LoadModule_std_modules(ContextState& cs)
 $provide/let! (registered-requirement? register-requirement!
 	unregister-requirement! find-requirement-filename require)
 ((mods $as-environment (
-	$import! std.strings &string-empty? &++ &string->symbol;
+	$import&! std.strings string-empty? ++ string->symbol;
 
 	$defl! requirement-error ()
 		raise-error "Empty requirement name found.",
@@ -2542,7 +2543,7 @@ $provide/let! (registered-requirement? register-requirement!
 									"Syntax error in require.")))
 					(assign%! res (eval% (list ($remote-eval% load std.io)
 						(move! filename)) (move! env)))
-					res);
+					res)
 );
 	)NPL");
 #endif

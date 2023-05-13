@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2021 FrankHB.
+	© 2011-2021, 2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1611
+\version r1711
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2021-12-29 01:18 +0800
+	2023-05-04 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ namespace platform_ex
 
 #if YCL_DS
 //! \since build 604
-//@{
+//!@{
 /*!
 \brief DS 底层外部存储接口封装。
 \see LibNDS 头文件 <nds/disc_io.h> 。
@@ -70,9 +70,11 @@ public:
 		: lref(disc)
 	{}
 
-	DefPred(const ynothrow, Inserted, get().isInserted)
-	DefGetter(const ynothrow, std::uint32_t, Type, get().ioType)
-	DefGetter(const ynothrow, std::uint32_t, Features, get().features)
+	YB_ATTR_nodiscard DefPred(const ynothrow, Inserted, get().isInserted)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, std::uint32_t, Type, get().ioType)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, std::uint32_t, Features, get().features)
 
 	DefFwdTmpl(const ynothrow, bool, ReadSectors,
 		get().readSectors(yforward(args)...))
@@ -115,7 +117,7 @@ private:
 
 public:
 	//! \since build 609
-	DefGetter(const ynothrow, Disc, Disc, disc)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Disc, Disc, disc)
 
 private:
 	PDefH(size_t, GetKey, ::sec_t sec) const ynothrowv
@@ -145,7 +147,7 @@ private:
 	FlushEntry(UsedListCache::value_type&) ynothrow;
 
 	//! \since build 656
-	//@{
+	//!@{
 	template<typename _func>
 	bool
 	PerformPartialSectorIO(_func f, ::sec_t sec, size_t offset, size_t n)
@@ -202,9 +204,9 @@ public:
 
 	YB_NONNULL(3) bool
 	WriteSectors(::sec_t, const void*, size_t = 1) ynothrow;
-	//@}
+	//!@}
 };
-//@}
+//!@}
 
 /*!
 \brief 基于文件分配表的文件系统扩展接口。
@@ -214,7 +216,7 @@ namespace FAT
 {
 
 //! \see Microsoft FAT Specification Section 2 。
-static_assert(std::is_same<byte, ystdex::octet>::value,
+static_assert(std::is_same<byte, ystdex::octet>(),
 	"Only 8-bit byte is supported.");
 
 static_assert(!(sizeof(size_t) < sizeof(std::uint32_t)),
@@ -280,20 +282,25 @@ public:
 		// TODO: This will catch Clusters::Error?
 		ImplRet(Clusters::First <= c && c <= last_cluster)
 
-	DefGetter(const ynothrow, size_t, BytesPerCluster, bytes_per_cluster)
-	DefGetter(const ynothrow, size_t, BytesPerSector, bytes_per_sector)
-	DefGetter(const ynothrow, FileSystemType, FileSystemType, fs_type)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, size_t, BytesPerCluster, bytes_per_cluster)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, size_t, BytesPerSector, bytes_per_sector)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, FileSystemType, FileSystemType, fs_type)
 	//! \since build 900
-	DefGetter(const ynothrow, ClusterCount, FreeClusters,
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ClusterCount, FreeClusters,
 		fs_type == FileSystemType::FAT32 ? free_count : CountFreeCluster())
-	DefGetter(const ynothrow, mutex&, MutexRef, part_mutex)
-	DefGetter(const ynothrow, ClusterIndex, RootDirCluster, root_dir_cluster)
-	DefGetter(const ynothrow, ClusterIndex, RootDirSectorsNum,
+	YB_ATTR_nodiscard DefGetter(const ynothrow, mutex&, MutexRef, part_mutex)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ClusterIndex, RootDirCluster,
+		root_dir_cluster)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ClusterIndex, RootDirSectorsNum,
 		root_dir_sectors_num)
-	DefGetter(const ynothrow, size_t, SectorsPerCluster, sectors_per_cluster)
-	DefGetter(const ynothrow, std::uint64_t, TotalSize, std::uint64_t(
-		data_sectors_num) * std::uint64_t(bytes_per_sector))
-	DefGetter(const ynothrow, size_t, UsedClusters,
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, SectorsPerCluster,
+		sectors_per_cluster)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, std::uint64_t, TotalSize,
+		std::uint64_t(data_sectors_num) * std::uint64_t(bytes_per_sector))
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, UsedClusters,
 		last_cluster - Clusters::First + 1)
 
 	PDefH(::sec_t, ClusterToSector, ClusterIndex c) const ynothrow
@@ -316,7 +323,7 @@ public:
 	\return 成功分配的簇。
 	\since build 713
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 分配空闲的簇。
 	\exception std::system_error 调用失败。
@@ -334,11 +341,11 @@ public:
 	*/
 	YB_ATTR_nodiscard ClusterIndex
 	LinkFreeCleared(ClusterIndex) ythrow(std::system_error);
-	//@}
+	//!@}
 
 	/*!
 	\brief 查询参数指定的簇的下一簇。
-	\pre 断言：<tt>IsFreeOrValid(c)</tt> 。
+	\pre 断言：\c IsFreeOrValid(c) 。
 	\return 若指定空闲簇则为空闲簇；若文件系统类型非法则为错误簇；
 		否则为读取的下一簇。
 	\since build 657
@@ -384,7 +391,7 @@ public:
 
 
 //! \since build 611
-//@{
+//!@{
 static_assert(LFN::MaxMBCSLength <= NAME_MAX, "Invalid constant found.");
 
 
@@ -407,10 +414,10 @@ public:
 
 	DefDeCopyAssignment(FilePosition)
 
-	DefGetter(const ynothrow, size_t, Byte, byte)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, size_t, Byte, byte)
 	//! \since build 900
-	DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
-	DefGetter(const ynothrow, ::sec_t, Sector, sector)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::sec_t, Sector, sector)
 
 	DefSetter(ynothrow, size_t, Byte, byte)
 	//! \since build 900
@@ -456,10 +463,11 @@ public:
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, IsFAT16RootCluster) const ynothrow
 		ImplRet(cluster == Clusters::FAT16RootDirectory)
 
-	DefGetter(const ynothrow, size_t, Byte, offset * EntryDataSize)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, size_t, Byte, offset * EntryDataSize)
 	//! \since build 900
-	DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
-	DefGetter(const ynothrow, ::sec_t, Sector, sector)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ClusterIndex, Cluster, cluster)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::sec_t, Sector, sector)
 
 	//! \since build 900
 	DefSetter(ynothrow, ClusterIndex, Cluster, cluster)
@@ -573,7 +581,7 @@ public:
 	*/
 	DEntry(Partition&, const NamePosition&);
 	//! \since build 900
-	//@{
+	//!@{
 	/*!
 	\pre 断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
@@ -585,7 +593,7 @@ public:
 	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
 	\note 最后一个参数保存成功遍历的父目录簇（不包括根目录簇）。
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 构造：使用分区上的指定路径和叶节点动作。
 	\exception std::system_error 调用失败。
@@ -615,13 +623,14 @@ public:
 	*/
 	DEntry(Partition&, string_view, LeafAction, ystdex::function<void(DEntry&)>,
 		ClusterIndex& = ystdex::ref_opt<ClusterIndex>());
-	//@}
+	//!@}
 	DefDeMoveCtor(DEntry)
 
 	DefDeMoveAssignment(DEntry)
-	//@}
+	//!@}
 
-	DefPred(const ynothrow, Dot, ystdex::is_parent_or_self(name))
+	YB_ATTR_nodiscard
+		DefPred(const ynothrow, Dot, ystdex::is_parent_or_self(name))
 	/*!
 	\brief 判断分区类型是 FAT32 且 Data 表示根目录。
 	\exception std::system_error 调用失败。
@@ -631,12 +640,12 @@ public:
 	YB_ATTR_nodiscard bool
 	IsFAT32Root(const Partition&) const;
 
-	DefGetter(const ynothrow, const string&, Name, name)
-	DefGetter(ynothrow, string&, NameRef, name)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const string&, Name, name)
+	YB_ATTR_nodiscard DefGetter(ynothrow, string&, NameRef, name)
 
 private:
 	//! \since build 900
-	//@{
+	//!@{
 	YB_ATTR_nodiscard bool
 	ConsBranch(Partition&, string_view&, size_t, ClusterIndex&);
 
@@ -652,7 +661,7 @@ private:
 
 	PDefH(void, ConsReset, const Partition& part)
 		ImplExpr(this->~DEntry(), ::new(this) DEntry(part))
-	//@}
+	//!@}
 
 public:
 	/*!
@@ -700,7 +709,7 @@ class FileInfo;
 class Partition final : private ystdex::noncopyable, private ystdex::nonmovable
 {
 public:
-	using OpenFilesSet = set<lref<FileInfo>, ystdex::get_less<>>;
+	using OpenFilesSet = value_set<lref<FileInfo>, ystdex::get_less<>>;
 
 private:
 	Disc disc;
@@ -729,7 +738,7 @@ private:
 	\note 和 LibFAT 不同，校验扇区的读取也是全缓冲的。
 	\excetpion std::runtime_error 嵌套异常：初始化或校验失败。
 	*/
-	//@{
+	//!@{
 	/*!
 	\brief 构造：使用临时缓冲区、底层存储接口、分页数、每页扇区数的二进制位数
 		和起始扇区。
@@ -747,25 +756,33 @@ public:
 	\note 锁定读写。
 	*/
 	Partition(Disc, size_t, size_t, ::sec_t);
-	//@}
+	//!@}
 	//! \brief 析构：刷新并关闭打开的文件。
 	~Partition();
 
-	DefPred(const ynothrow, ReadOnly, read_only)
+	YB_ATTR_nodiscard DefPred(const ynothrow, ReadOnly, read_only)
 
-	DefGetterMem(const ynothrow, size_t, BytesPerCluster, Table)
-	DefGetterMem(const ynothrow, size_t, BytesPerSector, Table)
-	DefGetter(const ynothrow, ClusterIndex, CWDCluster, cwd_cluster)
-	DefGetter(const ynothrow, SectorCache&, CacheRef, Table.Cache)
-	DefGetterMem(const ynothrow, FileSystemType, FileSystemType, Table)
-	DefGetter(const ynothrow, const VolumeLabel&, Label, label)
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, size_t, BytesPerCluster, Table)
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, size_t, BytesPerSector, Table)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, ClusterIndex, CWDCluster, cwd_cluster)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, SectorCache&, CacheRef, Table.Cache)
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, FileSystemType, FileSystemType, Table)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const VolumeLabel&, Label, label)
 	//! \since build 642
-	DefGetter(const ynothrow, basic_string_view<byte>, LabelString,
-		{label.data(), label.size()})
-	DefGetterMem(const ynothrow, mutex&, MutexRef, Table)
-	DefGetterMem(const ynothrow, ClusterIndex, RootDirCluster, Table)
-	DefGetterMem(const ynothrow, size_t, SectorsPerCluster, Table)
-	DefGetterMem(const ynothrow, size_t, TotalSize, Table)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, basic_string_view<byte>,
+		LabelString, {label.data(), label.size()})
+	YB_ATTR_nodiscard DefGetterMem(const ynothrow, mutex&, MutexRef, Table)
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, ClusterIndex, RootDirCluster, Table)
+	YB_ATTR_nodiscard
+		DefGetterMem(const ynothrow, size_t, SectorsPerCluster, Table)
+	YB_ATTR_nodiscard DefGetterMem(const ynothrow, size_t, TotalSize, Table)
 
 	/*!
 	\brief 切换当前工作目录至参数指定路径的目录。
@@ -818,10 +835,10 @@ public:
 
 	/*!
 	\brief 移动目录项位置至下一个项，当遇到文件结束时扩展。
-	\pre 间接断言：<tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
-	\exception std::system_error 调用失败。
-		\li std::errc::no_space_on_device 空间不足。
-		\li std::errc::io_error 写错误。
+	\pre 间接断言：\c Table.IsFreeOrValid(pos.GetCluster()) 。
+	\exception \c std::system_error 调用失败。
+		\li \c std::errc::no_space_on_device 空间不足。
+		\li \c std::errc::io_error 写错误。
 	\sa AllocationTable::LinkFreeCleared
 	\sa IncremntPosition
 	*/
@@ -839,8 +856,8 @@ public:
 
 	/*!
 	\brief 移动目录项位置至下一个项。
-	\pre 断言：<tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
-	\invariant <tt>Table.IsFreeOrValid(pos.GetCluster())<tt> 。
+	\pre 断言：\c Table.IsFreeOrValid(pos.GetCluster()) 。
+	\invariant \c Table.IsFreeOrValid(pos.GetCluster()) 。
 	\note 读到的无效簇视为文件结束标记。
 	\since build 657
 	*/
@@ -1003,7 +1020,8 @@ public:
 	*/
 	DirState(Partition&, string_view) ythrow(std::system_error);
 
-	DefGetter(const ynothrow, Partition&, PartitionRef, part_ref)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, Partition&, PartitionRef, part_ref)
 
 	/*!
 	\brief 迭代：取下一个项并更新内部状态。
@@ -1049,8 +1067,11 @@ private:
 	ClusterIndex start_cluster;
 	std::uint32_t current_position;
 	/*!
-	\invariant <tt>GetPartitionRef().Table.IsFreeOrValid</tt>
-		<tt>(rw_position.GetCluster())</tt> 。
+	\brief 读写位置。
+	\invariant 读写位置的簇在分区表中空闲或有效。
+
+	通过以下表达式计算不变量：
+	\c GetPartitionRef().Table.IsFreeOrValid(rw_position.GetCluster()) 。
 	*/
 	FilePosition rw_position;
 	FilePosition append_position;
@@ -1082,18 +1103,23 @@ public:
 		ImplRet(attr[ReadBit])
 	YB_ATTR_nodiscard YB_PURE PDefH(bool, CanWrite) const ynothrow
 		ImplRet(attr[WriteBit])
-	DefPred(const ynothrow, Modified, attr[ModifiedBit])
+	YB_ATTR_nodiscard DefPred(const ynothrow, Modified, attr[ModifiedBit])
 
-	DefGetter(const ynothrow, std::uint32_t, CurrentPosition, current_position)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, std::uint32_t, CurrentPosition,
+		current_position)
 	//! \since build 642
-	DefGetter(const ynothrow, const DEntry::NamePosition&, NamePosition,
-		name_position)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const DEntry::NamePosition&,
+		NamePosition, name_position)
 	// XXX: Extended partition mutex to lock directory states.
-	DefGetter(const ynothrow, mutex&, MutexRef, GetPartitionRef().GetMutexRef())
-	DefGetter(const ynothrow, Partition&, PartitionRef, Deref(part_ptr))
-	DefGetter(const ynothrow, const FilePosition&, RWPosition, rw_position)
-	DefGetter(const ynothrow, FileSize, Size, file_size)
-	DefGetter(const ynothrow, ClusterIndex, StartCluster, start_cluster)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, mutex&, MutexRef,
+		GetPartitionRef().GetMutexRef())
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, Partition&, PartitionRef, Deref(part_ptr))
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const FilePosition&, RWPosition, rw_position)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, FileSize, Size, file_size)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, ClusterIndex, StartCluster, start_cluster)
 
 	DefSetter(ynothrow, const FilePosition&, AppendPosition, append_position)
 	DefSetter(ynothrow, FileSize, CurrentPosition, current_position)
@@ -1200,7 +1226,7 @@ Mount(string_view, const ::DISC_INTERFACE&, ::sec_t, size_t, size_t);
 */
 YB_ATTR_nodiscard YF_API YB_NONNULL(1) bool
 Unmount(const char* name = "fat") ynothrow;
-//@}
+//!@}
 
 } // namespace FAT;
 #endif

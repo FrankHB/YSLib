@@ -1,5 +1,5 @@
 ﻿/*
-	© 2021-2022 FrankHB.
+	© 2021-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.h
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r11412
+\version r11486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:49:54 +0800
 \par 修改时间:
-	2022-02-04 05:46 +0800
+	2023-05-12 01:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPL, any_ops, ValueObject, ResolvedArg, array,
-//	string_view, std::uint_fast8_t, TypedValueAccessor;
+//	string_view, std::uint_fast8_t, string, TypedValueAccessor, IsLeaf,
+//	ThrowTypeErrorForInvalidType;
 #include <limits> // for std::numeric_limits;
 
 namespace NPL
@@ -47,7 +48,7 @@ inline namespace Math
 {
 
 //! \since build 930
-//@{
+//!@{
 /*!
 \brief 启用本机数值类型检查。
 
@@ -75,11 +76,11 @@ static_assert(any_ops::is_in_place_storable<long long>(),
 static_assert(any_ops::is_in_place_storable<long double>(),
 	"Invalid native flonum found.");
 #endif
-//@}
+//!@}
 
 
 //! \ingroup tags
-//@{
+//!@{
 //! \brief 数值叶节点值数据成员。
 struct NumberLeaf
 {};
@@ -87,7 +88,7 @@ struct NumberLeaf
 //! \brief 数值项节点。
 struct NumberNode
 {};
-//@}
+//!@}
 
 
 /*!
@@ -158,11 +159,11 @@ IsIntegerValue(const ValueObject&) ynothrow;
 
 
 //! \pre 参数具有表示数值类型的值。
-//@{
+//!@{
 //! \since build 930
-//@{
+//!@{
 //! \note 同 Racket 但不同于 [R7RS] ，当前仅支持实数。
-//@{
+//!@{
 /*!
 \brief 判断参数表示有限值。
 
@@ -189,7 +190,7 @@ IsInfinite(const ValueObject&) ynothrowv;
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsNaN(const ValueObject&) ynothrowv;
-//@}
+//!@}
 
 
 /*!
@@ -284,6 +285,7 @@ IsOdd(const ValueObject&) ynothrowv;
 */
 YB_ATTR_nodiscard YF_API YB_PURE bool
 IsEven(const ValueObject&) ynothrowv;
+//!@}
 
 
 /*!
@@ -303,7 +305,7 @@ Max(ResolvedArg<>&&, ResolvedArg<>&&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Min(ResolvedArg<>&&, ResolvedArg<>&&);
-//@}
+//!@}
 
 /*!
 \brief 计算参数加 1 。
@@ -349,7 +351,6 @@ Minus(ResolvedArg<>&&, ResolvedArg<>&&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Multiplies(ResolvedArg<>&&, ResolvedArg<>&&);
-//@}
 
 /*!
 \brief 除法。
@@ -373,7 +374,7 @@ YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Abs(ResolvedArg<>&&);
 
 //! \since build 937
-//@{
+//!@{
 /*!
 \brief 计算向下取整的数论除法的商和余数。
 
@@ -427,7 +428,7 @@ TruncateQuotient(ResolvedArg<>&&, ResolvedArg<>&&);
 */
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 TruncateRemainder(ResolvedArg<>&&, ResolvedArg<>&&);
-//@}
+//!@}
 
 /*!
 \brief 取和参数值最接近的不精确数。
@@ -438,6 +439,31 @@ TruncateRemainder(ResolvedArg<>&&, ResolvedArg<>&&);
 YB_ATTR_nodiscard YF_API YB_PURE ValueObject
 Inexact(ResolvedArg<>&&);
 
+
+//! \since build 973
+//!@{
+/*!
+\brief 转换字符串为数值。
+
+若转换成功，结果是对应参数作为外部表示的数值。否则，结果是 \c false 。
+
+参考调用文法：
+<pre>string->number \<string></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE ValueObject
+StringToNumber(const string&) ynothrow;
+
+/*!
+\brief 转换数值为字符串。
+\pre 参数具有表示数值类型的值。
+
+参考调用文法：
+<pre>number->string \<number></pre>
+*/
+YB_ATTR_nodiscard YF_API YB_PURE string
+NumberToString(const ResolvedArg<>&);
+//!@}
+
 } // inline namespace Math;
 
 /*!
@@ -446,7 +472,7 @@ Inexact(ResolvedArg<>&&);
 \note 包括指数字符和特殊值中的字符。
 \since build 938
 */
-//@{
+//!@{
 template<typename>
 struct FPCharTraits
 {
@@ -467,25 +493,44 @@ struct FPCharTraits<long double>
 	static yconstexpr const char Exponent = 'l'; 
 	static yconstexpr const char Special = 't'; 
 };
-//@}
+//!@}
 
 
+//! \since build 930
+//!@{
 /*!
 \brief 读取指定位置的十进制数值表示。
 \pre 第三参数是第二参数的迭代器。
 \throw InvalidSyntax 数值表示不被支持。
-\since build 930
 
 第一参数指定保存结果的对象。
 第二参数指定输入的数值表示的完整形式。
 第三参数指定第二参数中开始解析的位置。
 */
-void
+YF_API void
 ReadDecimal(ValueObject&, string_view, string_view::const_iterator);
+
+/*!
+\brief 读取数值。
+\pre 间接断言：字符串参数的数据指针非空。
+\return 是否成功读取数值决定的规约状态。
+\throw InvalidSyntax 语法错误：第二参数是不被支持的数值。
+\since build 973
+
+判断第二参数是否可被解析和被对象语言语法支持的 NPLAMath 的数值字面量。
+返回 ReductionStatus::Clean 表示成功解析。
+返回 ReductionStatus::Retrying 表示不成功解析。
+成功解析时读取值。
+不成功解析且无语法错误时，被解析的字符串可能是确定非数值的词素，如符号和其它字面量。
+若读取成功，第一参数保存指定输出的值。
+*/
+YF_API ReductionStatus
+ReadNumber(ValueObject&, string_view);
+//!@}
 
 
 //! \since build 937
-//@{
+//!@{
 /*!
 \brief 保留给默认数值输出使用的缓冲区字节大小。
 
@@ -497,10 +542,10 @@ yconstexpr const size_t NumberStringBufferSize(yimpl(64));
 static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 	<= NumberStringBufferSize),
 	"The buffer size is not fit for the implementation");
-//@}
+//!@}
 
 //! \since build 932
-//@{
+//!@{
 /*!
 \brief 写浮点数据到字符串缓冲区。
 \pre 缓冲区应至少具有连续可读写的 NumberStringBufferSize 字节。
@@ -548,7 +593,7 @@ static_assert((std::numeric_limits<long double>::max_digits10 + 5 + 3
 其它一些对浮点类型格式或者其它相关语言特性的限制可能直接不被构建支持。
 对 ISO C++ 的其它实现限制和相关行为的约定参见 Documentation::YFramework 。
 */
-//@{
+//!@{
 template<typename _type>
 YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPString(char*, _type, char = FPCharTraits<_type>::Exponent,
@@ -565,7 +610,7 @@ WriteFPString(char*, double, char, size_t, std::uint_fast8_t, std::uint_fast8_t)
 extern template YF_API YB_ATTR_returns_nonnull YB_NONNULL(1) char*
 WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
 	std::uint_fast8_t) ynothrowv;
-//@}
+//!@}
 
 /*!
 \brief 转换浮点数为 NPLA flonum 外部格式的字符串。
@@ -573,18 +618,27 @@ WriteFPString(char*, long double, char, size_t, std::uint_fast8_t,
 \note 缓冲区使用第二参数指定的分配器创建。
 \return 使用 WriteFPString 转换数据，具有第二参数指定的分配器的转换结果。
 */
-//@{
+//!@{
 YB_ATTR_nodiscard YF_API YB_PURE string
 FPToString(float, string::allocator_type = {});
 YB_ATTR_nodiscard YF_API YB_PURE string
 FPToString(double, string::allocator_type = {});
 YB_ATTR_nodiscard YF_API YB_PURE string
 FPToString(long double, string::allocator_type = {});
-//@}
-//@}
+//!@}
+//!@}
+
+/*!
+\brief 转换可能为数值的 ValueObject 对象为字符串。
+\return 转换成功的数值或空串。
+\since build 973
+*/
+YB_ATTR_nodiscard YF_API YB_PURE string
+NumberValueToString(const ValueObject&, string::allocator_type = {});
+
 
 //! \since YSLib build 929
-//@{
+//!@{
 //! \relates NumberLeaf
 template<>
 struct TypedValueAccessor<NumberLeaf>
@@ -626,7 +680,7 @@ struct TypedValueAccessor<NumberNode>
 		}, term);
 	}
 };
-//@}
+//!@}
 
 } // namespace NPL;
 

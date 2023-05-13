@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24836
+\version r24964
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2023-04-19 59:59 +0800
+	2023-05-10 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@
 //	YSLib::Notice, YSLib::FilterException, Session;
 #include <ystdex/flat_map.hpp> // for ystdex::flat_map;
 #include "NPLA1Internals.h" // for A1::Internals API;
-#include YFM_NPL_NPLAMath // for ReadDecimal;
+#include YFM_NPL_NPLAMath // for ReadNumber;
 #include <limits> // for std::numeric_limits;
 #include <ystdex/exception.h> // for ystdex::unsupported;
 #include YFM_NPL_Dependency // for A1::OpenUnique;
@@ -1985,7 +1985,7 @@ SetupTraceDepth(ContextState& cs, const string& name)
 }
 
 
-void
+YB_FLATTEN void
 ParseLeaf(TermNode& term, string_view id)
 {
 	YAssertNonnull(id.data());
@@ -2016,7 +2016,7 @@ ParseLeaf(TermNode& term, string_view id)
 	}
 }
 
-void
+YB_FLATTEN void
 ParseLeafWithSourceInformation(TermNode& term, string_view id,
 	const SourceName& name, const SourceLocation& src_loc)
 {
@@ -2177,135 +2177,35 @@ DefaultEvaluateLeaf(TermNode& term, string_view id)
 	YAssertNonnull(id.data());
 	YAssert(!id.empty(), "Invalid leaf token found.");
 	// NOTE: Assume allocators are not needed.
-	switch(id.front())
-	{
-	case '#':
-		id.remove_prefix(1);
-		if(!id.empty())
-			switch(id.front())
-			{
-			case 't':
-				if(id.size() == 1 || id.substr(1) == "rue")
-				{
-					term.Value = true;
-					return ReductionStatus::Clean;
-				}
-				break;
-			case 'f':
-				if(id.size() == 1 || id.substr(1) == "alse")
-				{
-					term.Value = false;
-					return ReductionStatus::Clean;
-				}
-				break;
-			case 'i':
-				if(id.substr(1) == "nert")
-					return ReduceReturnUnspecified(term);
-				else if(id.substr(1) == "gnore")
-				{
-					term.Value = ValueToken::Ignore;
-					return ReductionStatus::Clean;
-				}
-				break;
-			}
-	default:
-		break;
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-		ReadDecimal(term.Value, id, id.begin());
-		return ReductionStatus::Clean;
-	case '-':
-		if(YB_UNLIKELY(IsAllSignLexeme(id)))
-			break;
-		if(id.size() == 6 && id[4] == '.')
+	if(id.front() != '#')
+		return ReadNumber(term.Value, id);
+	if(id.size() > 1)
+		switch(id[1])
 		{
-			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+		case 't':
+			if(id.size() == 2 || id.substr(2) == "rue")
 			{
-				switch(id[5])
-				{
-				case '0':
-					term.Value = -std::numeric_limits<double>::infinity();
-					return ReductionStatus::Clean;
-				case 'f':
-					term.Value = -std::numeric_limits<float>::infinity();
-					return ReductionStatus::Clean;
-				case 't':
-					term.Value = -std::numeric_limits<long double>::infinity();
-					return ReductionStatus::Clean;
-				}
+				term.Value = true;
+				return ReductionStatus::Clean;
 			}
-			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
-			{
-				switch(id[5])
-				{
-				case '0':
-					term.Value = -std::numeric_limits<double>::quiet_NaN();
-					return ReductionStatus::Clean;
-				case 'f':
-					term.Value = -std::numeric_limits<float>::quiet_NaN();
-					return ReductionStatus::Clean;
-				case 't':
-					term.Value = -std::numeric_limits<long double>::quiet_NaN();
-					return ReductionStatus::Clean;
-				}
-			}
-		}
-		if(id.size() > 1)
-			ReadDecimal(term.Value, id, std::next(id.begin()));
-		else
-			term.Value = 0;
-		return ReductionStatus::Clean;
-	case '+':
-		if(YB_UNLIKELY(IsAllSignLexeme(id)))
 			break;
-		if(id.size() == 6 && id[4] == '.')
-		{
-			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+		case 'f':
+			if(id.size() == 2 || id.substr(2) == "alse")
 			{
-				switch(id[5])
-				{
-				case '0':
-					term.Value = std::numeric_limits<double>::infinity();
-					return ReductionStatus::Clean;
-				case 'f':
-					term.Value = std::numeric_limits<float>::infinity();
-					return ReductionStatus::Clean;
-				case 't':
-					term.Value = std::numeric_limits<long double>::infinity();
-					return ReductionStatus::Clean;
-				}
+				term.Value = false;
+				return ReductionStatus::Clean;
 			}
-			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
+			break;
+		case 'i':
+			if(id.substr(2) == "nert")
+				return ReduceReturnUnspecified(term);
+			else if(id.substr(2) == "gnore")
 			{
-				switch(id[5])
-				{
-				case '0':
-					term.Value = std::numeric_limits<double>::quiet_NaN();
-					return ReductionStatus::Clean;
-				case 'f':
-					term.Value = std::numeric_limits<float>::quiet_NaN();
-					return ReductionStatus::Clean;
-				case 't':
-					term.Value = std::numeric_limits<long double>::quiet_NaN();
-					return ReductionStatus::Clean;
-				}
+				term.Value = ValueToken::Ignore;
+				return ReductionStatus::Clean;
 			}
+			break;
 		}
-		YB_ATTR_fallthrough;
-	case '0':
-		if(id.size() > 1)
-			ReadDecimal(term.Value, id, std::next(id.begin()));
-		else
-			term.Value = 0;
-		return ReductionStatus::Clean;
-	}
 	return ReductionStatus::Retrying;
 }
 

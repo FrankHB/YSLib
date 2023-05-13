@@ -11,13 +11,13 @@
 /*!	\file NPLAMath.cpp
 \ingroup NPL
 \brief NPLA 数学功能。
-\version r28543
+\version r28710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 930
 \par 创建时间:
 	2021-11-03 12:50:49 +0800
 \par 修改时间:
-	2023-03-31 18:05 +0800
+	2023-05-12 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -517,7 +517,7 @@ struct DynNumCast : ReportMismatch<ValueObject>
 
 	using ReportMismatch<ValueObject>::operator();
 	template<typename _tParam>
-	YB_ATTR_nodiscard inline
+	YB_ATTR_nodiscard YB_PURE inline
 		yimpl(ystdex::exclude_self_t)<ValueObject, _tParam, ValueObject>
 	operator()(const _tParam& x) const
 	{
@@ -1354,7 +1354,7 @@ NumUnaryOp(ResolvedArg<>& x)
 
 //! \since build 930
 template<class _fBinary>
-bool
+YB_ATTR_nodiscard YB_PURE bool
 NumBinaryComp(const ValueObject& x, const ValueObject& y) ynothrow
 {
 	const auto xcode(MapTypeIdToNumCode(x));
@@ -3261,7 +3261,7 @@ struct FPWriterTraits<long double> : FPWriterTraits<double>
 //!@}
 
 //! \pre 已输出的字符数不为零。
-YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) inline char*
+YB_ATTR_nodiscard YB_ATTR_returns_nonnull YB_NONNULL(1) YB_PURE inline char*
 TrimTrailingZeros(char* buf) ynothrowv
 {
 	YAssertNonnull(buf);
@@ -3796,6 +3796,30 @@ Inexact(ResolvedArg<>&& x)
 }
 
 
+ValueObject
+StringToNumber(const string& s) ynothrow
+{
+	ValueObject vo;
+
+	try
+	{
+		if(ReadNumber(vo, s) == ReductionStatus::Clean)
+			return vo;
+	}
+	CatchIgnore(...)
+	return false;
+}
+
+string
+NumberToString(const ResolvedArg<>& x)
+{
+	auto& nd(x.first.get());
+	auto res(NumberValueToString(nd.Value, nd.get_allocator()));
+
+	YAssert(!res.empty(), "Invalid number conversion result found.");
+	return res;
+}
+
 } // inline namespace Math;
 
 void
@@ -3842,6 +3866,112 @@ ReadDecimal(ValueObject& vo, string_view id, string_view::const_iterator first)
 			// NOTE: Ditto.
 			ReadDecimalInexact(vo, first, id, ReadCommonType(ans), id.end());
 	}
+}
+
+YB_FLATTEN ReductionStatus
+ReadNumber(ValueObject& vo, string_view id)
+{
+	YAssertNonnull(id.data());
+	YAssert(!id.empty(), "Invalid leaf token found.");
+	// NOTE: Assume allocators are not needed.
+	switch(id.front())
+	{
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		ReadDecimal(vo, id, id.begin());
+		return ReductionStatus::Clean;
+	case '-':
+		if(YB_UNLIKELY(IsAllSignLexeme(id)))
+			break;
+		if(id.size() == 6 && id[4] == '.')
+		{
+			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+			{
+				switch(id[5])
+				{
+				case '0':
+					vo = -std::numeric_limits<double>::infinity();
+					return ReductionStatus::Clean;
+				case 'f':
+					vo = -std::numeric_limits<float>::infinity();
+					return ReductionStatus::Clean;
+				case 't':
+					vo = -std::numeric_limits<long double>::infinity();
+					return ReductionStatus::Clean;
+				}
+			}
+			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
+			{
+				switch(id[5])
+				{
+				case '0':
+					vo = -std::numeric_limits<double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 'f':
+					vo = -std::numeric_limits<float>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 't':
+					vo = -std::numeric_limits<long double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				}
+			}
+		}
+		goto case_zero;
+	case '+':
+		if(YB_UNLIKELY(IsAllSignLexeme(id)))
+			break;
+		if(id.size() == 6 && id[4] == '.')
+		{
+			if(id[1] == 'i' && id[2] == 'n' && id[3] == 'f')
+			{
+				switch(id[5])
+				{
+				case '0':
+					vo = std::numeric_limits<double>::infinity();
+					return ReductionStatus::Clean;
+				case 'f':
+					vo = std::numeric_limits<float>::infinity();
+					return ReductionStatus::Clean;
+				case 't':
+					vo = std::numeric_limits<long double>::infinity();
+					return ReductionStatus::Clean;
+				}
+			}
+			else if(id[1] == 'n' && id[2] == 'a' && id[3] == 'n')
+			{
+				switch(id[5])
+				{
+				case '0':
+					vo = std::numeric_limits<double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 'f':
+					vo = std::numeric_limits<float>::quiet_NaN();
+					return ReductionStatus::Clean;
+				case 't':
+					vo = std::numeric_limits<long double>::quiet_NaN();
+					return ReductionStatus::Clean;
+				}
+			}
+		}
+		YB_ATTR_fallthrough;
+	case '0':
+case_zero:
+		if(id.size() > 1)
+			ReadDecimal(vo, id, std::next(id.begin()));
+		else
+			vo = 0;
+		return ReductionStatus::Clean;
+	default:
+		break;
+	}
+	return ReductionStatus::Retrying;
 }
 
 //! \since build 932
@@ -3932,6 +4062,47 @@ FPToString(long double x, string::allocator_type a)
 		WriteFPString(buf, x, FPCharTraits<long double>::Exponent), a);
 }
 //!@}
+
+string
+NumberValueToString(const ValueObject& vo, string::allocator_type a)
+{
+	using YSLib::sfmt;
+
+	// XXX: %NPL::TryAccessValue is not used (as in %DoNumLeaf). This ignores
+	//	the possible exception thrown from the value holder.
+	if(const auto p = vo.AccessPtr<int>())
+		return sfmt<string>(a, "%d", *p);
+	if(const auto p = vo.AccessPtr<unsigned>())
+		return sfmt<string>(a, "%u", *p);
+	if(const auto p = vo.AccessPtr<long long>())
+		return sfmt<string>(a, "%lld", *p);
+	if(const auto p = vo.AccessPtr<unsigned long long>())
+		return sfmt<string>(a, "%llu", *p);
+	// NOTE: %FPToString overloads are used to make sure the conversions are
+	//	round-trip precise and locale-independent. Alternatively, The precisions
+	//	of the format for flonums can use the format specifications (double
+	//	"%.14g", float "%.6g" and long double "%.18Lg") instead. These are same
+	//	as Racket BC. See https://github.com/racket/racket/blob/d10b9e083ce3c2068f960ce924af88f34111db26/racket/src/bc/src/numstr.c#L1846-L1873.
+	if(const auto p = vo.AccessPtr<double>())
+		return FPToString(*p);
+	if(const auto p = vo.AccessPtr<long>())
+		return sfmt<string>(a, "%ld", *p);
+	if(const auto p = vo.AccessPtr<unsigned long>())
+		return sfmt<string>(a, "%lu", *p);
+	if(const auto p = vo.AccessPtr<short>())
+		return sfmt<string>(a, "%hd", *p);
+	if(const auto p = vo.AccessPtr<unsigned short>())
+		return sfmt<string>(a, "%hu", *p);
+	if(const auto p = vo.AccessPtr<signed char>())
+		return sfmt<string>(a, "%d", int(*p));
+	if(const auto p = vo.AccessPtr<unsigned char>())
+		return sfmt<string>(a, "%u", unsigned(*p));
+	if(const auto p = vo.AccessPtr<float>())
+		return FPToString(*p, a);
+	if(const auto p = vo.AccessPtr<long double>())
+		return FPToString(*p, a);
+	return string(a);
+}
 
 #undef NPL_Impl_NPLAMath_PrintLargeSignificant
 #undef NPL_Impl_NPLAMath_HasSubnorm

@@ -24,6 +24,7 @@ $def! env_SHBuild_Common_ $provide! (
 	get-vcs-rev-info_
 	ld-ext-noadjust_
 	nul_dev_
+	putss
 	rmatch?
 	safeenv-empty?
 	safeenv-get
@@ -33,7 +34,7 @@ $def! env_SHBuild_Common_ $provide! (
 	system-ok
 	system-or-puts
 	system-quote-m_
-	putss
+	test-libquadmath_
 	use-ubsan?
 	win32?
 ) load (++ (env-get "SHBuild_ToolDir") "/SHBuild-YSLib-common.txt");
@@ -62,7 +63,7 @@ $def! (host-arch host-os) () SHBuild_GetPlatformStrings;
 $assert-nonempty host-arch,
 $assert-nonempty host-os;
 "XXX", "This is for the workaround in building YFramework on MinGW64,",
-	" which does not support configurable via the environment variable.";
+	" which does not support configurations via the environment variable.";
 $def! host-platform_ SHBuild_Platform_Detect host-os host-arch;
 $env-de! SHBuild_SystemPrefix SHBuild_GetSystemPrefix host-platform_;
 $def! host-lib_ ++ host-platform_ "/lib";
@@ -123,11 +124,11 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 	$if nskip ($let*
 	(
 		(repo-base SHBuild_2m YSLib_BaseDir)
-		(YF_SystemLibs $if (win32? host-os) "-lquadmath -lgdi32 -limm32"
-			"-lxcb -lquadmath")
+		(YF_SystemLibs cons-cmd ($if (win32? host-os) "-lgdi32 -limm32" "-lxcb")
+			(() test-libquadmath_))
 		(DIR_YFramework ++ repo-base "/YFramework")
-		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L"
-			(system-quote-m_ (++ DIR_YFramework "/" host-lib_))
+		(LIBS_YFramework SHBuild_TrimOptions_
+			(++ " -L" (system-quote-m_ (++ DIR_YFramework "/" host-lib_))
 			" -l" (dnameof "FreeImage") " -lfreetype " YF_SystemLibs))
 	)
 	(

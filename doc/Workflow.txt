@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5396
+\version r5442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2023-04-30 00:59 +0800
+	2023-05-04 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5192,6 +5192,54 @@ A bug of 'std::type_info::before' in libstdc++ (libsup++) implementation has bee
 				See https://reviews.llvm.org/rL340555.
 			But GNU ld does not, although it does support ICF (identical code folding) for ELF.
 	See also $2020-02 report.impl for the original changes on the related configuration.
+
+$2023-05:
+
+report.impl:
+Options depending on compiler versions are adjusted after adding the support to detect the version of the current compiler in build scripts.
+	Only hosted build scripts are supported at current.
+	Fallbacks are added to adpat to the compiler version automatically.
+		Notably, '-flto=auto' for G++ now uses version detection instead of blacklist to (only) rule out MinGW32 as the special case.
+			Although '-flto=auto' is accepted by older versions since GCC 4.6 for a single TU (tested on https://gcc.godbolt.org/), the feature is added since GCC 10.1.
+				This is not shown in the release note, but the manual of GCC 10.1 is updated properly to reflect the support.
+					See https://gcc.gnu.org/onlinedocs/gcc-10.1.0/gcc/Optimize-Options.html#Optimize-Options.
+					https://gcc.gnu.org/onlinedocs/gcc-10.1.0/gcc/Option-Summary.html#Option-Summary is not updated, though.
+				See also https://gcc.gnu.org/legacy-ml/gcc-patches/2019-07/msg01488.html.
+	More options relying on version detection are added.
+		Now '-fno-strong-eval-order' is enforced in G++ command line when availabe.
+			See https://gcc.gnu.org/gcc-7/changes.html.
+			As per the requirements in https://frankhb.github.io/YSLib-book/Development.zh-CN.html#%E8%AF%AD%E8%A8%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%AE%9E%E7%8E%B0%E8%A6%81%E6%B1%82, no P0145R3 features are allowed in YSLib.
+				The change is a restriction on the user code, with no interference on standard conformance.
+				However, like '-fno-enforce-eh-specs', the option may cause unexpected behavior if the client code of YSLib does not follow the current convention.
+			Note the default '-fno-strong-eval-order=some' before ISO C++17 is also unwanted, but not intefering with 'yunseq' in module YDefinition in YBase.
+			Note that since G++ 8 '-fstrong-eval-order' is buggy, e.g. evaluation order allocation function with new-initializer, while Clang++ 8 seems OK.
+				Several cases are still not fixed in G++ 13 era.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91974.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91987.
+				Anyway, this is not relied on.
+			Also note '-fstrong-eval-order=all' may conflict with UBSan in some versions before G++ 11.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95221.
+		The option '-fnew-inheriting-ctors' is added for G++ when available.
+			This follows WG21 P0136R1.
+			It is opted in to the source code by detecting '__cpp_inheriting_constructors >= 201511L'.
+			The new semantic rules are more consistent, thus preferred in new code.
+				This strenghened requirement on implementation is not relied on, though.
+				There is no plan to adopt the change solely as the exception to the requirements in https://frankhb.github.io/YSLib-book/Development.zh-CN.html#%E8%AF%AD%E8%A8%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%AE%9E%E7%8E%B0%E8%A6%81%E6%B1%82.
+				So there can be fallback code path (i.e. in the case of '__cpp_inheriting_constructors < 201511L') in YSLib.
+				However, there should no differences on the intention on API level.
+					All detailed complexity is on the library implementations.
+					Once the client code targeting only implementations conforming to WG21 P0136R1, the client code can be simplified without the fallback path.
+			The option is added regardless of '-fabi-version'.
+		The option '-fno-merge-all-constant' is kept for Clang++.
+			This is needed before Clang++ 7.0 to avoid the standard conformance issue.
+			Since the minimal version of Clang++ here is 3.0.0, there is no need to check the lower boundary of the version.
+			Keep it as-is to prevent further overriding.
+			See https://releases.llvm.org/7.0.0/tools/clang/docs/ReleaseNotes.html.
+			See https://bugs.llvm.org/show_bug.cgi?id=18538.
+			See https://llvm.org/bugs/show_bug.cgi?id=27443.
+			See https://reviews.llvm.org/D45289.
+			See https://reviews.llvm.org/rL329300.
+			See https://reviews.llvm.org/rL333564.
 
 ////
 

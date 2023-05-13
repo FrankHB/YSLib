@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2018, 2020-2022 FrankHB.",
+﻿"#", "(C) 2014-2018, 2020-2023 FrankHB.",
 "NPLA1 script for building YSLib applications using SHBuild.";
 
 $import! std.strings ++ string-empty? string<-,
@@ -16,10 +16,12 @@ $def! env_SHBuild_Common_ $provide! (
 	SHBuild_CheckCXX
 	SHBuild_GetPlatformStrings
 	SHBuild_Platform_Detect
+	SHBuild_cxx_
 	build-with-conf-opt
 	cons-cmd
 	ld-ext-noadjust_
 	ld-ext-adjust_win32_subsystem_
+	cmd_noerr_
 	putss
 	rmatch?
 	safeenv-get
@@ -28,6 +30,7 @@ $def! env_SHBuild_Common_ $provide! (
 	system-or-puts
 	system-check
 	system-quote-m_
+	test-libquadmath_
 	win32?
 ) load (++ SR_Share_NPLA1_ "/SHBuild-YSLib-common.txt");
 
@@ -96,20 +99,22 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 	);
 	$if (win32? host-os)
 	(
-		$def! SHBuild_YF_SystemLibs "-lgdi32 -limm32 -lquadmath",
+		$def! SHBuild_YF_SystemLibs "-lgdi32 -limm32",
 		$def! SHBuild_YF_CFlags_freetype ""
 	)
 	(
-		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb -lquadmath";
+		$def! SHBuild_YF_SystemLibs "-Wl,-dy -lxcb",
 		$def! SHBuild_YF_CFlags_freetype system-or-puts
 			(cons-cmd "pkg-config" "--cflags" "freetype2")
 			(++ "-I" (system-quote-m_ SR_Include_))
 	);
+	$redef! SHBuild_YF_SystemLibs
+		cons-cmd SHBuild_YF_SystemLibs (() test-libquadmath_);
 	$defl! stat-file? (filename)
 	(
 		"XXX", "Links are not supported.";
 		"XXX", "This relies on the executable 'test'";
-		system-ok (cons-cmd "test" "-f" filename)
+		system-ok (cons-cmd "test" "-f" filename cmd_noerr_)
 	);
 	$if (stat-file? (++ SR_Lib_ "/libfreetype.a"))
 		($env-de! SHBuild_YF_Libs_freetype "-lfreetype")
@@ -133,7 +138,7 @@ $if (string-empty? arg1) (() SHBuild_PrintUsage)
 		"XXX", "Use 'g++' even when %CXX is 'clang++' to work around the LTO",
 			" issue for static executables in Linux.";
 		"TODO", "Test for other platforms?";
-		$if (eqv? (SHBuild_CheckCXX host-os (safeenv-get "CXX")) "Clang++")
+		$if (eqv? (SHBuild_CheckCXX host-os (() SHBuild_cxx_)) "Clang++")
 		(
 			"XXX", "No prefixes and suffixes of %LD are supported yet.";
 			safeenv-set "LD" "g++"

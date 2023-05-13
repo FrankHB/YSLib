@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2022 FrankHB.
+	© 2013-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1603
+\version r1692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2022-01-21 20:52 +0800
+	2023-05-09 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,10 @@
 #define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
-//	ystdex::pun_ref, wstring, wstring_view, string_view, YSLib::recursive_mutex,
-//	YSLib::lock_guard, YSLib::function, u16string_view;
+#include YFM_YCLib_Host // for nptr, ordered_linked_map, unique_ptr,
+//	ystdex::aligned_storage_t, ystdex::pun_ref, wstring, wstring_view,
+//	string_view, YSLib::recursive_mutex, YSLib::lock_guard, YSLib::function,
+//	u16string_view;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
@@ -49,7 +50,7 @@
 #if YF_Hosted && YCL_HostedUI
 #	if YCL_Win32
 //! \since build 564
-//@{
+//!@{
 struct HBITMAP__;
 struct HBRUSH__;
 struct HDC__;
@@ -68,14 +69,14 @@ using LPARAM = long;
 using LRESULT = ::LPARAM;
 using WPARAM = std::uintptr_t;
 using WNDPROC = ::LRESULT(__stdcall*)(::HWND, unsigned, ::WPARAM, ::LPARAM);
-//@}
+//!@}
 //! \since build 565
-//@{
+//!@{
 struct tagWNDCLASSW;
 struct tagWNDCLASSEXW;
 using WNDCLASSW = ::tagWNDCLASSW;
 using WNDCLASSEXW = ::tagWNDCLASSEXW;
-//@}
+//!@}
 #	elif YCL_Android
 struct ANativeWindow;
 #	endif
@@ -97,8 +98,8 @@ using NativeWindowHandle = ::ANativeWindow*;
 #	endif
 
 
-//! \warning 非虚析构。
-//@{
+//! \ingroup deleters
+//!@{
 //! \since build 669
 class YF_API HostWindowDelete
 {
@@ -111,8 +112,7 @@ public:
 
 
 #	if YCL_Win32
-//@{
-//! \brief 使用 ::DeleteObject 删除句柄的删除器。
+//! \brief 使用 \c ::DeleteObject 删除句柄的删除器。
 struct YF_API GDIObjectDelete
 {
 	using pointer = void*;
@@ -121,13 +121,12 @@ struct YF_API GDIObjectDelete
 	void
 	operator()(pointer) const ynothrow;
 };
-//@}
 #	endif
-//@}
+//!@}
 
 
 //! \since build 563
-//@{
+//!@{
 /*!
 \typedef MessageID
 \brief 用户界面消息类型。
@@ -135,7 +134,7 @@ struct YF_API GDIObjectDelete
 /*!
 \typedef MessageHandler
 \brief 用户界面消息响应函数类型。
-\note 使用 XCB 的平台：实际参数类型同 <tt>::xcb_generic_event_t*</tt> 。
+\note 使用 XCB 的平台：实际参数类型同 \c ::xcb_generic_event_t* 。
 */
 
 #	if YCL_HostedUI_XCB
@@ -145,14 +144,14 @@ using MessageHandler = void(void*);
 using MessageID = unsigned;
 using MessageHandler = void(::WPARAM, ::LPARAM, ::LRESULT&);
 #	endif
-//@}
+//!@}
 
 #	if YCL_HostedUI_XCB || YCL_Win32
 /*!
 \brief 窗口消息转发事件映射。
 \since build 514
 */
-using MessageMap = map<MessageID, YSLib::GEvent<MessageHandler>>;
+using MessageMap = ordered_linked_map<MessageID, YSLib::GEvent<MessageHandler>>;
 #	endif
 
 #	if YCL_Win32
@@ -198,11 +197,12 @@ public:
 
 #	if YCL_HostedUI_XCB
 	//! \since build 562
-	//@{
-	DefGetterMem(const, YSLib::Drawing::Rect, Bounds, Deref())
-	DefGetterMem(const, YSLib::Drawing::Point, Location, Deref())
-	DefGetterMem(const, YSLib::Drawing::Size, Size, Deref())
-	//@}
+	//!@{
+	YB_ATTR_nodiscard DefGetterMem(const, YSLib::Drawing::Rect, Bounds, Deref())
+	YB_ATTR_nodiscard
+		DefGetterMem(const, YSLib::Drawing::Point, Location, Deref())
+	YB_ATTR_nodiscard DefGetterMem(const, YSLib::Drawing::Size, Size, Deref())
+	//!@}
 #	elif YCL_Win32
 	/*!
 	\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
@@ -211,14 +211,14 @@ public:
 	YSLib::Drawing::Rect
 	GetBounds() const;
 	//! \since build 445
-	//@{
+	//!@{
 	YSLib::Drawing::Rect
 	GetClientBounds() const;
 	YSLib::Drawing::Point
 	GetClientLocation() const;
 	YSLib::Drawing::Size
 	GetClientSize() const;
-	//@}
+	//!@}
 	//! \since build 518
 	YSLib::Drawing::Point
 	GetCursorLocation() const;
@@ -229,7 +229,8 @@ public:
 	YSLib::SDst
 	GetHeight() const;
 #	endif
-	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, get())
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, get())
 #	if YCL_Win32
 	/*!
 	\brief 取不透明度。
@@ -246,7 +247,8 @@ public:
 	YSLib::Drawing::Size
 	GetSize() const;
 #	elif YCL_Android
-	DefGetter(const, YSLib::Drawing::Size, Size, {GetWidth(), GetHeight()})
+	YB_ATTR_nodiscard
+		DefGetter(const, YSLib::Drawing::Size, Size, {GetWidth(), GetHeight()})
 	//! \since build 498
 	YSLib::SDst
 	GetWidth() const;
@@ -254,7 +256,7 @@ public:
 
 #	if YCL_HostedUI_XCB
 	//! \since build 562
-	//@{
+	//!@{
 	DefSetterMem(, const YSLib::Drawing::Rect&, Bounds, Deref())
 
 	PDefH(void, Close, )
@@ -279,7 +281,7 @@ public:
 
 	PDefH(void, Resize, const YSLib::Drawing::Size& s)
 		ImplRet(Deref().Resize(s))
-	//@}
+	//!@}
 
 	//! \since build 563
 	PDefH(void, Show, )
@@ -354,7 +356,7 @@ public:
 
 	/*!
 	\brief 显示窗口。
-	\note 使用 <tt>::ShowWindowAsync</tt> 实现，非阻塞调用，直接传递参数。
+	\note 使用 \c ::ShowWindowAsync 实现，非阻塞调用，直接传递参数。
 	\note 默认参数为 \c SW_SHOWNORMAL ，指定若窗口被最小化则恢复且激活窗口。
 	\return 异步操作是否成功。
 	\since build 548
@@ -420,7 +422,7 @@ class ScreenBufferData;
 \note 像素格式和 platform::Pixel 兼容。
 \warning 非虚析构。
 */
-//@{
+//!@{
 /*!
 \brief 虚拟屏幕缓存。
 \note Android 平台：像素跨距等于实现的缓冲区的宽。
@@ -492,21 +494,23 @@ public:
 	YB_PURE YSLib::Drawing::BitmapPtr
 	GetBufferPtr() const ynothrow;
 	//! \since build 566
-	YSLib::Drawing::Graphics
+	YB_PURE YSLib::Drawing::Graphics
 	GetContext() const ynothrow;
 	//! \since build 498
-	YSLib::Drawing::Size
+	YB_PURE YSLib::Drawing::Size
 	GetSize() const ynothrow;
 	//! \since build 498
 	YB_PURE YSLib::SDst
 	GetStride() const ynothrow;
 #	elif YCL_Win32
 	//! \since build 386
-	//@{
-	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, p_buffer)
-	DefGetter(const ynothrow, ::HBITMAP, NativeHandle,
+	//!@{
+	YB_ATTR_nodiscard DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr,
+		BufferPtr, p_buffer)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::HBITMAP, NativeHandle,
 		::HBITMAP(p_bitmap.get()))
-	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
 
 	/*!
 	\brief 从缓冲区更新并按 Alpha 预乘。
@@ -531,7 +535,7 @@ public:
 	\brief 从缓冲区更新。
 	\pre 间接断言：参数非空。
 	\pre Android 平台：缓冲区大小和像素跨距完全一致。
-	\post Win32 平台： \c ::HBITMAP 的 \c rgbReserved 为 0 。
+	\post Win32 平台：\c ::HBITMAP 的 \c rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。
 	\warning Win32 平台：实际存储必须和 32 位 ::HBITMAP 兼容。
 	\warning Android 平台：实际存储必须和 32 位 RGBA8888 兼容。
@@ -539,7 +543,7 @@ public:
 	*/
 	YB_NONNULL(2) void
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
-	//@}
+	//!@}
 
 #	if YCL_Win32
 	/*!
@@ -614,7 +618,7 @@ public:
 	PDefHOp(ScreenRegionBuffer&, =, ScreenRegionBuffer&& rbuf) ynothrow
 		ImplRet(swap(*this, rbuf), *this)
 
-	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
+	YB_ATTR_nodiscard DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
 	//! \since build 589
 	PDefH(YSLib::locked_ptr<ScreenBuffer>, Lock, )
@@ -627,12 +631,12 @@ public:
 	friend DefSwap(ynothrow, ScreenRegionBuffer,
 		swap(static_cast<ScreenBuffer&>(_x), static_cast<ScreenBuffer&>(_y)))
 };
-//@}
+//!@}
 
 
 #	if YCL_Win32
 //! \since build 428
-//@{
+//!@{
 /*!
 \brief 窗口内存表面：储存窗口上的二维图形绘制状态。
 \note 仅对内存上下文有所有权。
@@ -646,14 +650,14 @@ public:
 	WindowMemorySurface(::HDC);
 	~WindowMemorySurface();
 
-	DefGetter(const ynothrow, ::HDC, OwnerHandle, h_owner_dc)
-	DefGetter(const ynothrow, ::HDC, NativeHandle, h_mem_dc)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::HDC, OwnerHandle, h_owner_dc)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::HDC, NativeHandle, h_mem_dc)
 
 	/*!
 	\note 忽略空缓冲区。
 	\since build 591
 	*/
-	//@{
+	//!@{
 	void
 	UpdateBounds(ScreenBuffer&, const YSLib::Drawing::Rect&,
 		const YSLib::Drawing::Point& = {}) ynothrow;
@@ -662,7 +666,7 @@ public:
 	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
 		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {})
 		ynothrow;
-	//@}
+	//!@}
 };
 
 
@@ -679,8 +683,9 @@ protected:
 	DefDeDtor(WindowDeviceContextBase)
 
 public:
-	DefGetter(const ynothrow, ::HDC, DeviceContextHandle, hDC)
-	DefGetter(const ynothrow, NativeWindowHandle, WindowHandle, hWindow)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, ::HDC, DeviceContextHandle, hDC)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, NativeWindowHandle, WindowHandle, hWindow)
 };
 
 
@@ -724,7 +729,7 @@ public:
 	PaintStructData();
 	~PaintStructData();
 
-	DefGetter(const ynothrow, Data&, , pun.get())
+	YB_ATTR_nodiscard DefGetter(const ynothrow, Data&, , pun.get())
 };
 
 
@@ -758,7 +763,7 @@ public:
 	YSLib::Drawing::Rect
 	GetInvalidatedArea() const;
 };
-//@}
+//!@}
 
 
 /*!
@@ -798,12 +803,12 @@ public:
 	/*!
 	\since build 556
 	*/
-	//@{
+	//!@{
 	//! \throw Win32Exception 窗口类注册失败。
-	//@{
+	//!@{
 	/*!
 	\pre 间接断言：第一参数非空。
-	\note 应用程序实例句柄参数为空则使用 <tt>::GetModuleHandleW()</tt> 。
+	\note 应用程序实例句柄参数为空则使用 \c ::GetModuleHandleW() 。
 	\note 窗口过程参数为空时视为 HostWindow::WindowProcedure 。
 	\note 默认画刷参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
 	\sa HostWindow::WindowProcedure
@@ -814,7 +819,7 @@ public:
 		::HBRUSH = ::HBRUSH(4 + 1), ::HINSTANCE = {});
 	WindowClass(const ::WNDCLASSW&);
 	WindowClass(const ::WNDCLASSEXW&);
-	//@}
+	//!@}
 	/*!
 	\pre 间接断言：第一参数的数据指针非空。
 	\pre 原子表示已注册的窗口类。
@@ -824,16 +829,17 @@ public:
 	\since build 658
 	*/
 	WindowClass(wstring_view, unsigned short, ::HINSTANCE);
-	//@}
+	//!@}
 	~WindowClass();
 
 	//! \since build 565
-	//@{
-	DefGetter(const ynothrow, unsigned short, Atom, atom)
-	DefGetter(const ynothrow, ::HINSTANCE, InstanceHandle, h_instance)
-	//@}
+	//!@{
+	YB_ATTR_nodiscard DefGetter(const ynothrow, unsigned short, Atom, atom)
+	YB_ATTR_nodiscard
+		DefGetter(const ynothrow, ::HINSTANCE, InstanceHandle, h_instance)
+	//!@}
 	//! \since build 593
-	DefGetter(const ynothrow, const wstring&, Name, name)
+	YB_ATTR_nodiscard DefGetter(const ynothrow, const wstring&, Name, name)
 };
 
 
@@ -845,7 +851,7 @@ yconstexpr const wchar_t WindowClassName[]{L"YFramework Window"};
 /*!
 \brief 宿主窗口。
 \note Android 平台：保持引用计数。
-\invariant <tt>bool(GetNativeHandle())</tt> 。
+\invariant \c bool(GetNativeHandle()) 。
 \since build 429
 */
 class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
@@ -870,12 +876,12 @@ public:
 	\pre 使用 XCB 的平台：句柄通过 <tt>new XCB::WindowData</tt> 得到。
 	\pre Win32 平台：断言：句柄有效。
 	\pre Win32 平台：断言：句柄表示的窗口在本线程上创建。
-	\pre Win32 平台：断言： \c GWLP_USERDATA 数据等于 \c 0 。
+	\pre Win32 平台：断言：\c GWLP_USERDATA 数据等于 \c 0 。
 	\throw GeneralEvent 使用 XCB 的平台：窗口从属的 XCB 连接发生错误。
 	\throw GeneralEvent Win32 平台：窗口类名不是 WindowClassName 。
 
 	检查句柄，初始化宿主窗口并取得所有权。对 Win32 平台初始化 HID 输入消息并注册
-	\c WM_DESTROY 消息响应为调用 <tt>::PostQuitMessage(0)</tt> 。
+	\c WM_DESTROY 消息响应为调用 \c ::PostQuitMessage(0) 。
 	*/
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)
@@ -893,21 +899,21 @@ public:
 
 #	if YCL_HostedUI_XCB
 	//! \since build 563
-	//@{
+	//!@{
 	using WindowReference::GetBounds;
 	using WindowReference::GetLocation;
 
 	using WindowReference::SetBounds;
-	//@}
+	//!@}
 #	elif YCL_Win32
 	//! \since build 543
 	using WindowReference::GetBounds;
 	//! \since build 445
-	//@{
+	//!@{
 	using WindowReference::GetClientBounds;
 	using WindowReference::GetClientLocation;
 	using WindowReference::GetClientSize;
-	//@}
+	//!@}
 	//! \since build 518
 	using WindowReference::GetCursorLocation;
 	//! \since build 427
@@ -917,7 +923,7 @@ public:
 	using WindowReference::GetHeight;
 #	endif
 	//! \since build 427
-	//@{
+	//!@{
 	using WindowReference::GetNativeHandle;
 #	if YCL_Win32
 	//! \since build 430
@@ -944,7 +950,7 @@ public:
 
 #	if YCL_HostedUI_XCB || YCL_Win32
 	using WindowReference::Close;
-	//@}
+	//!@}
 
 	//! \since build 429
 	using WindowReference::Invalidate;
@@ -962,7 +968,7 @@ public:
 #		endif
 
 	//! \since build 427
-	//@{
+	//!@{
 	using WindowReference::Move;
 
 #		if YCL_Win32
@@ -975,7 +981,7 @@ public:
 #		endif
 
 	using WindowReference::Show;
-	//@}
+	//!@}
 #		if YCL_Win32
 
 	/*!
@@ -1049,21 +1055,21 @@ public:
 	\note 若位置为 Drawing::Point::Invalid 则忽略。
 	\sa caret_location
 	*/
-	//@{
+	//!@{
 	//! \note 线程安全。
-	//@{
+	//!@{
 	//! \note 取缓存的位置。
 	void
 	UpdateCandidateWindowLocation();
 	//! \note 首先无条件更新缓存。
 	void
 	UpdateCandidateWindowLocation(const YSLib::Drawing::Point&);
-	//@}
+	//!@}
 
 	//! \note 无锁版本，仅供内部实现。
 	void
 	UpdateCandidateWindowLocationUnlocked();
-	//@}
+	//!@}
 #endif
 };
 
@@ -1089,7 +1095,7 @@ public:
 
 	/*!
 	\brief 判断指定格式是否可用。
-	\note Win32 平台：不可用时可能会改变 <tt>::GetLastError()</tt> 的结果。
+	\note Win32 平台：不可用时可能会改变 \c ::GetLastError() 的结果。
 	*/
 	static bool
 	IsAvailable(FormatType) ynothrow;
@@ -1125,24 +1131,24 @@ public:
 	\pre 断言：字符串参数的数据指针非空。
 	\since build 659
 	*/
-	//@{
+	//!@{
 	void
 	Send(string_view);
 	void
 	Send(u16string_view);
-	//@}
+	//!@}
 	/*!
 	\pre 断言：指针非空。
 	\pre 断言：大小不为 YSLib::Drawing::Size::Invalid 。
 	\since build 613
 	*/
-	//@{
+	//!@{
 	//! \warning 不检查缓冲区指针和大小匹配。
 	void
 	Send(YSLib::Drawing::ConstBitmapPtr, const YSLib::Drawing::Size&);
 	PDefH(void, Send, const YSLib::Drawing::ConstGraphics& g)
 		ImplRet(Send(g.GetBufferPtr(), g.GetSize()))
-	//@}
+	//!@}
 
 private:
 	void
@@ -1158,7 +1164,7 @@ private:
 \warning 当不能保证不使用 COM 时，要求 COM 被适当初始化。
 \warning 不附加检查：命令执行路径指定为文档时，命令参数应为空。
 \warning 不附加检查：命令执行路径为相对路径时，工作目录路径不应为相对路径。
-\see https://msdn.microsoft.com/library/windows/desktop/bb762153(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/library/windows/desktop/bb762153.aspx 。
 \since build 592
 
 使用 ::ShellExecuteW 执行 Shell 命令。
