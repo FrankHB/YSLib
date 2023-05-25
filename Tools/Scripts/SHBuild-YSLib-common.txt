@@ -40,7 +40,7 @@ $defl/e! cons-cmd (derive-environment std.strings) (.&xs)
 	apply ++ (map1 ($lambda (&str) $if (string-empty? str) "" (++ str " ")) xs);
 $defl/e! rmatch? std.strings (&x &y) regex-match? x (string->regex y);
 $defl/e! putss (derive-environment std.io std.strings) (.&xs)
-	puts (apply ++ xs);
+	puts (apply ++ (forward! xs));
 $defl/e! system-ok (derive-environment std.system) (&cmd) eqv? (system cmd) 0;
 $defl/e! win32? (() make-standard-environment) (os) eqv? os "Win32";
 
@@ -77,7 +77,7 @@ $provide! ($assert-nonempty $assert-absolute-path)
 );
 
 "NOTE", "Saving environments at first to avoid being overriden unexpectedly.";
-$provide! (safeenv-get safeenv-set ss-verbose-puts)
+$provide! (safeenv-get safeenv-set ss-verbose? ss-verbose-puts)
 (
 	$import! std.system env-empty?;
 
@@ -107,6 +107,7 @@ $provide! (safeenv-get safeenv-set ss-verbose-puts)
 		log-set name val;
 		env-set name val
 	),
+	$defl/e! &ss-verbose? mods () SS_Verbose,
 	$defl/e! &ss-verbose-puts mods (str) $if SS_Verbose (puts str)
 );
 $provide! (safeenv-empty? safeenv-restore)
@@ -243,7 +244,8 @@ $defl! compile-ok_ (src compile out opt)
 	$if (safeenv-empty? "COMSPEC")
 	(
 		"XXX", "Not checking the existence of executable %compile.";
-		system-ok (cons-cmd (++ "echo" (expand-src_ src)) "|"
+		"XXX", "Do not use 'echo'. See $2023-05 @ doc/Workflow.txt.";
+		system-ok (cons-cmd (++ "printf '%s'" (expand-src_ src)) "|"
 			(system-quote compile) "-pipe" "-xc++" "-" "-o" (system-quote out)
 			opt cmd_noerr_)
 	)
@@ -549,12 +551,12 @@ $defl! get-thread-options_ (cxx)
 			(#t list "-pthread" "-pthread")
 	)
 );
-$defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
+$defl! get-SHBOPT_ (outdir shbopt-ext use-linker)
 (
 	$import! env_SHBuild_ SHBuild_TrimOptions_;
 
 	$def! opt cons-cmd (++ "-xd,\"" outdir "\"") shbopt-ext;
-	SHBuild_TrimOptions_ ($if use-ld (cons-cmd opt "-xmode,2") opt)
+	SHBuild_TrimOptions_ ($if use-linker (cons-cmd opt "-xmode,2") opt)
 );
 $defl! SHB_SetupPlatformVars_ (e host-os)
 (
@@ -584,10 +586,10 @@ $defl! ld-ext-adjust_win32_subsystem_ (host-os)
 		""
 );
 
-$defl! get-gcflags_ (host-os CXX)
+$defl! get-gcflags_ (host-os CXX use-linker)
 (
-	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
-	"XXX", "%LDFLAGS_GC is used to the environment detection despite %use-ld.";
+	$env-de! C_CXXFLAGS_GC $if use-linker "" "-fdata-sections -ffunction-sections";
+	"XXX", "%LDFLAGS_GC is used to the environment detection despite %use-linker.";
 	$env-de! LDFLAGS_GC
 		($if (eqv? host-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
 	$if (compile-ok-discard_ "int main(){}" CXX
@@ -653,7 +655,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	$import! std.promises $lazy force,
 	$import! env_SHBuild_ SHBuild_EchoVar SHBuild_QuoteS_ SHBuild_TrimOptions_;
 
-	$def! use-ld $or dynamic app;
+	$def! use-linker $or dynamic app;
 	(
 	$def! CXX () SHBuild_cxx_;
 	safeenv-set "CXX" CXX
@@ -690,14 +692,14 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	($env-de! ARFLAGS "rcs"; safeenv-set "ARFLAGS" ARFLAGS),
 	($env-de! LD CXX; safeenv-set "LD" LD);
 	"TODO", "Add sanity checks.";
-	$if use-ld
+	$if use-linker
 	(
 		"NOTE", "See https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#Link-Options,",
 			"also https://clang.llvm.org/docs/ClangCommandLineReference.html#linker-flags.";
 		$def! prom_LDFLAGS_STRIP $lazy-env-val "LDFLAGS_STRIP" "-s";
 		"#", "-Wl,--print-gc-sections"
 	);
-	$def! prom_gcflags_ $lazy get-gcflags_ host-os CXX;
+	$def! prom_gcflags_ $lazy get-gcflags_ host-os CXX use-linker;
 	$def! host-win32 win32? host-os;
 	$def! prom_C_CXXFLAGS_PIC
 		$lazy-env-val "C_CXXFLAGS_PIC"
@@ -720,8 +722,11 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	$def! prom_CXXFLAGS_IMPL_OPT $lazy-env-val "CXXFLAGS_IMPL_OPT" "";
 	$def! prom_C_CXXFLAGS_IMPL_WARNING
 		$lazy-env-val "C_CXXFLAGS_IMPL_WARNING" "";
-	$if use-ld
-		($def! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT" "");
+	$if use-linker
+	(
+		$def! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT" "",
+		$def! temp_cleanup_ ""
+	);
 	$def! use_lld_ #f;
 	"NOTE", "The minimal versions are GCC 2.95.3 and Clang 3.0.0.";
 	$cond
@@ -732,10 +737,10 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 			$redef! prom_C_CXXFLAGS_COMMON_IMPL_ $lazy-env-val
 				"C_CXXFLAGS_COMMON_IMPL_" "-fno-merge-all-constants";
 			"XXX", "LTO is disabled by default for compatibility to the",
-				" prebuilt binaries. (by G++). If enabled, '-flto=auto' is ",
-				" available since Clang++ 13.0";
+				" prebuilt binaries (built by G++). If enabled, '-flto=auto'",
+				" is available since Clang++ 13.0";
 			"#", "$set-if-empty! CXXFLAGS_IMPL_OPT", "-flto";
-			$if use-ld
+			$if use-linker
 			(
 				"#", "$set-if-empty! LDFLAGS_IMPL_OPT", "-flto";
 				"XXX", "This is the only choice to support LTO on MinGW32 now.",
@@ -769,10 +774,26 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 				cons-cmd "-fexpensive-optimizations" LTO_
 				f_new_inheriting_ctors_ f_no_enforce_eh_specs_
 				f_no_strong_eval_order_;
-			$redef! prom_LDFLAGS_IMPL_OPT $lazy-env-val "LDFLAGS_IMPL_OPT"
-				(++ "-fexpensive-optimizations " LTO_)
+			"XXX", "See $2023-05 @ doc/Workflow.txt.";
+			$redef! prom_LDFLAGS_IMPL_OPT
+			(
+				$if ($and use-linker host-win32 (not? (string-empty? LTO_)))
+				(
+					$lazy-env-val "LDFLAGS_IMPL_OPT"
+						($redef! temp_cleanup_ $if (safeenv-empty? "SHELL")
+							(++ "DEL /Q *res *.ltrans* " outdir
+								"\\*lto_wrapper_args")
+							(++ "rm -f ./*res ./*.ltrans* " outdir
+								"/*lto_wrapper_args");
+						cons-cmd "-fexpensive-optimizations" LTO_ "-save-temps"
+							"-dumpdir"
+							(system-quote-m_ (++ SHBuild_Env_TempDir "/")))
+				)
+				($lazy-env-val "LDFLAGS_IMPL_OPT"
+					(cons-cmd "-fexpensive-optimizations" LTO_))
+			)
 		));
-	$if use-ld
+	$if use-linker
 	(
 		"XXX", "Workaround for LTO bug on MinGW. See",
 			" https://sourceware.org/bugzilla/show_bug.cgi?id=12762.";
@@ -800,6 +821,14 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 				($if (safeenv-empty? "CXXFLAGS_OPT_UseAssert") "-DNDEBUG" "")
 				(force prom_CXXFLAGS_IMPL_OPT) "-fomit-frame-pointer"
 		);
+	"XXX", "See See also $2023-05 @ doc/Workflow.txt.";
+	$if ($and host-win32 (SHBuild_CXX_TestSimple CXX
+		(cons-cmd "-Wa,-mbig-obj" (force prom_CXXFLAGS_OPT_DBG))))
+	(
+		eval (list $redef! ($quote prom_C_CXXFLAGS_COMMON_IMPL_) $lazy cons-cmd
+			(list force (move! prom_C_CXXFLAGS_COMMON_IMPL_)) "-Wa,-mbig-obj")
+			(() get-current-environment)
+	);
 	"XXX", "Rename %CXXFLAGS_OPT_DBG -> CFLAGS_OPT_DBG/C_CXXFLAGS_OPT_DBG?";
 	$env-de! CFLAGS cons-cmd (force prom_CFLAGS_STD) (force prom_C_CXXFLAGS_PIC)
 		(force prom_C_CXXFLAGS_COMMON) (force prom_CFLAGS_WARNING)
@@ -812,7 +841,7 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	$def! has-asan-opt $or (use-asan? CFLAGS) (use-asan? CXXFLAGS)
 		(use-asan? SHBuild_CXXFLAGS);
 	SHB_SetupPlatformVars_ (() get-current-environment) host-os;
-	$if use-ld
+	$if use-linker
 	(
 		"#", "%LDFLAGS_OPT_DBG is always set despite %debug configuration in",
 			" the caller script.";
@@ -880,13 +909,13 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 	);
 	$redef! CFLAGS SHBuild_TrimOptions_ CFLAGS,
 	$redef! CXXFLAGS SHBuild_TrimOptions_ CXXFLAGS;
-	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-ld;
+	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext use-linker;
 	$defw! echo-var (var) d
 		SHBuild_EchoVar var ($if (bound? var) (eval (string->symbol var) d) "");
 	"XXX", "The values of following variables may be overriden in 'do-build'.";
 	"TODO", "Print actual values being used in 'do-build' as possible.";
 	echo-var "CXXFLAGS";
-	$if use-ld
+	$if use-linker
 	(
 		() SHBuild_Extend_CallVariables;
 		$redef! LDFLAGS (env-get "LDFLAGS");
@@ -895,7 +924,11 @@ $defl! build-with-conf-opt (outdir host-arch host-os debug dynamic shbopt-ext
 		echo-var "LIBS"
 	);
 	echo-var "SHBOPT";
-	do-build CXX CXXFLAGS SHBOPT LIBPFX
+	do-build CXX CXXFLAGS SHBOPT LIBPFX;
+	$if use-linker
+		($unless (string-empty? temp_cleanup_) ($if (() ss-verbose?)
+			(putss "INFO: Calling cleanup command: " temp_cleanup_ "."))
+			(($remote-eval system std.system) temp_cleanup_))
 );
 
 "NOTE", "This requires 'hg' in PATH.";

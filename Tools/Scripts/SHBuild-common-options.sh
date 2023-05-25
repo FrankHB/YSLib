@@ -11,7 +11,8 @@ set -e
 : "${SHBuild_ToolDir:=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)}"
 # shellcheck source=./SHBuild-common-toolchain.sh
 . "$SHBuild_ToolDir/SHBuild-common-toolchain.sh" # for
-#	SHBuild-common-toolchain.sh, SHBuild_Host_OS, CXX;
+#	SHBuild-common-toolchain.sh, SHBuild_Debug, SHBuild_Host_OS, CXX,
+#	SS_Verbose, SHBuild_Puts, CXXFLAGS, LDFLAGS;
 
 # XXX: %SHBuild_Debug is external.
 # shellcheck disable=2154
@@ -141,7 +142,6 @@ $opts_cc"
 
 : "${C_CXXFLAGS_WARNING:="$(SHBuild_Get_C_CXXFLAGS_WARNING)"}"
 
-# The call of %SHBuild_CheckCXX should have initialized %SHBuild_Env_TempDir.
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_=-mthreads
 	LDFLAGS_IMPL_COMMON_THRD_=-mthreads
@@ -203,8 +203,77 @@ $LTO_ \
 $f_new_inheriting_ctors_ \
 $f_no_enforce_eh_specs_ \
 $f_no_strong_eval_order_"}"
-	: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_}"
+	# XXX: See $2023-05 @ doc/Workflow.txt.
+	# XXX: The call of %SHBuild_CheckCXX should have initialized
+	#	%SHBuild_Env_TempDir.
+	if test "$SHBuild_Host_OS" = Win32 && test -n $LTO_; then
+		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_ -save-temps \
+-dumpdir "$SHBuild_Env_TempDir"}"
+		# NOTE: 'lto_wrapper_args' is not cleanup here. It may be in '$TEMP'
+		#	directory needing no cleanup (e.g. directly compiling and linking
+		#	with G++ < 11) regardless of the dumping directory or the current
+		#	working directory; otherwise, it can be in the output directory
+		#	which needs the interaction in the call site (if necessary).
+		# XXX: Assume no other './*res' can be here. For G++ < 11, the pattern
+		#	can usually just be './*.res', though.
+		# XXX: Assume no spaces in the filenames matching '*' when being
+		#	evaluated in %DoLTOCleanup_.
+		# XXX: %LTO_CLEANUP_ is internal.
+		# shellcheck disable=2034
+		LTO_CLEANUP_='rm -f ./*res ./*.ltrans*'
+	else
+		: "${LDFLAGS_IMPL_OPT:=-fexpensive-optimizations $LTO_}"
+	fi
 fi
+
+# NOTE: The following internal stage 1 LTO cleanup functions are intended to be
+#	used for cleanup to work around specific implementation problems. Legend of
+#	typical usage:
+#	trap DoLTOCleanup_ EXIT
+#	trap DoLTOCleanup_Int_ INT QUIT TERM
+# XXX: Notice the 'trap' on 'EXIT' does not requires additional call on normal
+#	exit. It may not work in shells other than GNU bash.
+
+DoLTOCleanup_()
+{
+	local err=$?
+
+	trap - EXIT
+	set +e
+	# XXX: %SS_Verbose is external.
+	# shellcheck disable=2154
+	if test -n "$SS_Verbose"; then
+		SHBuild_Puts "INFO: Local error is $err."
+	fi
+	if test -n "$LTO_CLEANUP_"; then
+		if test -n "$SS_Verbose"; then
+			SHBuild_Puts \
+"INFO: Calling cleanup command: $LTO_CLEANUP_ 2> /dev/null."
+		fi
+		eval "$LTO_CLEANUP_ 2> /dev/null"
+	fi
+	exit $err
+}
+
+DoLTOCleanup_AddTarget_()
+{
+	if test -n "$LTO_CLEANUP_"; then
+		# XXX: Since the string is to be evaluated, use single quotes to prevent
+		#	the unexpected '$' injection.
+		# XXX: Assume no spaces in the filenames matching '*' when being
+		#	evaluated in %DoLTOCleanup_.
+		LTO_CLEANUP_="$LTO_CLEANUP_ '$(dirname "$1")'/*lto_wrapper_args"
+	fi
+}
+
+DoLTOCleanup_Int_()
+{
+	SHBuild_Puts "INFO: Interrupted."
+	trap - EXIT
+	set +e
+	false
+	DoLTOCleanup_
+}
 
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
@@ -328,6 +397,12 @@ else
 $C_CXXFLAGS_OPT_LV \
 $CXXFLAGS_IMPL_OPT \
 -fomit-frame-pointer"}"
+fi
+
+# XXX: See $2023-05 @ doc/Workflow.txt.
+if test "$SHBuild_Host_OS" = Win32 \
+	&& SHBuild_CXX_TestSimple -Wa,-mbig-obj "$CXXFLAGS_OPT_DBG"; then
+	C_CXXFLAGS_COMMON_IMPL_="$C_CXXFLAGS_COMMON_IMPL_ -Wa,-mbig-obj"
 fi
 
 # XXX: Rename %CXXFLAGS_OPT_DBG to CFLAGS_OPT_DBG or C_CXXFLAGS_OPT_DBG?

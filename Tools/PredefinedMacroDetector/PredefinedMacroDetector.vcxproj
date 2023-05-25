@@ -58,9 +58,11 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <BuildLog />
   </ItemDefinitionGroup>
@@ -76,9 +78,11 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <BuildLog />
   </ItemDefinitionGroup>

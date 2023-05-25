@@ -19,10 +19,10 @@ SHBuild_EchoVar_N 'SHBuild.ToolDir'
 SHBuild_EchoVar_N 'SHBuild.Host.Arch'
 SHBuild_EchoVar_N 'SHBuild.Host.OS'
 
-SHBuild_Puts "Configuring ..."
+SHBuild_Puts 'Configuring ...'
 
-# NOTE: Coordinated at build 969.
-LIBS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
+# NOTE: Coordinated at build 974.
+SRCS="$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
 $YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
@@ -58,11 +58,13 @@ $YSLib_BaseDir/YFramework/source/NPL/NPLAMath.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1Internals.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/NPLA1Forms.cpp \
+$YSLib_BaseDir/YFramework/source/NPL/NPLA1Root.cpp \
+$YSLib_BaseDir/YFramework/source/NPL/NPLA1Extended.cpp \
 $YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp"
 # XXX: %SHBuild_Host_OS is external.
 # shellcheck disable=2154
 if test "$SHBuild_Host_OS" = Win32; then
-	LIBS="$LIBS \
+	SRCS="$SRCS \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/MinGW32.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \
 $YSLib_BaseDir/YFramework/Win32/source/YCLib/NLS.cpp \
@@ -91,10 +93,13 @@ main()
 	return int(fpq::floorq(__float128(0.0)));
 }
 ' -lquadmath; then
-	LIBS="$LIBS -lquadmath"
-	SHBuild_Puts "Detected quadmath for linking."
+	LIBS=-lquadmath
+	SHBuild_Puts 'Detected quadmath for linking.'
 else
-	SHBuild_Puts "Not detected quadmath for linking."
+	# XXX: %LIBS is internal.
+	# shellcheck disable=2034
+	LIBS=
+	SHBuild_Puts 'Not detected quadmath for linking.'
 fi
 
 export CXXFLAGS
@@ -109,7 +114,8 @@ SHBuild_EchoVar_N 'CXX'
 SHBuild_EchoVar_N 'CXXFLAGS'
 SHBuild_EchoVar_N 'LDFLAGS'
 SHBuild_EchoVar_N 'INCLUDES'
+SHBuild_EchoVar_N 'SRCS'
 SHBuild_EchoVar_N 'LIBS'
 
-SHBuild_Puts "Configuring done."
+SHBuild_Puts 'Configuring done.'
 

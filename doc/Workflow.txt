@@ -11,13 +11,13 @@
 /*!	\file Workflow.txt
 \ingroup Documentation
 \brief 工作流汇总报告。
-\version r5442
+\version r5576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2023-05-04 02:47 +0800
+	2023-05-26 03:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5240,6 +5240,140 @@ Options depending on compiler versions are adjusted after adding the support to 
 			See https://reviews.llvm.org/D45289.
 			See https://reviews.llvm.org/rL329300.
 			See https://reviews.llvm.org/rL333564.
+Some build options have been revised in the build scripts.
+	Option '-Wa,-mbig-obj' is added in the default value of implementation-specific part of 'CFLAGS' and 'CXXFLAGS' in the build script when supported for MinGW targets. 
+		The option is supported for i386 PE/COFF targets, see https://sourceware.org/binutils/docs/as/i386_002dOptions.html.
+			To make the test efficient, it is enabled only on MinGW platforms.
+		This works around the linker failure on platform 'MinGW_UCRT64' for debug builds.
+			This is needed only for MinGW_UCRT64 as of build 973.
+				Otherwise, the assembler reports error 'too many sections' against 'NPL/Dependency.cpp.o' in building YFramework.
+				The split of 'NPL/NPLA1Forms.cpp' since build 974 occasionally eliminates the error.
+			This does not immune the issue of the string table overflow ("file too big") by the assembly as of build 973.
+				See below for details.
+		In theory, all MinGW targets may benefit in future.
+		This might clash with LTO, though.
+			See https://github.com/msys2/MINGW-packages/issues/3516.
+			See https://github.com/msys2/MSYS2-packages/issues/2951.
+			Since only debug builds (without LTO anyway) are likely having the error of 'too many sections' in general, the mutual exclusive options (between '-Wa,-mbig-obj' and the '-flto' family) should be OK.
+			The test combines the option '-Wa,-mbig-obj' with the value of the variable 'CXXFLAGS_OPT_DBG', since the latter is expected to be overriden in debug builds.
+				Despite the name, the variable is assumed shared between C and C++.
+		This requires GNU ld binutils 2.35 in experience, see https://digitalkarabela.com/mingw-w64-how-to-fix-file-too-big-too-many-sections/.
+		Actually only lld 16.0.2 is tested informally on 'MinGW_UCRT64'. The actual working minimal version of lld is unknown.
+	Compiler GC flag options '-fdata-sections' and '-ffunction-sections' are not used in the NPLA1 build script 'Tools/Scripts/SHBuild-YSLib-common.txt' except building static libraries now.
+		The options have impacts on the quality of code generation in translation units. It might be less optimized.
+			See https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html.
+		The options also increases size of object files.
+			The typical reduced size can be about 20% (e.g. for 'NPL/NPLA1.cpp.o').
+			This may have more chances to suffer from the "file too big" failure.
+			Actually the removal of these options fixes the build failure on platform 'MinGW_UCRT64' for dynamic debug builds.
+				This is tested only after the split of 'NPL/NPLA1Forms.cpp'.
+				Nevertheless, 'NPL/Dependency.cpp' generates larger object file.
+		This is also done in other projects.
+			For example, NDK's build of libc++, see https://github.com/android/ndk/issues/748.
+		Ideally it should be also enabled in the shell script 'Tools/Scripts/SHBuild-common-options.sh'. However, this is not adopted.
+			Although this script is general, it is used only for stage 1.
+				In other cases the NPLA1 build script is preferred.
+			Actually the dynamic library support (like 'LDFLAGS_DYN_BASE') is dropped since build 906.
+				The support has been totally transferred to the NPLA1 build script.
+				So it would be technically complex to add other targets.
+			Even if the support comes back, it is difficult to determine whether it is building a static library or not.
+				Without the interface to indicate the target, it is impossible to distinguish different cases as the NPLA1 build script.
+				As it already supported in the NPLA1 build script, the build process has the information of whether it is building a static library or not, by arguments passed to the build applicative.
+				It is more difficult to detect the build of an executable, since there are not variables are handled for this in this shell script (but not in the calling site).
+				And since there is no single pattern of 'LDFLAG' supported to build a dynamic library, it is a bit more difficult to detect the build of a dynamic library in the shell script.
+		The linker option '-Wl,--gc-sections' is kept.
+			This has no effect if the compiled object files or static libraries are not have built with GC flags.
+			Otherwise, it can be still useful, e.g. linking an executable with static libraries with redundant unused function definitions.
+			In fact it should be kept at least in the default value, otherwise there is little sense to keep this option in the script at all, because all the cases using 'LDFLAGS' will deal the files without GC flags (probably except the pre-built static libraries, though).
+			This has been supported but still experimental for PE/COFF targets.
+				See https://sourceware.org/binutils/docs/ld/Options.html.
+				See https://sourceware.org/bugzilla/show_bug.cgi?id=11539 for the status.
+					See also https://sourceware.org/legacy-ml/binutils/2012-08/msg00216.html.
+				Nevertheless, the missing pieces of the feature are not relied on.
+	Workarounds for YFramework builds in 'Tools/Scripts/SHBuild-YSLib-build.txt' are revised.
+		On platform 'MinGW64', the workaround for release builds are removed.
+			Different to debug builds which incur string table overflow problem otherwise, this is not strictly necessary, but a build performance optimization.
+			See $2020-10 report.impl for the original changes.
+		The string table overflow on platform 'MinGW_UCRT64' is worked around by following the workaround on platform 'MinGW64'.
+			The split of 'NPL/NPLA1Forms.cpp' does not fix this issue yet, because both 'NPL/Dependency.cpp' and the split 'NPL/NPLA1Root.cpp' are still too big and the error remains without changing of the '-O0' flag.
+			This is partially worked around by the change of compiler GC flags. See the removal of compiler GC flags above.
+			Finally, it is worked around dedicately in 'Tools/Scripts/SHBuild-YSLib-build.txt' following the same options on platform 'MinGW64'.
+				See $2020-10 and $2022-10 report.impl for the same problem on platform 'MinGW64'.
+	Option '-save-temps' has been added to the default value of 'LDFLAGS' with LTO in Win32 platforms.
+		See https://gcc.gnu.org/onlinedocs/gcc/Developer-Options.html.
+		This is a workaround for the handling of temporary files during parallel linking with LTO enabled.
+			Otherwise, there are linker errors marked "(ignored)".
+				This is the only case mentiioned in https://frankhb.github.io/YSLib-book/Sysroot.zh-CN.html#%E6%9E%84%E5%BB%BA%E6%97%B6%E7%9A%84%E8%AD%A6%E5%91%8A.
+				Since the stage 1 SHBuild now does not enable LTO by default, this only affect stage 2 release builds by default.
+				Nevertheless, there might be similar cases not verified yet.
+			See https://github.com/official-stockfish/Stockfish/pull/2978.
+			See https://bugs.launchpad.net/gcc-arm-embedded/+bug/1853451.
+		As '-save-temps=cwd', the linker output files are placed at the current working directory by default.
+		To avoid polluting the current directory, temporary directory path is specified.
+			See https://gcc.gnu.org/onlinedocs/gcc/Overall-Options.html.
+			These options should be available for compilers where LTO is available, so no minimal version checks are performed.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41564.
+			However, it seems that '-dumpdir' options not working at all. All intermediate files from the linker are still at the current working directory.
+		Using '-save-temps=obj' makes the output files in the temporary directory, but the ignored errors come back.
+			This seems have no effects at all at least for MinGW GCC 10.2.
+			The using of temporary directory for LTO seems a bug (not specific to MinGW) and fixed since GCC 11, see https://gcc.gnu.org/git/gitweb.cgi?p=gcc.git;h=e9f8a554efe497dd46b8953e580d65e5c023e50c.
+			The output directory of dump and aux output names is changed since GCC 11, https://gcc.gnu.org/git/gitweb.cgi?p=gcc.git;h=1dedc12d186a110854537e1279b4e6c29f2df35a.
+			Neither of them are usable. All temporary filenames are still in the current working directory.
+			So as a fallback (but unconditionally at current), explicit shell call ('DEL /Q' if COMSPEC is nonempty in stage 2 and 'rm -f' otherwise) is used instead for this case.
+				The names are adapted to the output filenames of MinGW GCC 10.2 observed in building stage 2 projects, i.e. './*.res ./*.ltrans*'.
+				Since at least the resolution file can have name with '-' prefix (e.g. '-lstdc++.res' for SHBuild) without the fix of GCC PR 95224 (see below), './' prefix is used for globs for the 'rm' command.
+					Because '-o' only specifies the linker output here, these output filenames are derived from the input filenames.
+					So, this also makes the command robust enough to immune the input with '-' prefix for other output filenames.
+			The '-dumpdir' options are still kept, so it can (hopefully) work since GCC 11 without adjusting the output filename pattern for the shell command (if any change is made on those filenames in future versions of GCC).
+		There are also some other issues around '-flto -save-temps' which may be fixed in some newer versions.
+			See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95224.
+A bug of handling of argument in the native implementation of NPLA1 applicatives 'apply' and 'apply-list' is fixed.
+	Since build 953, the common implementation of them had a redundant call to 'NPL::LiftToReturn'.
+		This was too permissive on the argument since build 951 where trailing element could be reference value to lists and pairs.
+	In YSLib projet, the only known affected client code is the implementation of applicative 'putss' in 'SHBuild-YSLib-common.txt' in NPLA1 build script.
+		The implementation used '.&xs' as argument since build 908.
+			It did not use forwarding since build 791 in 'SHBuild-common-toolchain.sh', which was not an issue until build 800 when term references were added to the language.
+			Since the applicative 'apply' did support reference values at the very first beginning of the design and no 'apply%' was provided to support reference values specifically, 'apply' should handle the general cases.
+				That is, there should be no implicit conversion on the argument.
+			This was not buggy before build 951 where '.&xs' is a list temporary rather than a reference to a pair value.
+		And before build 953, the shared implementations of 'apply' and 'apply-list' (with 'cons') were correct, so the bug does not shown.
+			Occasionally, 'apply-list' was also added to the core library since build 951, just not decoupled with the implementations of the 'cons' family.
+		This also fixes the bug that stage 1 SHBuild not working with 'NPL_Impl_NPLA1_Native_Forms' enabled in 'NPL::Dependency' (althogh not formally supported).
+		For an informal reference, the exactly same issue has been fixed externally in downstream project https://github.com/FrankHB/NPLC in 2022-07-19.
+The native Microsoft VC++ projects are adjusted.
+	Standard library modules for MSVC is disabled for all these projects, otherwise it would cause problem.
+	See https://stackoverflow.com/questions/76055294.
+	The C/C++ output directory of Microsoft VC++ projects using MSVC can be reset (to the default '$(IntDir)') to work around the problem.
+		The old value '$(IntDir)%(RelativeDir)' of 'ObjectFileName' cause problems of C++ standard library modules which seem recently enabled by default.
+			The path of '%(RelativeDir)' is actually an absolute path when building modules, so the concatenated path is invalid and creation of the directory fails by error MSB3191.
+				For example, it is 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.36.32532\modules' in VC++ 17.6.0.
+				The offending script is in 'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets' in VC++ 17.6.0.
+				See https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-well-known-item-metadata?view=vs-2022.
+		Unfortunately, this cannot work in YFramework where 2 files are named 'FileSystem.cpp' and the output would be clash (with MSBuild error MSB3577: https://learn.microsoft.com/visualstudio/msbuild/errors/msb3577).
+	Standard library modules for MSVC is ready since Microsoft VC++ 17.5.
+		See P1465R3.
+		See https://github.com/microsoft/STL/wiki/Changelog#vs-2022-175
+		See https://github.com/microsoft/STL/issues/1694
+		See https://github.com/microsoft/STL/pull/3108.
+	The header-only module support is available since Microsoft VC++ 16.11, where the module support is enabled automatically by either '/std:c++20' or '/std:c++latest', without the need of specifying '/experimental:module'.
+		See WG21 P1502R1.
+		See https://learn.microsoft.com/en-us/cpp/build/reference/experimental-module?view=msvc-170.
+		See https://github.com/microsoft/STL/issues/60.
+Using of 'echo' shell utility is revised in the build script.
+	The 'echo' utility has bad compatibility in certain case.
+		As state by POSIX, there are implementation-defined behavior when '-n' is the 1st argument or when the argument contain backslashes.
+			See https://pubs.opengroup.org/onlinepubs/9699919799/utilities/echo.html.
+		Some implementations are not conforming to POSIX.
+		The conformance would be environment-dependent, even at runtime.
+			Actually this can be affected by environment variant in certain versions of GNU bash, for instance.
+		See https://unix.stackexchange.com/questions/65803/65819#65819 for the historical reasons and various behaviors in different shells.
+	Use 'printf' instead of 'echo' when the content is not controlled.
+		In particular, escaping may cause problems.
+			For example, when preparing a source file of C/C++, usually strings should not be esapced.
+			There is no simple portable way to use 'echo' without escaping.
+	Although 'echo' can be compatible with Windows command line interpreter (cmd), in the cases sensitive here, such compatibility should not be expected.
+		Actually 'ECHO' is not easy with multiline input. Neither "heredoc" (like in shells) is easily to simulate in cmd.
+		As the result, multiple calls to 'ECHO.' are used to construct the C++ source in some temporary file (instead of the usual using of some pipe) in the intermediate steps in the build script.
 
 ////
 

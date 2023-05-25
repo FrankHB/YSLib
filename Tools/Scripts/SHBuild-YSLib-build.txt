@@ -237,8 +237,9 @@ $defl! skip-or-build_ (nskip dynamic debug) $let
 						" requires '-D__NO_INLINE__ -U__OPTIMIZE__'.";
 					"XXX", "See $2020-10 @ doc/Workflow.txt.";
 					$def! use-g++ eqv? (SHBuild_CheckCXX host-os CXX) "G++";
-					$def! mingw64g
-						$and use-g++ (eqv? host-platform_ "MinGW64");
+					$def! mingw64g $and use-g++ debug
+						($or (eqv? host-platform_ "MinGW64")
+						(eqv? host-platform_ "MinGW_UCRT64"));
 					"XXX", "See $2020-12 @ doc/Workflow.txt.";
 					$def! SHBuild_LDFLAGS safeenv-get "SHBuild_LDFLAGS";
 					"XXX", "See $2022-12 @ doc/Workflow.txt.";

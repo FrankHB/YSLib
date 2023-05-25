@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.9.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.9 。
-\version r17171
+\version r17594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 900
 \par 创建时间:
 	2020-10-12 17:19:23 +0800
 \par 修改时间:
-	2023-05-14 05:16 +0800
+	2023-05-26 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,430 @@ $import $HISTORY;
 // Scope: [b900, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %SXML $=
+		(
+			* "missing qualified 'SXML::' before 'MakeAttributeLiteral'"
+				@ "function template %InsertAttributeNode#1"
+				$orig (@ %NPLA1 $since b599),
+			* "missing qualified 'NPL::' before 'InsertAttributeNode'"
+				@ "all 2 function template %InsertAttributeNode#1"
+				$orig (@ %NPLA1 $since b599),
+			+ $re_add(b971) "default template argument %string"
+				@ "template parameter %_tString" @ "5 function templates",
+			/ "function MakeAttributeLiteral#1" -> "function template",
+			(
+			+ "metafunction %HasLeadingInitializer" ^ $dep_from
+				("%ystdex::is_array_of_unqualified_object"
+				@ %YBase.YStandardEx.Meta);
+			+ "metafunction %ExcludeLiteralInitializer"
+			);
+			/ @ "overloads %(MakeAttributeTagLiteral, \
+				MakeAttributeLiteral, InsertAttributeNode)" $=
+			(
+				(
+				/ "excluded literal initializers" @ "overload#2"
+					^ $dep_from "%ExcludeLiteralInitializer";
+				/ "enabled moving" @ "overload#1" ^ "array reference"
+					~ "%std::initializer_list instances"
+					// This depends on the change of the 4th constructor in \
+						class %NodeLiteral since b972.
+				),
+				+ "trailing parameter 'ValueNode::allocator_type = {}'"
+					@ "overload#1",
+				/ "supported template parameter \
+					'typename _tLiteral = NodeLiteral' as 1st parameter"
+					@ "overload#2"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			(
+			+ "function %AssertSubobjectReferenceFirstSubterm";
+			+ "function %AssertSubobjectReference";
+			/ DLDI "adjusted and simplified assertions"
+				@ "function %ReduceCombinedBranch"
+			),
+			+ ("struct %SubpairMetadata"; "function %AttachSubpairSubterm"),
+			/ ("function %CopyTermTags"; "class %BindInsert";
+				"class %BindParameterObject") @ $impl >> %NPLA1Internals,
+			/ DLI "function %CheckVariadicArity" ^ 'YB_LIKELY',
+			+ "function %RetainVariadicList",
+			* DLDI "missing qualified 'YSLib::' before 'IValueHolder'"
+				@ "%ImplI argument" $since b891,
+			+ DLDI 'const' $effective "object %init" @ "function template \
+				%InitializeTypeNameTableEntry"
+		),
+		(
+		+ %NPLA1Root;
+		+ "function %EvalAt" @ %NPLA1Root
+		),
+		+ %NPLA1Extended,
+		/ %NPLA1Forms $=
+		(
+			+ $re_add(b973) $dev $lib 'YB_ATTR_nodiscard' @ "all definitions \
+				with %DefGetter" $effective @ "class %EncapsulationBase",
+			/ "macro %NPL_NPLA1Forms_CheckContinuationFrames"
+				>> $dep_from %NPLA1Extended,
+			/ DLI "all 2 functions %StringToSymbol" -> "inline functions",
+			/ DLI "function %SymbolToString" -> "yconstfn function",
+			+ "inline function %RetainListArguments",
+			(
+			(
+			+ "internal function template %MakeValueOrMove",
+			+ "2 internal functions %ReduceMakeForm";
+			+ "internal function %ReduceForwardHandler",
+			),
+			+ "internal function %TermUnequal",
+			+ "inline function %ExtractBool",
+			+ "2 function templates %TransferSubterms",
+			+ "function templates %Forms::(EqTerm, EqTermRet, EqTermValue, \
+				EqTermReference)";
+			/ @ "namespace %Forms" $=
+			(
+				(
+				/ DLDI "simplified functions %(When, Unless, ListAsterisk, \
+					ListAsteriskRef, Import, ImportRef)"
+					^ $dep_from "%RetainListArguments",
+				* "redundant lifting on argument term" @ "functions \
+					%(Apply, ApplyList)" $since b953 $dep_from ("%putss"
+					@ "%SHBuild-YSLib-common.txt" @ %Tools.Scripts),
+					// See $2023-05 @ %Documentation::Workflow.
+				/ DLDI "simplified functions %(Apply, ApplyList)"
+					^ ("%RetainVariadicList" @ %NPLA1)
+					~ "%(RetainList, ThrowInsufficientTermsError)",
+				/ DLDI "simplified function %BindingsWithParentToEnvironment"
+					^ ("%RetainVariadicList" @ %NPLA1)
+					~ "%(RetainList, CheckVariadicArity)",
+				* "missing checking against improper list for bodies"
+					@ "functions %(Vau, VauRef, Lambda, LambdaRef, WVau, \
+					WVauRef, VauWithEnvironment, VauWithEnvironmentRef, \
+					LambdaWithEnvironment, LambdaWithEnvironmentRef, \
+					WVauWithEnvironment, WVauWithEnvironmentRef, Let, LetRef, \
+					LetWithEnvironment, LetWithEnvironmentRef, LetAsterisk, \
+					LetAsteriskRef, LetRec, LetRecRef, ProvideLet, Provide)"
+					$since b953 ^ $dep_from ("%RetainVariadicList" @ %NPLA1)
+					~ "%CheckVariadicArity";
+					// The trailing '<body>' is documented as list of \
+						expressions, so it should check against improper \
+						lists. Functions using %RetainListArguments above as \
+						well as %(BindingsWithParentToEnvironment, \
+						BindingsToEnvironment) were correct.
+				/ "functions %(Eq, EqLeaf, EqReference, EqValue, EqTermValue, \
+					If, Cond, When, Unless, Not, And, Or, Cons, ConsRef, \
+					ForwardFirst, First, FirstAt, FirstRef, FirstVal, RestFwd, \
+					RestRef, RestVal, SetFirst, SetFirstAt, SetFirstRef, \
+					SetRest, SetRestRef, Eval, EvalRef, EvalString, \
+					EvalStringRef, EvalUnit, RemoteEval, RemoteEvalRef, \
+					MakeEnvironment, GetCurrentEnvironment, \
+					LockCurrentEnvironment, DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion, SetWithNoRecursion, SetWithRecursion, \
+					Undefine, UndefineChecked, Lambda, LambdaRef, \
+					LambdaWithEnvironment, LambdaWithEnvironmentRef, Vau, \
+					VauRef, VauWithEnvironment, VauWithEnvironmentRef, WVau, \
+					WVauRef, WVauWithEnvironment, WVauWithEnvironmentRef, \
+					Wrap, WrapRef, WrapOnce, WrapOnceRef, Unwrap, \
+					CheckEnvironment, CheckParent, CheckListReference, \
+					CheckPairReference, MakeEncapsulationType, Apply, \
+					ApplyList, Sequence, ListAsterisk, ListAsteriskRef, \
+					AccL, AccR, FoldR1, Map1, ListConcat, Append, \
+					ListExtractFirst, ListExtractRestFwd, ListPushFront, \
+					Let, LetRef, LetWithEnvironment, LetWithEnvironmentRef, \
+					LetAsterisk, LetAsteriskRef, LetRec, LetRecRef, \
+					AsEnvironment, BindingsWithParentToEnvironment, \
+					BindingsToEnvironment, SymbolsToImports, ProvideLet, \
+					Provide, Import, ImportRef, Assq, Assv)"
+					>> ("namespace %Forms" @ %NPLA1Root)
+				),
+				/ "functions %(Call1CC, ContinuationToApplicative, \
+					ApplyContinuation, CallSystem)"
+					>> ("namespace %Forms" @ %NPLA1Extended)
+					$dep_from "%NPL_NPLA1Forms_CheckContinuationFrames"
+			)
+			)
+		),
+		/ DLDI %(Dependency, NPLA1) $dep_from $forced %NPLA1Forms
+			$= (/ ^ $dep_from %(NPLA1Root, NPLA1Extended)),
+		/ %SContext $=
+		(
+			/ DLI "lambda-expression" @ "function %CountPrefix"
+				^ ('YB_LAMBDA_ANNOTATE', 'pure'),
+			/ DLDI "reordered declarations" @ "%(AccessFirstSubterm, \
+				AsTermNode, AsTermNodeTagged, GetValueOf, ShareMoveTerm)",
+			+ "4 functions %SpliceContainer; function template \
+				%TransferSubterms";
+			+ "function templates %(TransferSubtermsAfter, \
+				TransferSubtermsBefore)"
+		),
+		/ %NPLA1Internals $=
+		(
+			/ ("function templates %(AllocateSharedTerm; \
+				AllocateSharedTermValue)", "function %MakeSubobjectReferent")
+				>> %NPLA1,
+			/ @ $dep_from "%class %BindParameterObject" $=
+			(
+				+ "functions %(BindSubpairPrefix, BindSubpairSubterm)",
+					// These functions are previously implementation details.
+				/ DLD "simplified subpair prefix binding"
+					^ ("%NPL::TransferSubtermsAfter" @ %SContext),
+				+ "constructed subpair references with 2nd subterm for subpair \
+					reference metatdata" @ "function template %operator()#2"
+					^ $dep_from "%AttachSubpairSubterm"
+			)
+		),
+		(
+		/ DLDI "TermNode::Container::splice calls" -> $dep_from
+			("%NPL::TransferSubtermsBefore calls" @ %SContext) $effective
+			@ %(NPLA, $dep_from NPLA1Extended, $dep_from NPLA1Root),
+		/ DLDI "TermNode::Container::splice calls"
+			-> $dep_from ("%NPL::TransferSubtermsAfter calls" @ %SContext)
+			$effective @ %(NPLA, NPLA1, $dep_from NPLA1Root);
+		/ DLDI "TermNode::Container::splice calls"
+			-> $dep_from ("%NPL::TransferSubterms calls" @ %SContext)
+			$effective @ %(NPLA, $dep_from NPLA1Root, SContext)
+		),
+		/ %NPLA $=
+		(
+			/ DLI "simplified functions %(MoveRValueToForward, \
+				MoveRValueToReturn)" ^ "%LiftOther" ~ "%LiftOtherValue",
+				// The call to %AssertValueTags is already performed at this \
+					point.
+			/ DLI "simplified function %LiftToReturn",
+				// The call to %AssertValueTags is alreayd performed in the \
+					'if' branch.
+			/ @ "function %TermToString" $=
+			(
+				/ DLI "enabled allocator",
+				(
+				* "wrong condition used to determine an imporper list"
+					$since b949;
+					// This was actually negated where not all subterms were \
+						skipped.
+				/ "supported extraction of the referernt of 1-level \
+					indirection on reference value after skipped subterms";
+				/ "supported extraction of subobjects and other irregular \
+					representations as referernt of 1-level indirection"
+				)
+			)
+		),
+		/ %Dependency $=
+		(
+			/ @ "function %LoadGroundContext" $=
+			(
+				* "behavior of native implemenation not same to derivations \
+					on syntax error" @ ("applicatives (%apply, 'apply-list)'"
+					$comp $dep_from ("%Forms::(Apply, ApplyList)" @ %NPLA1Forms)
+					$since b953,
+					// See $2023-05 @ %Documentation::Workflow.
+				/ "supported assignment to referent of subpair references"
+					@ "native implementation"
+					@ "applicatives ('assign@!', 'assign%!', 'assign!')"
+					^ $dep_from ("%BindParameterObject::operator()#2"
+					@ %NPLA1Internals, "%AssertSubobjectReference" @ %NPLA1),
+				+ "operative '$expire-rvalue'",
+				+ "applicative 'eval@'"
+					^ $dep_from ("%Forms::EvalAt" @ %NPLA1Root),
+				/ "alternative derivations" $=
+				(
+					/ DLDI ^ "',' for non dependent definitions"
+						"operatives '$let', '$let%', '$let/e', '$let/e%', \
+						'$let*', '$let*%', '$letrec', '$letrec%'"
+						// As %LoadModule_std_promises.
+					(
+					* "missing checking against improper lists for underlying \
+						operative" @ "applicatives (%apply, 'apply-list')"
+						$since b953 ^ $dep_from '$expire-rvalue';
+						// This is now also consistent to the native \
+							implementations.
+					/ DLI "applicatives ('list*', 'list*%')"
+						^ $dep_from '$expire-rvalue' ~ 'apply-list'
+						// As the 1st implementation in [RnRK]. The check for \
+							'apply' and 'apply-list' is resued by calling \
+							internal functions, being hopefully more efficient.
+					),
+					/ DLDI "simplified combiners with conditional 'id' or \
+						'expire' call" ^ $dep_from '$expire-rvalue'
+						~ '$lvalue-identifier?'
+						$effective @ ('first%', '$let*', '$let*%')
+					/ $revert(b822) DLI "simplified" @ "operative '$sequence'",
+						// The change would made no different effects now.
+					* "missing preventing return value conversion on the \
+						forwarded body" @ "operative '$letrec%'" $since b953
+						$= (/ $re_add(b953) $impl ^ 'list%' ~ 'list'),
+						// This should be same to ('$let%', '$let/e%', \
+							'$let*%').
+					/ DLI "preserved reference values of ptrees" @ "operatives \
+						('$let', '$let%', '$let/e', '$let/e%', '$let*', \
+						'$let*%', '$letrec', '$letrec%', \
+						'$bindings/p->environment', '$bindings->environment'"
+						^ ('list%', 'list*%') ~ ('list', 'list*'),
+						// For simplicity, the implementation now prevents the \
+							mixture of constructors preserving and not \
+							preserving reference values. Different to bodies, \
+							this should make no difference in functionality.
+					/ DLI "simplified applicatives ('apply', 'apply-list', \
+						'check-environment')" ^ $dep_from 'eval@' ~ 'eval%',
+					* $comp "unexpected conversion lvalue-to-rvalue converions \
+						on self-evaluating expressions" @ "operative $sequence"
+						$since b828 ^ $dep_from 'eval@' ~ 'eval%'
+					+ "applicatives (%eval, 'eval%')" ^ $dep_from 'eval@'
+				)
+			),
+			/ DLI "derivation" @ "combiners" @ "std.promises" $=
+			(
+				/ ^ ("pair element as environment", "%cons", 'list%')
+					~ 'list' $dep_from 'assign@!',
+					// This is now closer to the reference implementation in \
+						[RnRK].
+				/ ^ ("pair element as evaluator", "%restv", "%cons")
+					~ ("%firstv", 'rest&', "%list") $dep_from 'assign!'
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			+ "'-Wa,-mbig-obj' if supported by test combined with optimization \
+				options" @ "implementation-specific common default values"
+				@ "variables %(CFLAGS, CXXFLAGS)"
+				@ ("%SHBuild-common.options.sh", "function \
+				'build-with-conf-opt'" @ "%SHBuild-YSLib-common.txt"),
+				// See $2023-05 @ %Documentation::Workflow.
+			/ @ "%(SHBuild-bootstrap.sh, SHBuild-build.sh)" $=
+			(
+				/ $revert_ex(b905) "quoted literal arguments to %SHBuild_Puts"
+					^ "single quotes" ~ "double quotes",
+				/ "split %LIBS" -> "%SRCS for C++ source files and %LIBS for \
+					extra library arguments" $dep_to "SRCS"
+			),
+			/ $re_add(b882) $build "updated %SRCS for %YFramework.NPL.NPLA1Root"
+				@ "%SHBuild-bootstrap.sh"
+				$dep_from $forced (%YFramework.NPL.NPLA1Root, "SRCS"),
+			/ DLDI "command line" @ "%SHBuild-self-host.sh"
+				$dep_from $forced "SRCS",
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				/ "default value when not 'use-ld'" @ "variable %C_CXXFLAGS_GC"
+					-> '',
+					// See $2023-05 @ %Documentation::Workflow.
+				* "missing forwarding the argument" @ "applicative %putss"
+					$since b951 $impl ^ 'forward!',
+					// See $2023-05 @ %Documentation::Workflow.
+				(
+				+ "applicative 'ss-verbose?'";
+				+ "cleanup output if the variable of environment variable \
+					%SS_Verbose is nonempty" $dep_from "%LDFLAGS with LTO"
+					// This is currently not robust enough on exceptional exit.
+				),
+				/ DLDI "all variable 'use-ld'" => 'use-linker'
+			),
+			/ @ "%YFramework library building" @ "%SHBuild-YSLib-build.txt" $=
+			(
+				- $revert_ex(b900) "workaround for release builds"
+					@ "platform %MinGW64",
+				+ $re_add(b906) "workaround for release builds"
+					@ "platform %MinGW_UCRT64"
+			),
+			(
+			+ "cleanup support" @ "%SHBuild-common-options.sh" $=
+			(
+				// As in %SHBuild-YSLib-common.txt, with different variable \
+					names, and more robust on exception.
+				+ "cleanup functions calling cleanup and output on nonempty \
+					variable %SHBuild_Verbose_",
+				+ "internal target function to support lto_wrapper_args cleanup"
+			);
+			+ "LTO cleanup" @ "%SHBuild-build.sh" ^ 'trap',
+			+ '-save-temps' @ "default value" @ "%LDFLAGS with LTO"
+				@ "%(SHBuild-common-options.sh, SHBuild-YSLib-common.txt)";
+				// See $2023-05 @ %Documentation::Workflow.
+			),
+			/ "%SHBuild-build.sh" $=
+			(
+				/ "exposed 'SHBuild_Verbose_'" -> "%SS_Verbose",
+					// Now this is shared to stage 2 scripts.
+				+ "optioanl support of parallel build" $=
+				(
+					+ "support detection of nonempty value of %SS_NoParallel \
+						to disable 'parallel'",
+					+ "support check for GNU parallel" $dep_from "SRC",
+						// The 'parallel' commond from moreutils packages is \
+							ruled out.
+					/ "enforced color by detection G++ or Clang++ version";
+						// By default, coloring is disabled because processes \
+							behind parallel command do not detect the TTY. And \
+							'--tty' has side effects of not able to terminate \
+							the processes directly. See \
+							https://stackoverflow.com/questions/34276565/34278149#34278149.
+					+ "parallel build commands"
+				)
+			),
+		),
+		/ DLI %ProjectGenerator.Main $=
+		(
+			/ "all platform strings" ^ "%string_view" ~ "%string",
+				// This relies on the change of %IO::Path::operator/ with \
+					string parameter since b971, and at least necessary for \
+					%CheckUnit.
+			/ "simplified function %CheckExcluded" $=
+			(
+				/ "mapping" ^ "%std::map" ~ "%map",
+				/ "list" ^ "array" ~ "%vector",
+				/ "mapped item" ^ 'const char*' ~ "%string"
+			),
+			/ "enabled allocator" @ "Code::Blocks document node creation"
+				^ ("%ystdex::call_using_allocator"
+				@ %YBase.YStandardEx.Allocator),
+			(
+			/ "function %LookupCompilerName returned pointer" ~ "%string";
+			/ $forced $design "%CheckIfCustomMakefile"
+			),
+			/ $design "lambda-expression" @ "function template \
+				%InsertTargetNode" ^ "attribute %returns_nonnull",
+			/ "simplified separator" @ "function %QuoteCommandPath",
+			/ "enabled allocator" @ ("adding options", "target node insertion"),
+			/ "enabled allocator" @ "functions %(GetDLLName, GetLibPath, \
+				MakeCommandLiteral, MakeExtraCommandLiteral, MakeCBDocNode, \
+				InsertTargetNode)",
+			/ "simplified" @ "function" ^ "%std::initializer_list<const char*>"
+				~ "%vector<string>",
+			/ "1st parameter" @ "function %MakeCBDocNode#1" ^ "%string_view"
+				~ "%string",
+			/ "all %NodeLiteral constructed with string literal" ^ "allocator",
+			/ "function %MakeCBDocNode#1" $=
+			(
+				/ DLI $dep_from $forced
+					("%InsertAttributeNode#1" @ %YFramework.NPL.SXML)
+				+ "option '-Wa,-mbig-obj'"
+					@ "compiler options not using custom makefile"
+					@ "debug configuration" @ "platform %MinGW32",
+					// Assume this is unconditionally available.
+				/ DLI ^ "%YSLib::function" ~ "%std::function",
+				* "missing 'quadmath'" @ "library options" @ "platform %MinGW32"
+					$since b932
+			)
+		)
+	),
+	/ @ "all 6 projects" @ "platform %Win32" @ "Microsoft VC++ projects" $=
+	(
+		+ $dev $build "linker option '/DEBUG'" $effetive @ "projects %(YSTest,
+			Tools.(CreationTimeManager, PredefinedMacroDetector, SHBuild))",
+			// Projects generating static libraries have no such option. It \
+				enables faster linking for the %debug configuration in IDE \
+				(by equivalent to '/DEBUG:FASTLINK') since Microsoft VC++ \
+				2017, see https://learn.microsoft.com/cpp/build/reference/debug-generate-debug-info.
+		/ $revert_ex(b865) "reset output file paths"
+			$= (- "tag 'ObjectFileName'")
+			// See $2023-05 @ %Documentation::Workflow.
+	),
+	+ "LTO cleanup" @ "%test.sh" @ %Test ^ $dep_from
+		("cleanup support" @ "%SHBuild-common-options.sh" @ %Tools.Scripts)
+),
+
+b973
 (
 	/ %YBase.YStandardEx $=
 	(

@@ -739,6 +739,12 @@
     <ClInclude Include="include\NPL\Exception.h">
       <Filter>include\NPL</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\NPLA1Extended.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\NPLA1Root.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1103,6 +1109,12 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\YConsole.cpp">
       <Filter>source\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA1Extended.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA1Root.cpp">
+      <Filter>source\NPL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

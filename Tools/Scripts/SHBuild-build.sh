@@ -16,20 +16,22 @@ C_CXXFLAGS_GC=' '
 LDFLAGS_GC=' '
 # shellcheck disable=2034
 LDFLAGS_STRIP=' '
-# NOTE: '-Og -g' is not supported. See $2020-09 @ %Documentation::Workflow.
+# NOTE: '-Og -g' is not supported. See also $2020-09 @ %Documentation::Workflow.
 # shellcheck disable=2034
-CXXFLAGS_OPT_DBG='-O0 -g'
 # XXX: This avoids clash between '-Og' with error 'Optimization level must be
 #	between 0 and 3' caused by options passed to the linker from Clang++ driver.
-#	See also https://bugs.llvm.org/show_bug.cgi?id=38305. Anyway LTO is not make
-#	it easy to debug as the intentional '-Og' or '-O0' here, so simply disable
-#	it.
+#	Otherwise, there needs an additional version check.
+CXXFLAGS_OPT_DBG='-O0 -g'
+# XXX: Anyway LTO is not make it easy to debug as the intentional '-Og' or '-O0'
+#	here, so simply disable it. See also
+#	https://bugs.llvm.org/show_bug.cgi?id=38305.
 # shellcheck disable=2034
 LDFLAGS_IMPL_OPT=' '
 # shellcheck source=./SHBuild-bootstrap.sh
 . "$SHBuild_ToolDir/SHBuild-bootstrap.sh" # for SHBuild_Host_OS,
 #	SHBuild_Host_Arch, SHBuild_Pushd, SHBuild_BaseDir, SHBuild_Puts, CXXFLAGS,
-#	LDFLAGS, INCLUDES, LIBS, SHBuild_Popd;
+#	DoLTOCleanup_, DoLTOCleanup_Int_, DoLTOCleanup_AddTarget_, INCLUDES,
+#	LDFLAGS, LIBS, SHBuild_Popd;
 
 : "${SHBuild_Output:=SHBuild}"
 
@@ -60,7 +62,7 @@ fi
 SHBuild_Pushd .
 cd "$SHBuild_BaseDir"
 
-SHBuild_Puts "Building ..."
+SHBuild_Puts 'Building ...'
 
 # Precompiled header is not used here because it does not work well with
 #	external %CXXFLAGS_OPT_DBG. It is also not used frequently like in stage 2.
@@ -74,19 +76,65 @@ SHBuild_Puts "Building ..."
 #	do exist multiple translation units when linking with YSLib source,
 #	otherwise there would be unresolved reference to names with external
 #	linkage which had been optimized away.
-# XXX: %SHBuild_Verbose_ is external.
+
+# XXX: See %Tools/Scripts/SHBuild-common-options.sh.
+trap DoLTOCleanup_ EXIT
+trap DoLTOCleanup_Int_ INT QUIT TERM
+
+Call_()
+{
+	# XXX: %SS_Verbose is external.
+	# shellcheck disable=2154
+	if test -n "$SS_Verbose"; then
+		# shellcheck disable=2086
+		SHBuild_Puts "$@"
+	fi
+	"$@"
+}
+
+DoLTOCleanup_AddTarget_ "$SHBuild_Output"
+# XXX: Assume GNU parallel, not parallel from moreutils, if '--version' is
+#	supported.
+# XXX: %SS_NoParallel is external.
 # shellcheck disable=2154
-if test -n "$SHBuild_Verbose_"; then
+if test -z "$SS_NoParallel" && hash parallel 2> /dev/null \
+	&& hash grep 2> /dev/null && parallel --will-cite --version \
+	> /dev/null 2> /dev/null; \
+	then
+	SHBuild_Puts 'Using parallel.'
+	if test -n "$SS_Verbose"; then
+		SS_Verbose_t_=-t
+	fi
+	SHBuild_S1_Dir_="$(dirname "$SHBuild_Output")"
+	SHBuild_Puts "Build directory is \"$SHBuild_S1_Dir_\"."
+	if test -t 1; then
+		if test "$SHBuild_CXX_Name" = G++ \
+			&& ((SHBuild_CXX_Version >= 40900)) \
+			|| (test "$SHBuild_CXX_Name" = Clang++ \
+			&& ((SHBuild_CXX_Version >= 30300))); then
+			CXXFLAGS_COLOR_=-fdiagnostics-color=always
+		elif (test "$SHBuild_CXX_Name" = Clang++ \
+			&& ((SHBuild_CXX_Version >= 30200))); then
+			CXXFLAGS_COLOR_=-fcolor-diagnostics
+		fi
+	fi
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
-	SHBuild_Puts "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
-		$LDFLAGS_WKRD_ $SHBuild_IncPCH $INCLUDES $LIBS
+	parallel --will-cite $SS_Verbose_t_ "$CXX" -c {} \
+-o"$SHBuild_S1_Dir_/{#}.o" $CXXFLAGS $CXXFLAGS_COLOR_ $SHBuild_IncPCH \
+$INCLUDES ::: Main.cpp $SRCS
+	# shellcheck disable=2086
+	Call_ "$CXX" -o"$SHBuild_Output" $CXXFLAGS_COLOR_ $LDFLAGS $LDFLAGS_WKRD_ \
+$SHBuild_IncPCH $SHBuild_S1_Dir_/*.o $LIBS
+else
+	SHBuild_Puts 'Not using parallel.'
+
+	# XXX: Ditto.
+	# shellcheck disable=2086
+	Call_ "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
+$LDFLAGS_WKRD_ $SHBuild_IncPCH $INCLUDES $SRCS $LIBS
 fi
-# XXX: Value of several variables may contain whitespaces.
-# shellcheck disable=2086
-"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $LDFLAGS_WKRD_ \
-	$SHBuild_IncPCH $INCLUDES $LIBS
 
 SHBuild_Popd
-SHBuild_Puts "Done."
+SHBuild_Puts 'Done.'
 

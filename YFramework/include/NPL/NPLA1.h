@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r10655
+\version r10763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2023-05-03 22:04 +0800
+	2023-05-25 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,23 +32,24 @@
 #include YFM_NPL_NPLA // for NPLATag, TermNode, ContextNode,
 //	ystdex::equality_comparable, std::declval, ystdex::exclude_self_t,
 //	trivial_swap_t, trivial_swap, ystdex::ref_eq, string_view,
-//	CombineReductionResult, SourceName, make_observer, NPL::allocate_shared,
-//	TNIter, LiftOtherValue, NPL::Deref, NPL::AsTermNode,
-//	std::make_move_iterator, std::next, ystdex::retry_on_cond, std::find_if,
-//	ystdex::exclude_self_params_t, YSLib::AreEqualHeld, ystdex::or_,
-//	std::is_constructible, ystdex::decay_t, ystdex::expanded_caller,
-//	ystdex::false_, ystdex::make_parameter_list_t, std::allocator_arg,
-//	ystdex::make_function_type_t, ystdex::true_, ystdex::nor_,
-//	ystdex::is_instance_of, tuple, ystdex::enable_if_t, std::is_same,
-//	std::allocator_arg_t, ystdex::is_same_param, ystdex::size_t_,
+//	CombineReductionResult, lref, SourceName, make_observer,
+//	NPL::allocate_shared, TryAccessValue, TokenValue, TNIter, LiftOtherValue,
+//	NPL::Deref, NPL::AsTermNode, std::make_move_iterator, std::next,
+//	ystdex::retry_on_cond, std::find_if, ystdex::exclude_self_params_t,
+//	YSLib::AreEqualHeld, ystdex::or_, std::is_constructible, ystdex::decay_t,
+//	ystdex::expanded_caller, ystdex::false_, ystdex::make_parameter_list_t,
+//	std::allocator_arg, ystdex::make_function_type_t, ystdex::true_,
+//	ystdex::nor_, ystdex::is_instance_of, tuple, ystdex::enable_if_t,
+//	std::is_same, std::allocator_arg_t, ystdex::is_same_param, ystdex::size_t_,
 //	AssertCombiningTerm, ToBindingsAllocator, IsList,
 //	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, CountPrefix,
-//	ArityMismatch, TermReference, TermTags, RegularizeTerm, ystdex::guard,
-//	ystdex::invoke, NPL::AssignParent, shared_ptr, Environment, TokenValue,
-//	function, type_info, type_id, SourceInformation, std::bind,
-//	std::placeholders::_1, ParseResultOf, ByteParser, SourcedByteParser,
-//	std::integral_constant, pmr::memory_resource, ystdex::well_formed_t,
-//	ystdex::ref, ReaderState, ystdex::is_bitwise_swappable;
+//	ArityMismatch, HasStickySubterm, TermReference, TermTags, RegularizeTerm,
+//	ystdex::guard, ystdex::invoke, NPL::AssignParent, shared_ptr, Environment,
+//	NoContainer, in_place_type, HasValue, function, type_info, type_id,
+//	SourceInformation, std::bind, std::placeholders::_1, ParseResultOf,
+//	ByteParser, SourcedByteParser, std::integral_constant, pmr::memory_resource,
+//	ystdex::well_formed_t, ystdex::ref, ReaderState,
+//	ystdex::is_bitwise_swappable;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/algorithm.hpp> // for ystdex::fast_any_of, ystdex::split;
@@ -1415,11 +1416,11 @@ inline PDefH(void, CheckArgumentList, const TermNode& term)
 
 检查第一参数的子项数大于第二参数指定的参数个数。
 若具有不大于第二参数指定的参数个数，则抛出缺少项的异常。
-抛出缺少项的异常时，异常消息的项移除第一个子项。
+抛出缺少项的异常时，异常消息的项是忽略第一个子项的项。
 */
 inline PDefH(void, CheckVariadicArity, const TermNode& term, size_t n)
-	ImplExpr(AssertCombiningTerm(term), CountPrefix(term) - 1 > n ? void()
-		: ThrowInsufficientTermsError(term, {}, 1))
+	ImplExpr(AssertCombiningTerm(term), YB_LIKELY(CountPrefix(term) - 1 > n)
+		? void() : ThrowInsufficientTermsError(term, {}, 1))
 
 /*!
 \pre 间接断言：参数指定的项是分支列表节点或项的容器非空（对应枝节点）。
@@ -1445,7 +1446,7 @@ YB_ATTR_nodiscard YB_PURE inline
 \sa AssertCombiningTerm
 
 可使用 RegisterForm 注册上下文处理器，参考文法：
-$retain|$retainN \<expression>
+$retain|$retain-list|$retainN \<expression>
 */
 //!@{
 // XXX: G++ will warn with [-Wunused-value] if it is pure. See also $2019-01
@@ -1464,6 +1465,7 @@ inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
 /*!
 \brief 保留列表项：保留求值且检查参数是列表。
 \exception ListReductionFailure 异常中立：由 CheckArgumentList 抛出。
+\sa CheckArgumentList
 \since build 951
 */
 inline PDefH(ReductionStatus, RetainList, const TermNode& term)
@@ -1485,6 +1487,24 @@ RetainN(const TermNode& term, size_t m = 1)
 		throw ArityMismatch(m, n);
 	}(FetchArgumentN(term)))
 //!@}
+
+/*!
+\brief 保留列表项：保留求值且检查参数是列表中并具有足够的参数数量。
+\exception ListReductionFailure 异常中立：由 CheckArgumentList 抛出。
+\sa CheckArgumentList
+\sa RetainList
+\since build 954
+*/
+inline PDefH(void, RetainVariadicList, const TermNode& term, size_t n)
+#if true
+	ImplExpr(RetainList(term), YAssert(!HasStickySubterm(term),
+		"Invalid list found."), YB_LIKELY(term.size() - 1 > n) ? void()
+		: ThrowInsufficientTermsError(term, {}, 1))
+#else
+	// NOTE: Any optimized implemenations shall be equivalent to this, except
+	//	%CountPrefix can be replaced by %TermNode::size.
+	ImplExpr(RetainList(term), A1::CheckVariadicArity(term, n))
+#endif
 //!@}
 
 
@@ -1495,10 +1515,10 @@ RetainN(const TermNode& term, size_t m = 1)
 //!@{
 /*!
 \brief 字面量和数值的叶节点求值默认实现。
-\pre 字符串参数非空。
-\return 是否成功求值得到字面量或数值。
+\return 是否成功求值得到字面量或数值决定的规约状态。
 \throw InvalidSyntax 语法错误：第二参数是不被支持的数值。
 \sa ContextState::EvaluateLiteral
+\sa ReadNumber
 \since build 880
 
 判断第二参数是否可被解析和为被 NPLA1 对象语言语法支持的字面量或数值。
@@ -1828,6 +1848,82 @@ RelayForCall(ContextNode&, TermNode&, EnvironmentGuard&&, bool);
 //!@}
 
 
+//! \since build 974
+//!@{
+//! \brief 分配共享项。
+template<class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
+AllocateSharedTerm(const _tAlloc& a, _tParams&&... args)
+{
+	return NPL::allocate_shared<TermNode>(a, yforward(args)...);
+}
+
+//! \brief 分配指定值的共享项。
+template<class _tAlloc, typename... _tParams>
+YB_ATTR_nodiscard YB_ATTR_always_inline inline shared_ptr<TermNode>
+AllocateSharedTermValue(const _tAlloc& a, _tParams&&... args)
+{
+	return A1::AllocateSharedTerm(a, NPL::AsTermNode(a, yforward(args)...));
+}
+
+/*!
+\brief 断言项符合子对象引用的第一子项的要求。
+\note 参数分别指定被检查的项和被引用项。
+*/
+inline PDefH(void, AssertSubobjectReferenceFirstSubterm, const TermNode& tm,
+	const TermNode& nd) ynothrowv
+	ImplExpr(yunused(tm), yunused(nd), YAssert(IsSticky(tm.Tags),
+		"Invalid 1st subterm of irregular representation of reference found."),
+		YAssert(IsLeaf(tm), "Invalid irregular representation of reference with"
+		" non-leaf 1st subterm found."),
+		YAssert(IsTyped<shared_ptr<TermNode>>(tm), "Invalid type of value"
+		" object in the 1st subterm for irregular representation found."),
+		// XXX: Assume nonnull. This is guaranteed in construction in
+		//	%AllocateSharedTermValue or %ReduceForCombinerRef.
+		YAssert(ystdex::ref_eq<>()(NPL::Deref(tm.Value.GetObject<
+		shared_ptr<TermNode>>()), nd), "Invalid subobject reference found."))
+
+/*!
+\brief 断言项符合子对象引用的要求。
+\sa AssertSubobjectReferenceFirstSubterm
+\sa IsReferenceTerm
+*/
+inline PDefH(void, AssertSubobjectReferenceTerm, const TermNode& term) ynothrowv
+	ImplExpr(yunused(term), YAssert(IsReferenceTerm(term), "Invalid"
+		" value object type for irregular representation of reference found."),
+		YAssert(term.size() == 1 || term.size() == 2, "Invalid number of"
+		" subterms in irregular representation of reference found."),
+		AssertSubobjectReferenceFirstSubterm(AccessFirstSubterm(term),
+		NPL::Deref(TryAccessLeaf<const TermReference>(term)).get()))
+
+YB_ATTR_nodiscard inline PDefH(TermNode, MakeSubobjectReferent,
+	TermNode::allocator_type a, shared_ptr<TermNode> p_sub)
+	ImplRet(NPL::AsTermNodeTagged(a, TermTags::Sticky, std::move(p_sub)))
+
+
+//! \brief 子有序对元数据。
+struct YF_API SubpairMetadata final
+{
+	lref<TermNode> TermRef;
+	TNIter First;
+	char Sigil;
+
+	SubpairMetadata(TermNode& term, TNIter i, char sigil) ynothrow
+		: TermRef(term), First(i), Sigil(sigil)
+	{}
+};
+
+/*!
+\brief 在容器后添加带有子有序对元数据的子项。
+\relates SubpairMetadata
+*/
+inline PDefH(void, AttachSubpairSubterm, TermNode::Container& tcon, TermNode& o,
+	TNIter first, char sigil)
+	ImplExpr(tcon.emplace_back(NoContainer, in_place_type<SubpairMetadata>, o,
+		first, sigil))
+//!@}
+
+
 /*!
 \brief 判断项是否表示 #ignore 。
 \since build 929
@@ -2059,7 +2155,7 @@ InitializeTypeNameTableEntry(string_view desc)
 {
 	YAssertNonnull(desc.data());
 
-	static struct Init final
+	const static struct Init final
 	{
 		Init(string_view sv)
 		{

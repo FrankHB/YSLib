@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016, 2019, 2022 FrankHB.
+	© 2015-2016, 2019, 2022-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SXML.h
 \ingroup NPL
 \brief NPL SXML 实现。
-\version r11576
+\version r11666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 936
 \par 创建时间:
 	2022-01-20 17:41:14 +0800
 \par 修改时间:
-	2022-01-24 02:30 +0800
+	2023-05-15 07:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,9 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for std::initializer_list, TermNode, string,
-//	IndentGenerator, MakeIndex;
+//	IndentGenerator, MakeIndex, ystdex::is_array_of_unqualified_object,
+//	ystdex::remove_reference_t, ystdex::head_of_t, ystdex::enable_if_t,
+//	ystdex::is_unqualified_object;
 
 namespace NPL
 {
@@ -41,9 +43,9 @@ namespace NPL
 \sa TransformToSyntaxNode
 \since build 852
 */
-//@{
+//!@{
 //! \brief 插入语法节点。
-//@{
+//!@{
 template<class _tNodeOrCon, typename... _tParams>
 TNIter
 InsertSyntaxNode(_tNodeOrCon&& node_or_con,
@@ -57,10 +59,10 @@ InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
 {
 	return node_or_con.emplace(yforward(arg), yforward(args)...);
 }
-//@}
+//!@}
 
 //! \brief 插入语法子节点。
-//@{
+//!@{
 template<class _tNodeOrCon>
 TNIter
 InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, TermNode& child)
@@ -82,8 +84,8 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, NodeLiteral&& nl)
 	return NPL::InsertChildSyntaxNode(yforward(node_or_con),
 		TransformToSyntaxNode(std::move(nl.GetNodeRef())));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 /*!
 \brief SXML 表示。
@@ -104,7 +106,7 @@ enum class ParseOption
 
 
 //! \since build 674
-//@{
+//!@{
 /*!
 \brief 转换 SXML 节点为 XML 属性字符串。
 \throw LoggedEvent 没有子节点。
@@ -147,30 +149,32 @@ ConvertStringNode(const TermNode&);
 YF_API void
 PrintSyntaxNode(std::ostream& os, const TermNode&,
 	IndentGenerator = DefaultGenerateIndent, size_t = 0);
-//@}
+//!@}
 
 
-//! \since build 852
-//@{
-template<typename _tString, typename _tLiteral = NodeLiteral>
+//! \since build 974
+template<typename _tString = string, typename _tLiteral = NodeLiteral>
 YB_ATTR_nodiscard inline YB_PURE TermNode
 NodeLiteralToTerm(_tString&& name, std::initializer_list<_tLiteral> il)
 {
 	return TermNode(YSLib::AsNodeLiteral(yforward(name), il));
 }
 
+//! \since build 852
+//!@{
 //! \brief 构造 SXML 文档顶级节点。
-//@{
-template<typename... _tParams>
+//!@{
+//! \since build 974
+template<typename _tString = string, typename... _tParams>
 YB_ATTR_nodiscard YB_PURE TermNode
-MakeTop(const string& name, _tParams&&... args)
+MakeTop(_tString&& name, _tParams&&... args)
 {
-	return SXML::NodeLiteralToTerm(name,
+	return SXML::NodeLiteralToTerm(yforward(name),
 		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
 }
 YB_ATTR_nodiscard YB_PURE inline PDefH(TermNode, MakeTop, )
 	ImplRet(MakeTop({}))
-//@}
+//!@}
 
 /*!
 \brief 构造 SXML 文档 XML 声明节点。
@@ -179,8 +183,8 @@ YB_ATTR_nodiscard YB_PURE inline PDefH(TermNode, MakeTop, )
 \warning 不对参数合规性进行检查。
 */
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
-MakeXMLDecl(const string& = {}, const string& = "1.0",
-	const string& = "UTF-8", const string& = {});
+MakeXMLDecl(const string& = {}, const string& = "1.0", const string& = "UTF-8",
+	const string& = {});
 
 /*!
 \brief 构造包含 XML 声明的 SXML 文档节点。
@@ -188,57 +192,93 @@ MakeXMLDecl(const string& = {}, const string& = "1.0",
 \sa MakeXMLDecl
 */
 YB_ATTR_nodiscard YF_API YB_PURE TermNode
-MakeXMLDoc(const string& = {}, const string& = "1.0",
-	const string& = "UTF-8", const string& = {});
-//@}
+MakeXMLDoc(const string& = {}, const string& = "1.0", const string& = "UTF-8",
+	const string& = {});
+//!@}
+
+/*!
+\ingroup metafunctions
+\since build 974
+*/
+//!@{
+template<typename... _tParams>
+using HasLeadingInitializer = ystdex::is_array_of_unqualified_object<
+	ystdex::remove_reference_t<ystdex::head_of_t<_tParams...>>>;
+
+template<typename... _tParams>
+using ExcludeLiteralInitializer
+	= ystdex::enable_if_t<!HasLeadingInitializer<_tParams...>::value>;	
+//!@}
 
 //! \since build 599
-//@{
-//! \brief 构造 SXML 属性标记字面量。
-//@{
-YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
-	std::initializer_list<NodeLiteral> il)
-	ImplRet({"@", il})
-template<typename... _tParams>
+//!@{
+/*
+! \brief 构造 SXML 属性标记字面量。
+\since build 974
+*/
+//!@{
+template<typename _tLiteral = NodeLiteral, size_t _vN, yimpl(typename
+	= ystdex::enable_if_t<ystdex::is_unqualified_object<_tLiteral>::value>)>
+YB_ATTR_nodiscard YB_PURE inline NodeLiteral
+MakeAttributeTagLiteral(_tLiteral(&&l)[_vN], ValueNode::allocator_type a = {})
+{
+	return {string("@", a), std::move(l)};
+}
+template<typename _tLiteral = NodeLiteral, typename... _tParams,
+	yimpl(typename = ExcludeLiteralInitializer<_tParams...>)>
 YB_ATTR_nodiscard YB_PURE NodeLiteral
 MakeAttributeTagLiteral(_tParams&&... args)
 {
-	return SXML::MakeAttributeTagLiteral({NodeLiteral(yforward(args)...)});
+	return SXML::MakeAttributeTagLiteral<_tLiteral>(
+		{_tLiteral(yforward(args)...)});
 }
-//@}
+//!@}
 
 //! \brief 构造 XML 属性字面量。
-//@{
-YB_ATTR_nodiscard YB_PURE inline PDefH(NodeLiteral, MakeAttributeLiteral,
-	const string& name, std::initializer_list<NodeLiteral> il)
-	ImplRet({name, {MakeAttributeTagLiteral(il)}})
-template<typename... _tParams>
-YB_ATTR_nodiscard YB_PURE NodeLiteral
-MakeAttributeLiteral(const string& name, _tParams&&... args)
+//!@{
+template<typename _tLiteral = NodeLiteral, typename _tString = string,
+	size_t _vN, yimpl(typename
+	= ystdex::enable_if_t<ystdex::is_unqualified_object<_tLiteral>::value>)>
+YB_ATTR_nodiscard YB_PURE inline NodeLiteral
+MakeAttributeLiteral(_tString&& name, _tLiteral(&&l)[_vN],
+	ValueNode::allocator_type a = {})
 {
-	return {name, {SXML::MakeAttributeTagLiteral(yforward(args)...)}};
+	return {name, {SXML::MakeAttributeTagLiteral<_tLiteral>(std::move(l), a)}};
 }
-//@}
+template<typename _tLiteral = NodeLiteral, typename _tString = string,
+	typename... _tParams, yimpl(typename = ExcludeLiteralInitializer<_tParams...>)>
+YB_ATTR_nodiscard YB_PURE inline NodeLiteral
+MakeAttributeLiteral(_tString&& name, _tParams&&... args)
+{
+	return {yforward(name),
+		{SXML::MakeAttributeTagLiteral<_tLiteral>(yforward(args)...)}};
+}
+//!@}
 
 //! \brief 插入只有 XML 属性节点到语法节点。
-//@{
-template<class _tNodeOrCon>
+//!@{
+template<typename _tLiteral = NodeLiteral, class _tNodeOrCon,
+	typename _tString = string, size_t _vN, yimpl(typename
+	= ystdex::enable_if_t<ystdex::is_unqualified_object<_tLiteral>::value>)>
 inline void
-InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
-	std::initializer_list<NodeLiteral> il)
+InsertAttributeNode(_tNodeOrCon&& node_or_con, _tString&& name,
+	_tLiteral(&&l)[_vN], ValueNode::allocator_type a = {})
 {
-	InsertChildSyntaxNode(node_or_con, MakeAttributeLiteral(name, il));
+	NPL::InsertChildSyntaxNode(node_or_con,
+		SXML::MakeAttributeLiteral<_tLiteral>(yforward(name), std::move(l), a));
 }
-template<class _tNodeOrCon, typename... _tParams>
+template<typename _tLiteral = NodeLiteral, class _tNodeOrCon,
+	typename _tString = string, typename... _tParams,
+	yimpl(typename = ExcludeLiteralInitializer<_tParams...>)>
 inline void
-InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
+InsertAttributeNode(_tNodeOrCon&& node_or_con, _tString&& name,
 	_tParams&&... args)
 {
-	InsertChildSyntaxNode(node_or_con,
-		SXML::MakeAttributeLiteral(name, yforward(args)...));
+	NPL::InsertChildSyntaxNode(node_or_con, SXML::MakeAttributeLiteral<
+		_tLiteral>(yforward(name), yforward(args)...));
 }
-//@}
-//@}
+//!@}
+//!@}
 
 } // namespace SXML;
 

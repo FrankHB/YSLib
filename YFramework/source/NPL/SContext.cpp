@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2022 FrankHB.
+	© 2012-2023 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r2314
+\version r2317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2022-06-13 01:32 +0800
+	2023-05-21 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,7 +174,7 @@ TermNode::ClearContainer() ynothrow
 
 		// NOTE: Flatten the subterms and insert them before the leftmost
 		//	recursive subterm.
-		container.splice(i, std::move(NPL::Deref(i).container));
+		NPL::TransferSubterms(*this, i, NPL::Deref(i));
 		container.erase(i);
 	}
 #else
@@ -186,7 +186,7 @@ TermNode::ClearContainer() ynothrow
 		//	%Value in these terms are kept in a prefix DFS traverse order in
 		//	the resulted sequence. Flatten the subterms and insert them after
 		//	'*i' to keep the loop invariant at first.
-		container.splice(std::next(i), std::move(i->container));
+		NPL::TransferSubterms(*this, std::next(i), *i);
 		// NOTE: Subterms are not erased at once in the loop to prevent the
 		//	overhead of internal housekeeping (for the size) in the %container.
 	// NOTE: All flattened subterms and remained %Value objects are cleanup.

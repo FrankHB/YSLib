@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r4584
+\version r4646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2023-04-19 06:13 +0800
+	2023-05-25 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,11 +37,11 @@
 //	AssertReferentTags, ystdex::call_value_or, ystdex::compose, GetLValueTagsOf,
 //	std::mem_fn, IsTyped, ystdex::invoke_value_or, ystdex::ref, PropagateTo,
 //	std::distance, ystdex::as_const, FindSticky, TryAccessLeaf,
-//	AccessFirstSubterm, ystdex::addrof, ystdex::second_of,
-//	YSLib::FilterExceptions, NPL::allocate_shared, type_info,
-//	std::current_exception, std::rethrow_exception, std::throw_with_nested,
-//	lref, ystdex::retry_on_cond, ystdex::id, pair, IsAtom, NPL::IsMovable,
-//	YSLib::ExtractException;
+//	NPL::TransferSubterms, NPL::TransferSubtermsAfter,
+//	NPL::TransferSubtermsBefore, AccessFirstSubterm, YSLib::FilterExceptions,
+//	NPL::allocate_shared, type_info, std::current_exception,
+//	std::rethrow_exception, std::throw_with_nested, lref, ystdex::retry_on_cond,
+//	ystdex::id, pair, IsAtom, NPL::IsMovable, YSLib::ExtractException;
 
 //! \since build 903
 //!@{
@@ -167,6 +167,54 @@ TransformToSyntaxNode(ValueNode&& node)
 namespace
 {
 
+//! \since build 974
+YB_ATTR_nodiscard YB_PURE string
+TermToStringImpl(const TermNode& term, size_t n_skip, bool recur)
+{
+	if(const auto p = TermToNamePtr(term))
+		return *p;
+
+	const bool non_list(!IsList(term));
+	const auto n_pfx(CountPrefix(term));
+
+	// NOTE: The case for no skip is shown below.
+#if false
+	if(n_skip == 0)
+	{
+		const bool is_pair(IsPair(term));
+
+		return IsEmpty(term) ? string("()") : YSLib::sfmt<string>(
+			"#<%s{%zu}%s%s>", is_pair ? (non_list ? "improper-list" : "list")
+			: "unknown", n_pfx, is_pair ? " . " : (non_list ? ":" : ""),
+			non_list ? term.Value.type().name() : "");
+	}
+#endif
+	YAssert(n_skip <= n_pfx, "Invalid skip number found.");
+
+	const auto n_sub(n_pfx - n_skip);
+	const auto a(term.get_allocator());
+
+	if(n_sub == 0)
+	{
+		if(!non_list)
+			return string("()", a);
+		if(const auto p = TryAccessLeaf<const TermReference>(term))
+			// NOTE: To respect the nested call safety guarantee, only 1-level
+			//	indirection is allowed.
+			return recur ? "[*] " + TermToStringImpl(p->get(), 0, {})
+				: string("[*]", a);
+		return "#<" + string(term.Value.type().name(), a) + ">";
+	}
+
+	const auto& tm(*std::next(term.begin(), ptrdiff_t(n_skip)));
+	const bool s_is_pair(!IsSticky(tm.Tags));
+
+	return YSLib::sfmt<string>(a, "#<%s{%zu}%s%s>", s_is_pair ? (non_list
+		? "improper-list" : "list") : (IsTyped<shared_ptr<TermNode>>(tm)
+		? "subobject-referent" : "irregular"), n_sub, s_is_pair ? (non_list
+		? " . " : "") : ":", non_list ? term.Value.type().name() : "");
+}
+
 #if NPL_NPLA_CheckParentEnvironment || NPL_NPLA_CheckResolvedEnvironment
 // NOTE: This is for checked implementation but not interoperations, so
 //	different message and different exception type is issued compared to
@@ -252,7 +300,7 @@ MoveRValueFor(TermNode& term, TermNode& tm, bool(TermReference::*pm)() const)
 		if(!p->IsReferencedLValue())
 			return LiftMovedOther(term, *p, ((*p).*pm)());
 	}
-	LiftOtherValue(term, tm);
+	LiftOther(term, tm);
 }
 
 
@@ -360,33 +408,7 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 string
 TermToString(const TermNode& term, size_t n_skip)
 {
-	if(const auto p = TermToNamePtr(term))
-		return *p;
-
-	const bool non_list(!IsList(term));
-
-	// TODO: Use allocator?
-	// NOTE: The case for no skip is shown below.
-#if false
-	if(n_skip == 0)
-	{
-		const bool is_pair(IsPair(term));
-
-		return IsEmpty(term) ? string("()") : YSLib::sfmt<string>(
-			"#<%s{%zu}%s%s>", is_pair ? (non_list ? "improper-list" : "list")
-			: "unknown", term.size(), is_pair ? " . " : (non_list ? ":" : ""),
-			non_list ? term.Value.type().name() : "");
-	}
-#endif
-	YAssert(n_skip <= CountPrefix(term), "Invalid skip number found.");
-
-	const bool s_is_pair(n_skip < term.size()
-		&& IsSticky(std::next(term.begin(), ptrdiff_t(n_skip))->Tags));
-
-	return !non_list && n_skip == term.size() ? string("()") : YSLib::sfmt<
-		string>("#<%s{%zu}%s%s>", s_is_pair ? (non_list ? "improper-list"
-		: "list") : "unknown", term.size() - n_skip, s_is_pair ? " . "
-		: (non_list ? ":" : ""), non_list ? term.Value.type().name() : "");
+	return TermToStringImpl(term, n_skip, true);
 }
 
 string
@@ -546,8 +568,8 @@ LiftCollapsed(TermNode& term, TermNode& tm, TermReference ref)
 	auto pr(Collapse(std::move(ref)));
 
 	if(!ystdex::ref_eq<>()(term, tm))
-		term.SetContent(TermNode(std::move(tm.GetContainerRef()),
-			std::move(pr.first)));
+		term.SetContent(
+			TermNode(std::move(tm.GetContainerRef()), std::move(pr.first)));
 	else if(pr.second)
 		yunseq(term.Value = std::move(pr.first),
 			term.Tags = TermTags::Unqualified);
@@ -615,7 +637,8 @@ LiftToReturn(TermNode& term)
 		// XXX: Using %LiftMovedOther instead of %LiftMoved is safe, because the
 		//	referent is not allowed to be same to %term in NPLA.
 		LiftMovedOther(term, *p, p->IsMovable());
-	AssertValueTags(term);
+	else
+		AssertValueTags(term);
 }
 
 void
@@ -699,7 +722,7 @@ LiftSuffixToReturn(TermNode& term, TNCIter i)
 			//	12.1.
 			const auto lift([&](TermNode::Container tcon, ValueObject vo){
 				term.Value = std::move(vo);
-				con.splice(i, tcon);
+				NPL::TransferSubterms(con, i, tcon);
 				con.erase(i, con.end());
 			});
 
@@ -712,9 +735,9 @@ LiftSuffixToReturn(TermNode& term, TNCIter i)
 			// NOTE: Any optimized implemenations shall be equivalent to this.
 			TermNode::Container tcon(con.get_allocator());
 
-			tcon.splice(tcon.end(), con);
+			NPL::TransferSubtermsAfter(tcon, con);
 			lift_content(term, nd);
-			con.splice(con.begin(), tcon);
+			NPL::TransferSubtermsBefore(con, tcon);
 #endif
 		}
 	}

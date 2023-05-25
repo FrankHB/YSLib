@@ -31,13 +31,13 @@ fi
 if test "$SHBuild_Host_OS" = Win32; then
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
-	"$CXX" -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
-		$INCLUDES "$outdir/SHBuild/Main.cpp.o" $NO_LTO_ $LIBS
+	"$CXX" -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $INCLUDES \
+		"$outdir/SHBuild/Main.cpp.o" $NO_LTO_ $SRCS $LIBS
 else
 	# XXX: Value of several variables may contain whitespaces.
 	# shellcheck disable=2086
-	"$CXX" -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS \
-		$INCLUDES "$outdir/SHBuild.a" $LIBS
+	"$CXX" -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $INCLUDES \
+		"$outdir/SHBuild.a" $SRCS $LIBS
 fi
 
 SHBuild_Popd

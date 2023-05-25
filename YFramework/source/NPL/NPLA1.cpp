@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r24964
+\version r25391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2023-05-10 12:38 +0800
+	2023-05-23 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,30 +26,30 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1Forms // for EvaluationPasses, lref, ContextHandler,
-//	RelaySwitched, trivial_swap, type_index, string_view,  YSLib::lock_guard,
-//	YSLib::mutex, std::declval, std::ref, ListReductionFailure, ystdex::sfmt,
-//	TermToStringWithReferenceMark, std::next, IsBranch, TermReference,
-//	std::allocator_arg, in_place_type, CheckReducible,
+#include YFM_NPL_NPLA1Root // for EvaluationPasses, lref, ContextHandler,
+//	RelaySwitched, trivial_swap, type_index, string_view, YSLib::lock_guard,
+//	YSLib::mutex, std::next, ystdex::make_unique_guard, ystdex::dismiss,
+//	ListReductionFailure, ystdex::sfmt, TermToStringWithReferenceMark, IsBranch,
+//	TermReference, in_place_type, CheckReducible,
 //	IsNPLAExtendedLiteralNonDigitPrefix, IsAllSignLexeme, AllocatorHolder,
-//	YSLib::IValueHolder, YSLib::AllocatedHolderOperations, any,
-//	ystdex::as_const, NPL::forward_as_tuple, uintmax_t, ystdex::ref,
-//	ystdex::bind1, TokenValue, Forms::Sequence, ReduceBranchToList,
-//	YSLib::stack, vector, size_t, GetLValueTagsOf, TermTags, function,
-//	TryAccessLeafAtom, PropagateTo, InvalidReference, LiftTermRef,
-//	TryAccessLeaf, LiftPrefixToReturn, NPL::Deref, ystdex::true_, IsList,
+//	SourceInformation, YSLib::IValueHolder, any,
+//	YSLib::AllocatedHolderOperations, ystdex::as_const, NPL::forward_as_tuple,
+//	uintmax_t, std::declval, ystdex::ref, ystdex::bind1, TokenValue,
+//	std::allocator_arg, Forms::Sequence, ReduceBranchToList, YSLib::stack,
+//	vector, size_t, std::ref, Environment, ystdex::true_, IsList,
 //	ThrowFormalParameterTypeError, CountPrefix,
 //	ThrowNestedParameterTreeMismatch, ystdex::false_, IsIgnore, TermToNamePtr,
-//	tuple, TNCIter, NPL::get, ResolveTerm, IsTyped, std::prev,
-//	ThrowListTypeErrorForNonList, ThrowInsufficientTermsError, ReferenceTerm,
-//	ystdex::begins_with, FindStickySubterm, Environment, shared_ptr,
-//	AssertValueTags, ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
-//	ystdex::make_transform, IsCombiningTerm, NPL::IsMovable, std::placeholders,
-//	NoContainer, ystdex::try_emplace, Access, YSLib::Informative,
-//	ystdex::make_unique_guard, CategorizeBasicLexeme, DeliteralizeUnchecked,
-//	any_ops::use_holder, Deliteralize, IsLeaf, TryAccessTerm, YSLib::share_move,
+//	TermTags, function, tuple, TNCIter, NPL::get, NPL::Deref, TryAccessLeaf,
+//	ResolveTerm, std::prev, IsTyped, ThrowListTypeErrorForNonList, PropagateTo,
+//	ThrowInsufficientTermsError, ReferenceTerm, ystdex::begins_with,
+//	FindStickySubterm, AssertValueTags, shared_ptr, IsCombiningTerm,
+//	ystdex::retry_on_cond, AccessFirstSubterm, ystdex::ref_eq,
+//	ystdex::make_transform, NPL::IsMovable, TryAccessLeafAtom, GetLValueTagsOf,
+//	std::placeholders, NoContainer, ystdex::try_emplace, Access,
+//	YSLib::Informative, CategorizeBasicLexeme, DeliteralizeUnchecked,
+//	Deliteralize, any_ops::use_holder, IsLeaf, TryAccessTerm, YSLib::share_move,
 //	ystdex::call_value_or, std::piecewise_construct, type_id, make_observer,
-//	YSLib::Notice, YSLib::FilterException, Session;
+//	YSLib::Notice, std::istreambuf_iterator, Session;
 #include <ystdex/flat_map.hpp> // for ystdex::flat_map;
 #include "NPLA1Internals.h" // for A1::Internals API;
 #include YFM_NPL_NPLAMath // for ReadNumber;
@@ -478,7 +478,7 @@ public:
 	DefDeCopyMoveCtorAssignment(SourcedHolder)
 
 	YB_ATTR_nodiscard any
-	Create(Creation c, const any& x) const ImplI(IValueHolder)
+	Create(Creation c, const any& x) const ImplI(YSLib::IValueHolder)
 	{
 		// XXX: Always use the allocator to hold the source information.
 		return YSLib::AllocatedHolderOperations<SourcedHolder,
@@ -488,7 +488,7 @@ public:
 	}
 
 	YB_ATTR_nodiscard YB_PURE PDefH(any, Query, uintmax_t) const ynothrow
-		ImplI(IValueHolder)
+		ImplI(YSLib::IValueHolder)
 		ImplRet(ystdex::ref(source_information))
 
 	using base::get_allocator;
@@ -590,10 +590,6 @@ private:
 };
 
 
-//! \since build 873
-inline PDefH(void, CopyTermTags, TermNode& term, const TermNode& tm) ynothrow
-	ImplExpr(term.Tags = GetLValueTagsOf(tm.Tags))
-
 //! \since build 961
 struct BindAdd final
 {
@@ -611,399 +607,6 @@ struct BindAdd final
 	{
 		// XXX: Allocators are not used here for performance.
 		return Environment::Bind(m, id, TermNode(std::move(c), std::move(vo)));
-	}
-};
-
-//! \since build 961
-struct BindInsert final
-{
-	TermNode::Container& tcon;
-
-	void
-	operator()(const TermNode& tm) const
-	{
-		CopyTermTags(tcon.emplace_back(tm.GetContainer(), tm.Value), tm);
-	}
-	TermNode&
-	operator()(TermNode::Container&& c, ValueObject&& vo) const
-	{
-		tcon.emplace_back(std::move(c), std::move(vo));
-		return tcon.back();
-	}
-};
-
-//! \since build 828
-class BindParameterObject final
-{
-public:
-	// XXX: This is actually used for references of lvalues and it
-	//	is never accurate (see below). It is still necessary to avoid release
-	//	TCO frame records too early in next function calls.
-	//! \since build 882
-	lref<const EnvironmentReference> Referenced;
-
-private:
-	//! \since build 961
-	//!@{
-	char sigil;
-
-public:
-	BindParameterObject(const EnvironmentReference& r_env, char s) ynothrow
-		: Referenced(r_env), sigil(s)
-	{}
-
-	template<typename _fInit>
-	void
-	operator()(TermTags o_tags, TermNode& o, _fInit init) const
-	{
-		// NOTE: For elements binding here, %TermTags::Unique in %o_tags is
-		//	irrelavant.
-		// NOTE: This shall be %true if the operand is stored in a term tree to
-		//	be reduced (and eventually cleanup) directly, but never for the
-		//	elements of a referent thereof. See also %GParameterMatcher::Match
-		//	and the tags inheritance in %GParameterMatcher::MatchPair.
-		const bool temp(bool(o_tags & TermTags::Temporary));
-
-		// NOTE: The binding rules here should be carefully tweaked to make them
-		//	exactly accept expression representations (in %TermNode) in NPLA1
-		//	all around.
-		if(sigil != '@')
-		{
-			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
-			// XXX: Put this declaration here instead of the outer block is
-			//	better for both compilation performance and generated code.
-			const auto a(o.get_allocator());
-
-			// NOTE: Subterms in arguments retained are also transferred for
-			//	values.
-			if(const auto p = TryAccessLeafAtom<TermReference>(o))
-			{
-				if(sigil != char())
-				{
-					// NOTE: If the sigil is '&', xvalues are treated as
-					//	prvalues in terms of the tags of the bound object by
-					//	calling to %BindReferenceTags instead of
-					//	%TermReference::GetTags. This only occurs on sigil '&'
-					//	for non-trailing binding as per the object language
-					//	rules.
-					const auto ref_tags(PropagateTo(sigil == '&'
-						? BindReferenceTags(*p) : p->GetTags(), o_tags));
-
-					// XXX: Allocators are not used here on %TermReference for
-					//	performance in most cases.
-					if(can_modify && temp)
-						// NOTE: Reference collapsed by move.
-						init(std::move(o.GetContainerRef()),
-							ValueObject(in_place_type<TermReference>, ref_tags,
-							std::move(*p)));
-					else
-						// NOTE: Reference collapsed by copy.
-						init(TermNode::Container(o.GetContainer(), a),
-							ValueObject(in_place_type<TermReference>, ref_tags,
-							*p));
-				}
-				else
-				{
-					auto& src(p->get());
-
-					// NOTE: Since it is passed by value copy, direct
-					//	destructive lifting cannot be used.
-					if(!p->IsMovable())
-						init(src);
-					else
-						init(std::move(src.GetContainerRef()),
-							std::move(src.Value));
-				}
-			}
-			// NOTE: This saves non-reference temporary objects into the
-			//	environment. No temporary objects outside the environment (in
-			//	the tree being reduced) can be referenced in the object language
-			//	later. There is no need to save them elsewhere even in the TCO
-			//	implementation.
-			else if((can_modify || sigil == '%') && temp)
-				// XXX: The object is bound to reference as temporary, implying
-				//	copy elision in the object language.
-				MarkTemporaryTerm(init(std::move(o.GetContainerRef()),
-					std::move(o.Value)));
-			// NOTE: Binding on list prvalues is always unsafe. However, since
-			//	%TermTags::Nonmodifying is not allowed on prvalues, being not
-			//	%can_modify currently implies some ancestor of %o is a
-			//	referenceable object, albeit not always an lvalue (which implies
-			//	undefined behavior if used as an lvalue).
-			else if(sigil == '&')
-				// XXX: Always move because the value object is newly created.
-				//	The anchor here (if any) is not accurate because it refers
-				//	to the anchor saved by the reference (if any), not
-				//	necessarily the original environment owning the referent.
-				init(TermNode::Container(a),
-					// NOTE: Term tags on prvalues are reserved and should be
-					//	ignored normally except for the possible overlapped
-					//	encoding of %TermTags::Sticky and future internal use.
-					//	Note that %TermTags::Temporary can be provided by a
-					//	bound object (indicated by %o) in an environment, which
-					//	is usually intialized from a prvalue.
-					ValueObject(std::allocator_arg, a,
-					in_place_type<TermReference>,
-					// NOTE: The call to %GetLValueTagsOf here is equivalent to
-					//	%PropagateTo in functionality except %TermTags::Unique.
-					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
-			else
-				init(o);
-		}
-		else if(!temp)
-			// XXX: Ditto, except that tags other than %TermTags::Nonmodifying
-			//	as well as %o.Tags are ignored intentionally. This may cause
-			//	differences on derivations using '@' or not, see $2021-08
-			//	@ %Documentation::Workflow.
-			init(TermNode::Container(o.get_allocator()),
-				ValueObject(std::allocator_arg, o.get_allocator(),
-				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
-				o, Referenced));
-		else
-			throw
-				InvalidReference("Invalid operand found on binding sigil '@'.");
-	}
-	template<typename _fInit>
-	void
-	operator()(TermTags o_tags, TermNode& o, TNIter first, _fInit init) const
-	{
-		// NOTE: Same to the overload above, except that %o can be a pair and %j
-		//	specifies the 1st subterm of the suffix.
-		const bool temp(bool(o_tags & TermTags::Temporary));
-		// XXX: Placing %bind_subpair_val_fwd here instead of in the branch
-		//	below is more efficient.
-		const auto bind_subpair_val_fwd(
-			[&](TermNode& src, TNIter j, TermTags tags) -> TermNode&{
-			YAssert(sigil == char() || sigil == '%', "Invalid sigil found.");
-
-			TermNode::Container tcon(src.get_allocator());
-			ValueObject vo;
-
-			CreateForBindSubpairPrefix(tcon, src, j, tags);
-			if(src.Value)
-				BindSubpairCopySuffix(tcon, vo, src, j);
-			return init(std::move(tcon), std::move(vo));
-		});
-		const auto bind_subpair_ref_at([&](TermTags tags){
-			YAssert(sigil == '&' || sigil == '@', "Invalid sigil found.");
-
-			const auto a(o.get_allocator());
-#if true
-			TermNode::Container tcon(a);
-
-			CreateForBindSubpairPrefix(tcon, o, first, tags);
-
-			// NOTE: Make a subpair reference whose referent is the copy
-			//	constructed above. Irregular representation is constructed
-			//	for the subpair reference.
-			// XXX: As %ReduceAsSubobjectReference in NPLA1Internals.
-			auto p_sub(A1::AllocateSharedTerm(a, std::move(tcon),
-				// XXX: As %LiftTermRef to a temporary %ValueObject value if
-				//	%o.Value is not empty. The container is ignored in this
-				//	case, since it is assumed always living when %Value is
-				//	accessed (otherwise, the behavior is undefined in the object
-				//	language).
-				o.Value ? o.Value.MakeIndirect() : ValueObject()));
-			auto& sub(*p_sub);
-
-			// XXX: Reuse %tcon.
-			tcon.clear();
-			tcon.push_back(MakeSubobjectReferent(a, std::move(p_sub)));
-			// XXX: The anchor indicated by %Referenced is not accurate, as the
-			//	overload %operator() above.
-			init(std::move(tcon), ValueObject(std::allocator_arg, a,
-				in_place_type<TermReference>, tags, sub, Referenced));
-#else
-			// NOTE: Any optimized implemenations shall be equivalent to this.
-			TermNode t(a);
-			auto& tcon(t.GetContainerRef());
-
-			CreateForBindSubpairPrefix(tcon, o, first, tags);
-			if(o.Value)
-				LiftTermRef(t.Value, o.Value);
-
-			auto p_sub(A1::AllocateSharedTerm(a, std::move(t)));
-
-			ReduceAsSubobjectReference(t, std::move(p_sub), Referenced, tags);
-			init(std::move(tcon), std::move(t.Value));
-#endif
-		});
-
-		if(sigil != '@')
-		{
-			const bool can_modify(!bool(o_tags & TermTags::Nonmodifying));
-			const auto a(o.get_allocator());
-
-			if(const auto p = TryAccessLeaf<TermReference>(o))
-			{
-				if(sigil != char())
-				{
-					const auto ref_tags(PropagateTo(sigil == '&'
-						? BindReferenceTags(*p) : p->GetTags(), o_tags));
-
-					if(can_modify && temp)
-						init(MoveSuffix(o, first),
-							ValueObject(in_place_type<TermReference>, ref_tags,
-							std::move(*p)));
-					else
-						init(TermNode::Container(first, o.end(), a),
-							ValueObject(in_place_type<TermReference>, ref_tags,
-							*p));
-				}
-				else
-				{
-					auto& src(p->get());
-
-					if(!p->IsMovable())
-						CopyTermTags(bind_subpair_val_fwd(src, src.begin(),
-							GetLValueTagsOf(o_tags & ~TermTags::Unique)), src);
-					else
-						init(MoveSuffix(o, first), std::move(src.Value));
-				}
-			}
-			// NOTE: This is different to the element binding overload above. It
-			//	is necessary to enable the movable elements for xvalue pairs by
-			//	this manner. This also makes all nested prvalues (implying
-			//	nested %TermTags::Temporary) in the subobjects handled here,
-			//	instead of the subpair branch below. 
-			else if((can_modify || sigil == '%')
-				&& (temp || bool(o_tags & TermTags::Unique)))
-			{
-				if(sigil == char())
-					LiftPrefixToReturn(o, first);
-				MarkTemporaryTerm(init(MoveSuffix(o, first),
-					std::move(o.Value)));
-			}
-			else if(sigil == '&')
-				bind_subpair_ref_at(GetLValueTagsOf(o.Tags | o_tags));
-			// NOTE: The temporary tag cannot be in %o_tags here.
-			else
-				MarkTemporaryTerm(bind_subpair_val_fwd(o, first, o_tags));
-		}
-		else if(!temp)
-			bind_subpair_ref_at(o_tags & TermTags::Nonmodifying);
-		else
-			throw
-				InvalidReference("Invalid operand found on binding sigil '@'.");
-	}
-
-private:
-	// XXX: Keep this out-of-line is a bit more efficient.
-	//! \since build 962
-	static void
-	BindSubpairCopySuffix(TermNode::Container& tcon, ValueObject& vo,
-		TermNode& o, TNIter j)
-	{
-		for(; j != o.end(); ++j)
-			tcon.emplace_back(*j);
-		vo = ValueObject(o.Value);
-	}
-
-	void
-	BindSubpairPrefix(TermNode::Container& tcon, TermNode& o, TNIter& j,
-		TermTags tags) const
-	{
-		// NOTE: This guarantees no subpair element will have
-		//	%TermTags::Temporary.
-		YAssert(!bool(tags & TermTags::Temporary),
-			"Unexpected temporary tag found.");
-		// NOTE: Make a list as a copy of the sublist or as a list of references
-		//	to the elements of the sublist, depending on the sigil.
-		for(; j != o.end() && !IsSticky(j->Tags); ++j)
-#if true
-			BindSubpairSubterm(tcon, tags, NPL::Deref(j));
-#else
-			// NOTE: Any optimized implemenations shall be equivalent to this,
-			//	except that the 1st argument of the call to %PropagateTo is
-			//	always assumed '{}'.
-			(*this)(tags, NPL::Deref(j), BindInsert{tcon});
-#endif
-	}
-
-	// XXX: Keep this a separated function may lead to more efficient code.
-	void
-	BindSubpairSubterm(TermNode::Container& tcon, TermTags o_tags, TermNode& o)
-		const
-	{
-		// NOTE: As %BindSubpairPrefix.
-		YAssert(!bool(o_tags & TermTags::Temporary),
-			"Unexpected temporary tag found.");
-		const BindInsert init{tcon};
-
-		if(sigil != '@')
-		{
-			const auto a(o.get_allocator());
-
-			if(const auto p = TryAccessLeafAtom<TermReference>(o))
-			{
-				if(sigil != char())
-					init(TermNode::Container(o.GetContainer(), a),
-						ValueObject(in_place_type<TermReference>,
-						// XXX: Do not use %BindReferenceTags as in
-						//	%operator()#1. This is required by the object
-						//	language rules. 
-						PropagateTo(p->GetTags(), o_tags), *p));
-				else
-				{
-					auto& src(p->get());
-
-					if(!p->IsMovable())
-						init(src);
-					else
-						init(std::move(src.GetContainerRef()),
-							std::move(src.Value));
-				}
-			}
-			else if(sigil == '&')
-				init(TermNode::Container(a), ValueObject(std::allocator_arg, a,
-					in_place_type<TermReference>,
-					GetLValueTagsOf(o.Tags | o_tags), o, Referenced));
-			else
-				init(o);
-		}
-		else
-			init(TermNode::Container(o.get_allocator()),
-				ValueObject(std::allocator_arg, o.get_allocator(),
-				in_place_type<TermReference>, o_tags & TermTags::Nonmodifying,
-				o, Referenced));
-	}
-
-	//! \since build 962
-	YB_ATTR(noinline) void
-	CreateForBindSubpairPrefix(TermNode::Container& tcon, TermNode& o,
-		TNIter first, TermTags tags) const
-	{
-		// NOTE: There is no %TermTags::Temprary in %tags due to the constrains
-		//	in the caller. This guarantees no element will have
-		//	%TermTags::Temporary.
-		YAssert(!bool(tags & TermTags::Temporary),
-			"Unexpected temporary tag found.");
-		// NOTE: No tags are set in the result implies no %TermTags::Temporary
-		//	in the elements finally.
-		BindSubpairPrefix(tcon, o, first, tags);
-		if(!o.Value)
-			// XXX: As in %LiftPrefixToReturn.
-			YAssert(first == o.end(), "Invalid representation found.");
-	}
-
-	void
-	MarkTemporaryTerm(TermNode& term) const ynothrow
-	{
-		if(sigil != char())
-			// XXX: This is like lifetime extension of temporary objects with
-			//	rvalue references in the host language.
-			term.Tags |= TermTags::Temporary;
-	}
-	//!@}
-
-	//! \since build 951
-	YB_ATTR_nodiscard static TermNode::Container
-	MoveSuffix(TermNode& o, TNIter j)
-	{
-		TermNode::Container tcon(o.get_allocator());
-
-		tcon.splice(tcon.end(), o.GetContainerRef(), j, o.end());
-		return tcon;
 	}
 };
 
@@ -1335,7 +938,7 @@ private:
 					_tTraits::CheckSuffix(nd, p_ref, yforward(args)...);
 			}, t);
 		// XXX: There is only one level of indirection. It should work with the
-		//	correct implementation of the reference collapse.
+		//	correct implementation of reference collapsing.
 		ResolveTerm([&, o_tags](TermNode& nd, ResolvedTermReferencePtr p_ref){
 			const bool ellipsis(is_list && mid != t.end());
 
@@ -1384,9 +987,8 @@ private:
 					//	for typical cases. Avoiding this branch (which would be
 					//	reused in the trampoline body in %operator()) also
 					//	improves the compilation performance significantly.
-					remained.emplace(t.begin(), mid, nd, nd.begin(), tags,
-						p_ref ? p_ref->GetEnvironmentReference() : r_env,
-						ellipsis
+					remained.emplace(t.begin(), mid, nd, nd.begin(), tags, p_ref
+						? p_ref->GetEnvironmentReference() : r_env, ellipsis
 #if NPL_Impl_NPLA1_AssertParameterMatch
 						, t
 #endif
@@ -2316,34 +1918,8 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 	if(p_ref_fm)
 	{
 		ClearCombiningTags(term);
-		// XXX: The following irregular term conversion is not necessary. It is
-		//	even better to be avoid for easier handling of reference values.
-#if false
-		// XXX: This converts the term with irregular representation at first.
-		//	See %ReduceForCombinerRef for the introduction of the irregular
-		//	representation.
-		if(IsBranch(fm))
-		{
-			YAssert(fm.size() == 1, "Invalid irregular representation of"
-				" reference with multiple subterms found.");
-			YAssert(IsLeaf(*fm.begin()), "Invalid irregular representation of"
-				" reference with non-leaf 1st subterm found.");
-
-			// XXX: Assume nonnull. This is guaranteed in construction
-			//	in %ReduceForCombinerRef.
-			const auto& referenced(p_ref_fm->get());
-
-			YAssert(ystdex::ref_eq<>()(NPL::Deref(
-				Access<shared_ptr<TermNode>>(*fm.begin())), referenced),
-				"Invalid subobject reference found.");
-			// XXX: Explicit copy is necessary as in the implementation of
-			//	%LiftOtherOrCopy.
-			fm.CopyContent(referenced);
-			YAssert(IsLeaf(fm), "Wrong result of irregular"
-				" representation conversion found.");
-		}
-		else
-#endif
+		if(YB_UNLIKELY(IsBranch(fm)))
+			AssertSubobjectReferenceTerm(fm);
 		// NOTE: The combiner object is in an lvalue. It is not saved by %term.
 		if(const auto p_handler
 			= TryAccessLeafAtom<const ContextHandler>(p_ref_fm->get()))
@@ -2354,6 +1930,19 @@ ReduceCombinedBranch(TermNode& term, ContextNode& ctx)
 			// NOTE: This is neutral to %NPL_Impl_NPLA1_Enable_Thunked.
 			return CombinerReturnThunk(*p_handler, term, ctx);
 		}
+		// XXX: The following irregular term conversion is not necessary. It
+		//	is even better to be avoided for easier handling of reference
+		//	values.
+#if false
+		// XXX: This converts the term with irregular representation at
+		//	first. See %ReduceForCombinerRef for the introduction of the
+		//	irregular representation.
+		// XXX: Explicit copy is necessary as in the implementation of
+		//	%LiftOtherOrCopy.
+		fm.CopyContent(p_ref_fm->get());
+		YAssert(IsLeaf(fm),
+			"Wrong result of irregular representation conversion found.");
+#endif
 	}
 	else
 		term.Tags |= TermTags::Temporary;

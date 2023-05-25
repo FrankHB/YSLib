@@ -16,8 +16,8 @@ SHBuild_Debug=debug
 
 # shellcheck source=../Tools/Scripts/SHBuild-YSLib.sh
 . "$SHBuild_ToolDir/SHBuild-YSLib.sh" # for YSLib_BaseDir, SHBuild_GetBuildName,
-#	SHBuild_Pushd, SHBuild_S1_InitializePCH, CXXFLAGS, LDFLAGS, INCLUDES,
-#	SHBuild_Popd;
+#	SHBuild_Pushd, SHBuild_S1_InitializePCH, DoLTOCleanup_, DoLTOCleanup_Int_,
+#	DoLTOCleanup_AddTarget_, CXXFLAGS, LDFLAGS, INCLUDES, SHBuild_Popd;
 
 # NOTE: Coordinated at build 966.
 LIBS="$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
@@ -34,6 +34,11 @@ SHBuild_Pushd "$Test_BuildDir"
 
 SHBuild_S1_InitializePCH # for SHBuild_IncPCH.
 
+# XXX: See %Tools/Scripts/SHBuild-common-options.sh.
+trap DoLTOCleanup_ EXIT
+trap DoLTOCleanup_Int_ INT QUIT TERM
+
+DoLTOCleanup_AddTarget_ .
 # XXX: Value of several variables may contain whitespaces.
 # shellcheck disable=2086,2154
 "$CXX" "$TestDir/YBase.cpp" -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \

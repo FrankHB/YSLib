@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r4746
+\version r4868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2023-03-31 12:25 +0800
+	2023-05-21 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,7 @@ enum class TermTags
 		但数值相等的其它标签值可在项引用中使用。
 	若这个标签值在第一个子项的标签设置，则包含这个子项的整个项不是非真列表。
 	在这个标签值不在第一个子项的标签设置时，非平凡非正规表示的项表示非真列表：
-	在第一个具有这个标签值的子项前的子项表示 cons 对的第二个元素以外的列表元素；
+	不具有这个标签值的子项前缀表示最后一个 cons 对的第二个元素以外的列表元素；
 	其它子项和值数据成员表示最后的 cons 对的第二个元素。
 	*/
 	Sticky = 1 << StickyIndex
@@ -931,7 +931,7 @@ HasValue(const TermNode& nd, const _type& x)
 //! \brief 对不具有粘滞位的子项前缀计数。
 YB_ATTR_nodiscard YB_PURE YB_FLATTEN inline
 	PDefH(size_t, CountPrefix, const TermNode::Container& con) ynothrow
-	ImplRet([&]{
+	ImplRet([&] YB_LAMBDA_ANNOTATE((), , pure){
 		size_t i(0);
 
 		for(const auto& t : con)
@@ -1017,6 +1017,44 @@ AccessPtr(const TermNode& nd) ynothrow
 	return nd.Value.AccessPtr<_type>();
 }
 
+//! \brief 创建项节点。
+//!@{
+//! \since build 942
+template<typename... _tParam, typename... _tParams>
+YB_ATTR_nodiscard inline
+yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
+	TermNode::allocator_type, TermNode>
+AsTermNode(_tParams&&... args)
+{
+	return TermNode(NoContainer, yforward(args)...);
+}
+//! \since build 891
+template<typename... _tParams>
+YB_ATTR_nodiscard inline TermNode
+AsTermNode(TermNode::allocator_type a, _tParams&&... args)
+{
+	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
+}
+
+//! \since build 947
+template<typename... _tParam, typename... _tParams>
+YB_ATTR_nodiscard inline
+yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
+	TermNode::allocator_type, TermNode>
+AsTermNodeTagged(TermTags tags, _tParams&&... args)
+{
+	return TermNode(tags, NoContainer, yforward(args)...);
+}
+//! \since build 947
+template<typename... _tParams>
+YB_ATTR_nodiscard inline TermNode
+AsTermNodeTagged(TermNode::allocator_type a, TermTags tags, _tParams&&... args)
+{
+	return
+		TermNode(std::allocator_arg, a, tags, NoContainer, yforward(args)...);
+}
+//!@}
+
 /*!
 \brief 断言枝节点。
 \pre 断言：参数指定的项是枝节点。
@@ -1101,62 +1139,6 @@ YB_NONNULL(2) inline
 	ImplExpr(AssertValueTags(nd.Tags, msg))
 //!@}
 
-//! \brief 创建项节点。
-//!@{
-//! \since build 942
-template<typename... _tParam, typename... _tParams>
-YB_ATTR_nodiscard inline
-yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
-	TermNode::allocator_type, TermNode>
-AsTermNode(_tParams&&... args)
-{
-	return TermNode(NoContainer, yforward(args)...);
-}
-//! \since build 891
-template<typename... _tParams>
-YB_ATTR_nodiscard inline TermNode
-AsTermNode(TermNode::allocator_type a, _tParams&&... args)
-{
-	return TermNode(std::allocator_arg, a, NoContainer, yforward(args)...);
-}
-
-//! \since build 947
-template<typename... _tParam, typename... _tParams>
-YB_ATTR_nodiscard inline
-yimpl(ystdex::enable_if_inconvertible_t)<ystdex::head_of_t<_tParams...>,
-	TermNode::allocator_type, TermNode>
-AsTermNodeTagged(TermTags tags, _tParams&&... args)
-{
-	return TermNode(tags, NoContainer, yforward(args)...);
-}
-//! \since build 947
-template<typename... _tParams>
-YB_ATTR_nodiscard inline TermNode
-AsTermNodeTagged(TermNode::allocator_type a, TermTags tags, _tParams&&... args)
-{
-	return
-		TermNode(std::allocator_arg, a, tags, NoContainer, yforward(args)...);
-}
-//!@}
-
-//! \since build 852
-//!@{
-// NOTE: Like %YSLib::GetValueOf.
-YB_ATTR_nodiscard YB_PURE inline
-	PDefH(ValueObject, GetValueOf, observer_ptr<const TermNode> p_term)
-	ImplRet(ystdex::call_value_or([](const TermNode& nd) -> const ValueObject&{
-		return nd.Value;
-	}, p_term))
-
-// NOTE: Like %YSLib::GetValuePtrOf.
-YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
-	GetValuePtrOf, observer_ptr<const TermNode> p_term)
-	ImplRet(ystdex::call_value_or(
-		ystdex::compose(make_observer<const ValueObject>, ystdex::addrof<>(),
-		[](const TermNode& nd) -> const ValueObject&{
-		return nd.Value;
-	}), p_term))
-
 //! \since build 872
 //!@{
 //! \pre 断言：参数指定的项是枝节点。
@@ -1180,6 +1162,24 @@ YB_ATTR_nodiscard inline
 	PDefH(shared_ptr<TermNode>, ShareMoveTerm, TermNode&& nd)
 	ImplRet(YSLib::share_move(nd.get_allocator(), nd))
 //!@}
+
+//! \since build 852
+//!@{
+// NOTE: Like %YSLib::GetValueOf.
+YB_ATTR_nodiscard YB_PURE inline
+	PDefH(ValueObject, GetValueOf, observer_ptr<const TermNode> p_term)
+	ImplRet(ystdex::call_value_or([](const TermNode& nd) -> const ValueObject&{
+		return nd.Value;
+	}, p_term))
+
+// NOTE: Like %YSLib::GetValuePtrOf.
+YB_ATTR_nodiscard YB_PURE inline PDefH(observer_ptr<const ValueObject>,
+	GetValuePtrOf, observer_ptr<const TermNode> p_term)
+	ImplRet(ystdex::call_value_or(
+		ystdex::compose(make_observer<const ValueObject>, ystdex::addrof<>(),
+		[](const TermNode& nd) -> const ValueObject&{
+		return nd.Value;
+	}), p_term))
 
 /*!
 \brief 移除项中第一个表示一等对象的子节点。
@@ -1206,6 +1206,63 @@ SetContentWith(TermNode& dst, _tNode&& nd, _fCallable f)
 
 	dst.SetContent(std::move(con), std::move(vo));
 }
+//!@}
+
+//! \since build 974
+//!@{
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(TermNode::Container&,
+	SpliceAccess, TermNode::Container& con)
+	ImplRet(con)
+YB_ATTR_nodiscard YB_STATELESS yconstfn PDefH(TermNode::Container&,
+	SpliceAccess, TermNode::Container&& con)
+	ImplRet(con)
+YB_ATTR_nodiscard YB_STATELESS inline PDefH(TermNode::Container&,
+	SpliceAccess, TermNode& term)
+	ImplRet(term.GetContainerRef())
+YB_ATTR_nodiscard YB_STATELESS inline PDefH(TermNode::Container&,
+	SpliceAccess, TermNode&& term)
+	ImplRet(term.GetContainerRef())
+
+/*!
+\brief 转移第三参数的指定子项到第一参数。
+\pre 断言：第一参数和第三参数指定的容器不同。
+\pre 第二参数是第一参数的迭代器。
+\sa NPL::SpliceAccess
+*/
+template<class _tParam1, class _tParam2, typename... _tParams>
+inline void
+TransferSubterms(_tParam1&& x, TNCIter i, _tParam2&& y, _tParams&&... args)
+{
+	// XXX: No other cyclic reference check.
+	yconstexpr_if(sizeof...(args) == 0)
+		YAssert(!ystdex::ref_eq<>()(NPL::SpliceAccess(x), NPL::SpliceAccess(y)),
+			"Invalid self move found.");
+	NPL::SpliceAccess(x).splice(i, NPL::SpliceAccess(y), yforward(args)...);
+}
+
+/*!
+\sa NPL::TransferSubterms
+\pre 断言：第一参数和第二参数指定的容器不同。
+*/
+//!@{
+//! \brief 转移第二参数的子项到第一参数的子项后。
+template<class _tParam1, class _tParam2, typename... _tParams>
+inline void
+TransferSubtermsAfter(_tParam1&& x, _tParam2&& y, _tParams&&... args)
+{
+	NPL::TransferSubterms(yforward(x), x.end(), yforward(y),
+		yforward(args)...);
+}
+
+//! \brief 转移第二参数的子项到第一参数的子项前。
+template<class _tParam1, class _tParam2, typename... _tParams>
+inline void
+TransferSubtermsBefore(_tParam1&& x, _tParam2&& y, _tParams&&... args)
+{
+	NPL::TransferSubterms(yforward(x), x.begin(), yforward(y),
+		yforward(args)...);
+}
+//!@}
 //!@}
 //!@}
 
